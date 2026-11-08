@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>RNA Bio-LoRa Mesh — Painel de Controle & Rede de IAs</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="alternate icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -104,16 +107,12 @@
       width: 38px;
       height: 38px;
       border-radius: 10px;
-      background: linear-gradient(135deg, var(--emerald), var(--cyan));
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 700;
-      font-size: 0.9rem;
-      color: #04131a;
-      box-shadow: 0 0 18px rgba(16, 185, 129, 0.3);
+      box-shadow: 0 0 18px rgba(6, 182, 212, 0.35);
       flex-shrink: 0;
+      object-fit: contain;
     }
 
     .brand-title {
@@ -1388,7 +1387,7 @@
   <!-- TOPBAR -->
   <header class="topbar">
     <div class="brand">
-      <div class="brand-logo">RNA</div>
+      <img src="favicon.svg" alt="RNA Logo" class="brand-logo" />
       <div>
         <div class="brand-title">
           RNA Bio-LoRa Mesh

@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a101d"/>
+      <stop offset="50%" stop-color="#080c16"/>
+      <stop offset="100%" stop-color="#03060a"/>
+    </linearGradient>
+
+    <!-- Border Ring Gradient -->
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#06b6d4" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.8"/>
+    </linearGradient>
+
+    <!-- RNA Strand Gradient 1 (Emerald to Cyan) -->
+    <linearGradient id="strandGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="50%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+
+    <!-- RNA Strand Gradient 2 (Cyan to Violet) -->
+    <linearGradient id="strandGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="50%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+
+    <!-- Glow Filter -->
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Base Rounded Squircle / Badge -->
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="url(#bgGrad)" stroke="url(#ringGrad)" stroke-width="8" filter="url(#softGlow)"/>
+
+  <!-- Subtle Bio-Grid / Mesh Background Rings -->
+  <circle cx="256" cy="256" r="170" fill="none" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="8 12" opacity="0.25"/>
+  <circle cx="256" cy="256" r="115" fill="none" stroke="#10b981" stroke-width="1" stroke-dasharray="6 8" opacity="0.2"/>
+
+  <!-- Mesh Constellation Connection Lines -->
+  <g stroke="url(#strandGrad2)" stroke-width="2" opacity="0.4">
+    <line x1="160" y1="140" x2="256" y2="190"/>
+    <line x1="256" y1="190" x2="352" y2="140"/>
+    <line x1="130" y1="256" x2="210" y2="256"/>
+    <line x1="302" y1="256" x2="382" y2="256"/>
+    <line x1="160" y1="372" x2="256" y2="322"/>
+    <line x1="256" y1="322" x2="352" y2="372"/>
+    <line x1="210" y1="256" x2="256" y2="190"/>
+    <line x1="302" y1="256" x2="256" y2="322"/>
+  </g>
+
+  <!-- RNA Nucleotide Bases (Connecting Rungs) -->
+  <g stroke-linecap="round" stroke-width="6" opacity="0.85">
+    <line x1="195" y1="165" x2="256" y2="190" stroke="#34d399"/>
+    <line x1="317" y1="165" x2="256" y2="190" stroke="#38bdf8"/>
+    <line x1="165" y1="256" x2="235" y2="256" stroke="#06b6d4"/>
+    <line x1="277" y1="256" x2="347" y2="256" stroke="#a855f7"/>
+    <line x1="195" y1="347" x2="256" y2="322" stroke="#c084fc"/>
+    <line x1="317" y1="347" x2="256" y2="322" stroke="#34d399"/>
+  </g>
+
+  <!-- Primary Stylized RNA Sinusoidal Wave (Bio-Helix Backbone) -->
+  <path d="M 140 130 C 190 130, 220 220, 256 220 C 292 220, 322 130, 372 130 C 400 130, 410 150, 410 170 C 410 220, 330 256, 256 256 C 182 256, 102 292, 102 342 C 102 362, 112 382, 140 382 C 190 382, 220 292, 256 292 C 292 292, 322 382, 372 382"
+        fill="none" stroke="url(#strandGrad1)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" filter="url(#neonGlow)"/>
+
+  <!-- Secondary Complementary Intersecting Mesh Strand -->
+  <path d="M 372 130 C 322 130, 292 220, 256 220 C 220 220, 190 130, 140 130"
+        fill="none" stroke="url(#strandGrad2)" stroke-width="10" stroke-linecap="round" opacity="0.6"/>
+
+  <path d="M 140 382 C 190 382, 220 292, 256 292 C 292 292, 322 382, 372 382"
+        fill="none" stroke="url(#strandGrad2)" stroke-width="10" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- Network Nodes / Ribosome Micelles (Glowing Orbs) -->
+  <circle cx="140" cy="130" r="14" fill="#34d399" filter="url(#neonGlow)"/>
+  <circle cx="372" cy="130" r="14" fill="#38bdf8" filter="url(#neonGlow)"/>
+  <circle cx="256" cy="220" r="16" fill="#06b6d4" filter="url(#neonGlow)"/>
+  <circle cx="256" cy="292" r="16" fill="#8b5cf6" filter="url(#neonGlow)"/>
+  <circle cx="140" cy="382" r="14" fill="#a855f7" filter="url(#neonGlow)"/>
+  <circle cx="372" cy="382" r="14" fill="#34d399" filter="url(#neonGlow)"/>
+
+  <!-- Inner Node Cores (White Hot Intensity) -->
+  <circle cx="140" cy="130" r="6" fill="#ffffff"/>
+  <circle cx="372" cy="130" r="6" fill="#ffffff"/>
+  <circle cx="256" cy="220" r="7" fill="#ffffff"/>
+  <circle cx="256" cy="292" r="7" fill="#ffffff"/>
+  <circle cx="140" cy="382" r="6" fill="#ffffff"/>
+  <circle cx="372" cy="382" r="6" fill="#ffffff"/>
+
+  <!-- Central "RNA" Typography Glow Badge -->
+  <g transform="translate(256, 256)">
+    <rect x="-64" y="-22" width="128" height="44" rx="22" fill="#060c18" stroke="url(#ringGrad)" stroke-width="3" filter="url(#neonGlow)"/>
+    <text x="0" y="8" font-family="'JetBrains Mono', 'Inter', monospace, sans-serif" font-size="24" font-weight="900" fill="#f8fafc" text-anchor="middle" letter-spacing="4">RNA</text>
+  </g>
+</svg>
