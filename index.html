@@ -1,0 +1,2312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>RNA Bio-LoRa Mesh — Painel de Controle & Rede de IAs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #090d16;
+      --bg-surface: #111827;
+      --bg-elevated: #1e293b;
+      --bg-hover: #26354d;
+      --border: rgba(148, 163, 184, 0.14);
+      --border-strong: rgba(56, 189, 248, 0.35);
+      --text-main: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #64748b;
+      --emerald: #10b981;
+      --emerald-soft: rgba(16, 185, 129, 0.14);
+      --cyan: #06b6d4;
+      --cyan-soft: rgba(6, 182, 212, 0.14);
+      --violet: #8b5cf6;
+      --violet-soft: rgba(139, 92, 246, 0.15);
+      --amber: #f59e0b;
+      --amber-soft: rgba(245, 158, 11, 0.15);
+      --rose: #f43f5e;
+      --rose-soft: rgba(244, 63, 94, 0.15);
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding-bottom: 82px;
+      line-height: 1.5;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(9, 13, 22, 0.9);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--emerald), var(--cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #04131a;
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.3);
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-sub {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      background: var(--emerald-soft);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 8px var(--emerald);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: var(--bg-hover);
+      border-color: var(--border-strong);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--emerald), #059669);
+      color: #03150e;
+      border-color: transparent;
+      font-weight: 700;
+    }
+
+    .btn-cyan {
+      background: linear-gradient(135deg, var(--cyan), #0284c7);
+      color: #03131d;
+      border-color: transparent;
+      font-weight: 700;
+    }
+
+    .btn-violet {
+      background: linear-gradient(135deg, var(--violet), #6d28d9);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    /* CONTAINER */
+    .container {
+      max-width: 1340px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    /* KPI GRID */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    @media (min-width: 860px) {
+      .kpi-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+      }
+    }
+
+    .kpi-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .kpi-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .kpi-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.45rem;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+
+    .kpi-foot {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 2px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    /* DESKTOP TABS */
+    .desktop-tabs {
+      display: none;
+      gap: 8px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    @media (min-width: 768px) {
+      .desktop-tabs {
+        display: flex;
+      }
+      body {
+        padding-bottom: 32px;
+      }
+    }
+
+    .tab-btn {
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s;
+    }
+
+    .tab-btn:hover {
+      background: var(--bg-surface);
+      color: var(--text-main);
+    }
+
+    .tab-btn.active {
+      background: var(--bg-elevated);
+      color: var(--cyan);
+      border-color: var(--border-strong);
+    }
+
+    .tab-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text-secondary);
+    }
+
+    /* VIEWS */
+    .view-section {
+      display: none;
+    }
+    .view-section.active {
+      display: block;
+    }
+
+    /* OVERVIEW LAYOUT (TAB 1) */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 980px) {
+      .overview-grid {
+        grid-template-columns: 1.05fr 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .panel-title {
+      font-size: 0.96rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 14px;
+    }
+
+    .input-area, .input-field, .select-field {
+      width: 100%;
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 11px 13px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.88rem;
+      outline: none;
+    }
+
+    .input-area {
+      min-height: 105px;
+      resize: vertical;
+      margin-bottom: 10px;
+    }
+
+    .input-area:focus, .input-field:focus, .select-field:focus {
+      border-color: var(--cyan);
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    @media (min-width: 560px) {
+      .action-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .status-toast {
+      margin-top: 12px;
+      padding: 11px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      background: var(--bg-base);
+      border-left: 3px solid var(--cyan);
+      display: none;
+    }
+
+    /* SISTEMA DE TOASTS MODERNOS */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .rna-toast {
+      pointer-events: auto;
+      min-width: 300px;
+      max-width: 440px;
+      padding: 12px 16px;
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(56, 189, 248, 0.15);
+      color: var(--text-primary);
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateX(120%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+      opacity: 0;
+    }
+
+    .rna-toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .rna-toast-success {
+      border-left: 4px solid var(--emerald);
+    }
+    .rna-toast-error {
+      border-left: 4px solid var(--rose);
+    }
+    .rna-toast-info {
+      border-left: 4px solid var(--cyan);
+    }
+    .rna-toast-warning {
+      border-left: 4px solid var(--amber);
+    }
+
+    .rna-toast-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .rna-toast-msg {
+      flex: 1;
+      line-height: 1.4;
+    }
+
+    .rna-toast-close {
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 1rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+    .rna-toast-close:hover {
+      color: var(--text-primary);
+    }
+
+    /* SISTEMA DE MODAIS MODERNOS */
+    .rna-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 12, 22, 0.78);
+      backdrop-filter: blur(8px);
+      z-index: 99998;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .rna-modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .rna-modal-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 520px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 30px rgba(16, 185, 129, 0.12);
+      transform: scale(0.95);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .rna-modal-overlay.active .rna-modal-card {
+      transform: scale(1);
+    }
+
+    .rna-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .rna-modal-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rna-modal-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .rna-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    /* LIVE MISSION STREAMING FLIGHT CONSOLE */
+    .live-console {
+      margin-top: 16px;
+      background: #090e17;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.08);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .live-console-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .live-console-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .live-pulse {
+      width: 10px;
+      height: 10px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #10b981;
+      display: inline-block;
+      animation: livePulseAnim 1.4s infinite;
+    }
+
+    @keyframes livePulseAnim {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.3); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .live-progress-bar-bg {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .live-progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #38bdf8, #10b981);
+      width: 0%;
+      transition: width 0.35s ease;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+    }
+
+    .live-log-terminal {
+      background: #04070e;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.76rem;
+      max-height: 180px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .live-log-line {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.4;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .live-log-time {
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .live-log-node {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .live-log-msg {
+      color: #e2e8f0;
+      flex: 1;
+      word-break: break-word;
+    }
+
+    .live-result-box {
+      margin-top: 14px;
+      padding: 14px;
+      background: var(--bg-surface);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      border-radius: var(--radius-sm);
+      animation: fadeIn 0.4s ease;
+    }
+
+    .live-result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .live-result-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #10b981;
+    }
+
+    .live-result-stats {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .live-result-text {
+      font-size: 0.84rem;
+      line-height: 1.6;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+      max-height: 350px;
+      overflow-y: auto;
+      padding: 10px;
+      background: #070b12;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* MINI UNIT QUOTA LIST IN OVERVIEW */
+    .unit-quota-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .unit-quota-item {
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+    }
+
+    .uq-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .uq-name {
+      font-weight: 600;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .uq-stats {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* TAB 2: UNITS & TOKens CARDS */
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+    }
+
+    .filter-chip {
+      padding: 6px 13px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .filter-chip.active {
+      background: var(--cyan-soft);
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    .units-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    @media (min-width: 680px) {
+      .units-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 1080px) {
+      .units-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .unit-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.15s;
+    }
+
+    .unit-card:hover {
+      border-color: var(--border-strong);
+    }
+
+    .unit-card.online {
+      border-left: 3px solid var(--emerald);
+    }
+
+    .uc-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .uc-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .uc-sub {
+      font-size: 0.73rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      white-space: nowrap;
+    }
+
+    .badge-emerald { background: var(--emerald-soft); color: #34d399; }
+    .badge-cyan { background: var(--cyan-soft); color: #38bdf8; }
+    .badge-violet { background: var(--violet-soft); color: #c4b5fd; }
+    .badge-amber { background: var(--amber-soft); color: #fbbf24; }
+    .badge-rose { background: var(--rose-soft); color: #fb7185; }
+
+    .quota-box {
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+    }
+
+    .quota-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      margin-bottom: 5px;
+    }
+
+    .quota-pct {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+
+    .quota-numbers {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.71rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 6px;
+    }
+
+    /* TAB 3: BOUNDED EMAIL CLIENT (CAIXA DE CORREIO) */
+    .mail-client {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1fr;
+      height: auto;
+    }
+
+    @media (min-width: 960px) {
+      .mail-client {
+        grid-template-columns: 220px 340px 1fr;
+        height: 600px;
+      }
+    }
+
+    /* Column 1: Folders & Senders */
+    .mail-sidebar {
+      background: rgba(9, 13, 22, 0.65);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 10px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    @media (min-width: 960px) {
+      .mail-sidebar {
+        border-bottom: none;
+        border-right: 1px solid var(--border);
+      }
+    }
+
+    .mail-nav-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      padding: 6px 10px 4px;
+    }
+
+    .mail-folder-btn {
+      width: 100%;
+      text-align: left;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+
+    .mail-folder-btn:hover {
+      background: var(--bg-elevated);
+      color: var(--text-main);
+    }
+
+    .mail-folder-btn.active {
+      background: var(--cyan-soft);
+      color: #38bdf8;
+      font-weight: 600;
+    }
+
+    .mail-folder-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.8);
+    }
+
+    /* Column 2: Scrollable Sender/Message List */
+    .mail-list-pane {
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      max-height: 440px;
+      overflow: hidden;
+    }
+
+    @media (min-width: 960px) {
+      .mail-list-pane {
+        border-bottom: none;
+        border-right: 1px solid var(--border);
+        max-height: 600px;
+      }
+    }
+
+    .mail-list-header {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      font-weight: 700;
+      background: rgba(15, 23, 42, 0.4);
+      flex-shrink: 0;
+    }
+
+    .mail-list-scroll {
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .mail-row {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.15s;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .mail-row:hover {
+      background: rgba(30, 41, 59, 0.55);
+    }
+
+    .mail-row.active {
+      background: rgba(6, 182, 212, 0.12);
+      border-left: 3px solid var(--cyan);
+    }
+
+    .mr-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .mr-sender {
+      font-size: 0.81rem;
+      font-weight: 700;
+      color: var(--text-main);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mr-time {
+      font-size: 0.69rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      flex-shrink: 0;
+    }
+
+    .mr-route {
+      font-size: 0.72rem;
+      color: var(--cyan);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mr-subject {
+      font-size: 0.79rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mr-preview {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Column 3: Reading Pane */
+    .mail-reader-pane {
+      display: flex;
+      flex-direction: column;
+      max-height: 600px;
+      overflow: hidden;
+      background: var(--bg-surface);
+    }
+
+    .mail-reader-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.45);
+      flex-shrink: 0;
+    }
+
+    .mrh-subject {
+      font-size: 1.02rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      line-height: 1.35;
+    }
+
+    .mrh-envelope {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 6px;
+      font-size: 0.78rem;
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+    }
+
+    @media (min-width: 640px) {
+      .mrh-envelope {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .mrh-line {
+      color: var(--text-secondary);
+    }
+
+    .mrh-line strong {
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-right: 4px;
+    }
+
+    .mail-reader-body {
+      padding: 18px 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .mail-context-box {
+      background: rgba(139, 92, 246, 0.08);
+      border: 1px solid rgba(139, 92, 246, 0.25);
+      border-radius: var(--radius-sm);
+      padding: 10px 13px;
+      margin-bottom: 14px;
+      font-size: 0.79rem;
+      color: #ddd6fe;
+    }
+
+    .mail-content-pre {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.88rem;
+      line-height: 1.65;
+      color: var(--text-main);
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+
+    /* BOTTOM NAV FOR MOBILE */
+    .mobile-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: rgba(9, 13, 22, 0.96);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 6px 8px;
+    }
+
+    @media (min-width: 768px) {
+      .mobile-nav {
+        display: none;
+      }
+    }
+
+    .mnav-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 4px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .mnav-btn.active {
+      color: var(--cyan);
+      background: rgba(6, 182, 212, 0.1);
+    }
+
+    .mnav-icon {
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- GLOBAL MODAL OVERLAY -->
+  <div id="globalModalOverlay" class="rna-modal-overlay">
+    <div class="rna-modal-card">
+      <div class="rna-modal-header">
+        <div id="modalTitle" class="rna-modal-title">🛰️ Notificação da Malha</div>
+        <button class="rna-toast-close" onclick="closeGlobalModal()">✕</button>
+      </div>
+      <div id="modalDesc" class="rna-modal-desc"></div>
+      <div id="modalInputContainer" style="display: none; margin-bottom: 12px;">
+        <input type="text" id="modalInput" class="input-area" style="height: 42px; padding: 8px 12px;" placeholder="">
+      </div>
+      <div class="rna-modal-actions">
+        <button id="modalBtnCancel" class="btn" onclick="closeGlobalModal()">Cancelar</button>
+        <button id="modalBtnConfirm" class="btn btn-primary" onclick="confirmGlobalModal()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo">RNA</div>
+      <div>
+        <div class="brand-title">
+          RNA Bio-LoRa Mesh
+          <span class="live-pill"><span class="live-dot"></span> 24/7 ATIVO</span>
+        </div>
+        <div class="brand-sub">
+          <span id="envBadge">Host: carregando...</span>
+          <span>•</span>
+          <span id="lastSyncText">Sincronizando...</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button class="btn" id="btnScanTop" onclick="triggerScan()">📡 Escanear</button>
+      <button class="btn btn-violet" id="btnRecruitTop" onclick="triggerRecruit()">➕ Recrutar +IAs</button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- 4 KPI CARDS -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span>Economia Local</span>
+          <span class="badge badge-emerald">SEU PLANO</span>
+        </div>
+        <div class="kpi-value" style="color: var(--emerald);" id="kpiSaved">0</div>
+        <div class="progress-track">
+          <div class="progress-fill" id="barSaved" style="width: 75%; background: var(--emerald);"></div>
+        </div>
+        <div class="kpi-foot">
+          <span>Tokens poupados</span>
+          <span id="kpiRemoteGen">0 gerados lá fora</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span>Exército RNA</span>
+          <span class="badge badge-cyan" id="kpiIotBadge">0 IoT</span>
+        </div>
+        <div class="kpi-value" style="color: var(--cyan);" id="kpiArmy">0 / 0</div>
+        <div class="progress-track">
+          <div class="progress-fill" id="barArmy" style="width: 20%; background: var(--cyan);"></div>
+        </div>
+        <div class="kpi-foot">
+          <span>Unidades Online</span>
+          <span id="kpiSovereign">0 Tier S</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span>Cota Média da Rede</span>
+          <span class="badge badge-amber" id="kpiQuotaBadge">RESERVA</span>
+        </div>
+        <div class="kpi-value" style="color: var(--amber);" id="kpiAvgFree">100%</div>
+        <div class="progress-track">
+          <div class="progress-fill" id="barAvgFree" style="width: 90%; background: var(--amber);"></div>
+        </div>
+        <div class="kpi-foot">
+          <span>Energia disponível</span>
+          <span id="kpiTasksDone">0 missões</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span>Tráfego de Correio</span>
+          <span class="badge badge-violet">M2M</span>
+        </div>
+        <div class="kpi-value" style="color: #c4b5fd;" id="kpiMailCount">0</div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width: 100%; background: var(--violet);"></div>
+        </div>
+        <div class="kpi-foot">
+          <span>Trocas entre IAs</span>
+          <span id="kpiRelaysCount">0 repasses</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- DESKTOP TABS (Caixa de Correio não é a primeira aba) -->
+    <nav class="desktop-tabs">
+      <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">
+        ⚡ Painel Central & Missões
+      </button>
+      <button class="tab-btn" data-tab="units" onclick="switchTab('units')">
+        🖥️ Unidades & Cotas de Tokens <span class="tab-count" id="tabCountUnits">0</span>
+      </button>
+      <button class="tab-btn" data-tab="mail" onclick="switchTab('mail')">
+        ✉️ Caixa de Correio das IAs <span class="tab-count" id="tabCountMail">0</span>
+      </button>
+      <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">
+        🔑 Chave HF & Nuvem
+      </button>
+    </nav>
+
+    <!-- TAB 1: PAINEL CENTRAL & MISSÕES -->
+    <section class="view-section active" id="view-overview">
+      <div class="overview-grid">
+        <!-- Left: Command Dispatcher -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🚀 Orquestrador de Missões (Economia de Tokens)</div>
+            <span class="badge badge-emerald">Roteamento Micelial Ativo</span>
+          </div>
+          <p class="panel-desc">
+            Envie uma tarefa abaixo. O fungo escolhe a máquina online com menor resistência e maior porcentagem de tokens livres.
+          </p>
+
+          <textarea id="taskInput" class="input-area" placeholder="Descreva a tarefa, código ou análise que as IAs públicas devem resolver por você..."></textarea>
+
+          <div style="margin-bottom: 10px;">
+            <select id="nodeSelect" class="select-field">
+              <option value="">🍄 Automático (Fungo escolhe a máquina com mais tokens livres)</option>
+            </select>
+          </div>
+
+          <div class="action-grid">
+            <button class="btn btn-primary" id="btnRelay" onclick="dispatchTask('relay')">
+              🔗 Revezamento (2 IAs)
+            </button>
+            <button class="btn btn-cyan" id="btnSend" onclick="dispatchTask('send')">
+              ⚡ Envio Direto (1 IA)
+            </button>
+            <button class="btn btn-violet" id="btnSynth" onclick="dispatchTask('synthesize')">
+              🧬 Síntese (Multi-IA)
+            </button>
+          </div>
+
+          <div class="status-toast" id="cmdStatusBox" style="display: none;"></div>
+
+          <!-- CONSOLE DE VOO M2M EM TEMPO REAL (LIVE FLIGHT STREAM) -->
+          <div id="liveMissionConsole" class="live-console" style="display: none;">
+            <div class="live-console-header">
+              <div class="live-console-title">
+                <span class="live-pulse"></span> 🛰️ Transmissão M2M em Tempo Real (Missão Imediata Ativa)
+              </div>
+              <span id="liveProgressPercent" class="badge badge-cyan">0%</span>
+            </div>
+
+            <div class="live-progress-bar-bg">
+              <div id="liveProgressBar" class="live-progress-bar-fill" style="width: 0%;"></div>
+            </div>
+
+            <div id="liveLogTerminal" class="live-log-terminal">
+              <!-- Mensagens M2M em tempo real entram aqui -->
+            </div>
+
+            <div id="liveResultBox" class="live-result-box" style="display: none;">
+              <div class="live-result-header">
+                <div class="live-result-title">🧬 Síntese Concluída (Proteína Biológica Entregue)</div>
+                <button class="btn btn-outline" onclick="copyMissionResult()" style="padding: 4px 10px; font-size: 0.74rem;">
+                  📋 Copiar Resposta
+                </button>
+              </div>
+              <div id="liveResultStats" class="live-result-stats"></div>
+              <div id="liveResultText" class="live-result-text"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Live Token Percentage & Status of Active Machines -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🔋 Consumo de Tokens & Cota das Unidades Principais</div>
+            <button class="btn" style="padding: 4px 10px; font-size: 0.74rem;" onclick="switchTab('units')">Ver todas ➔</button>
+          </div>
+          <p class="panel-desc">
+            Acompanhe quanto cada unidade ativa já gastou da própria cota e a porcentagem restante para novas tarefas:
+          </p>
+
+          <div class="unit-quota-list" id="overviewQuotaList">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: UNIDADES & COTAS DE TOKENS -->
+    <section class="view-section" id="view-units">
+      <div class="filter-row">
+        <button class="filter-chip active" data-filter="ALL" onclick="setUnitFilter('ALL')">Todas as Unidades</button>
+        <button class="filter-chip" data-filter="ONLINE" onclick="setUnitFilter('ONLINE')">🟢 Online Agora</button>
+        <button class="filter-chip" data-filter="USED" onclick="setUnitFilter('USED')">⚡ Com Tokens Já Gastos</button>
+        <button class="filter-chip" data-filter="SOVEREIGN" onclick="setUnitFilter('SOVEREIGN')">👑 Soberanos Tier S</button>
+        <button class="filter-chip" data-filter="GENERAL" onclick="setUnitFilter('GENERAL')">⚔️ Generais Escribas</button>
+      </div>
+
+      <div class="units-grid" id="unitsGrid">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- TAB 3: CAIXA DE CORREIO (CLIENTE DE E-MAIL COMPLETO) -->
+    <section class="view-section" id="view-mail">
+      <div class="mail-client">
+        <!-- Col 1: Folders & Senders -->
+        <aside class="mail-sidebar">
+          <div class="mail-nav-label">Pastas de Correio</div>
+          <button class="mail-folder-btn active" data-folder="ALL" onclick="setMailFolder('ALL')">
+            <span>📥 Caixa de Entrada</span>
+            <span class="mail-folder-count" id="fCountAll">0</span>
+          </button>
+          <button class="mail-folder-btn" data-folder="SENT" onclick="setMailFolder('SENT')">
+            <span>📤 Enviados (Ordens)</span>
+            <span class="mail-folder-count" id="fCountSent">0</span>
+          </button>
+          <button class="mail-folder-btn" data-folder="HANDOFF" onclick="setMailFolder('HANDOFF')">
+            <span>🔗 Repasses IA ➔ IA</span>
+            <span class="mail-folder-count" id="fCountHandoff">0</span>
+          </button>
+          <button class="mail-folder-btn" data-folder="WRITE_SYNTH" onclick="setMailFolder('WRITE_SYNTH')">
+            <span>🧬 Sínteses Prontas</span>
+            <span class="mail-folder-count" id="fCountSynth">0</span>
+          </button>
+
+          <div class="mail-nav-label" style="margin-top: 10px;">Filtrar por Remetente</div>
+          <div id="mailSenderFilters">
+            <!-- Populated by JS -->
+          </div>
+        </aside>
+
+        <!-- Col 2: Scrollable Message List -->
+        <div class="mail-list-pane">
+          <div class="mail-list-header">
+            <span id="mailListTitle">📥 Caixa de Entrada</span>
+            <span style="font-size: 0.72rem; color: var(--text-muted);" id="mailListCounter">0 itens</span>
+          </div>
+          <div class="mail-list-scroll" id="mailListContainer">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Col 3: Message Reader -->
+        <div class="mail-reader-pane" id="mailReaderPane">
+          <div class="mail-reader-header">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+              <div class="mrh-subject" id="readerSubject">Selecione uma mensagem na lista ao lado</div>
+              <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                <button class="btn btn-cyan" id="btnTranslateMail" style="padding:5px 10px; font-size:0.74rem;" onclick="toggleTranslateCurrentMail()">
+                  🇧🇷 Traduzir p/ PT-BR
+                </button>
+                <button class="btn" id="btnAutoTranslate" style="padding:5px 10px; font-size:0.74rem; border-color:var(--emerald); color:#34d399;" onclick="toggleAutoTranslate()">
+                  🌐 Auto-PT: ATIVO
+                </button>
+                <button class="btn" style="padding:5px 10px; font-size:0.74rem;" onclick="copyReaderBody()">📋 Copiar</button>
+              </div>
+            </div>
+            <div class="mrh-envelope" id="readerEnvelope">
+              <div class="mrh-line"><strong>De (Remetente):</strong> <span id="readerFrom">-</span></div>
+              <div class="mrh-line"><strong>Para (Destinatário):</strong> <span id="readerTo">-</span></div>
+              <div class="mrh-line"><strong>Etapa / Tipo:</strong> <span id="readerHop">-</span></div>
+              <div class="mrh-line"><strong>Cota & Economia:</strong> <span id="readerQuota">-</span></div>
+            </div>
+          </div>
+
+          <div class="mail-reader-body">
+            <div class="mail-context-box" id="readerSummaryBox">
+              Clique em qualquer remetente ou mensagem na coluna central para ver de quem a IA recebeu a tarefa e o que ela respondeu.
+            </div>
+            <div class="mail-content-pre" id="readerBody">Nenhuma mensagem selecionada.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: CHAVE HF & NUVEM -->
+    <section class="view-section" id="view-settings">
+      <div class="panel" style="max-width: 640px;">
+        <div class="panel-header">
+          <div class="panel-title">🔑 Chave Hugging Face & Segurança Cloud</div>
+          <span class="badge badge-emerald" id="tokenMaskBadge">NÃO CONFIGURADO</span>
+        </div>
+        <p class="panel-desc">
+          Sua chave fica guardada apenas em <code>state/secret_config.json</code> e no banco MySQL protegido por <code>.htaccess</code>. Ela nunca é enviada para Spaces de terceiros.
+        </p>
+
+        <input type="password" id="hfTokenInput" class="input-field" placeholder="Cole sua chave hf_..." style="margin-bottom: 12px;" />
+        <button class="btn btn-primary" onclick="saveHfToken()">💾 Salvar Chave com Segurança</button>
+        <div class="status-toast" id="tokenStatusToast"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MOBILE BOTTOM NAVIGATION -->
+  <nav class="mobile-nav">
+    <button class="mnav-btn active" data-tab="overview" onclick="switchTab('overview')">
+      <span class="mnav-icon">⚡</span>
+      <span>Painel</span>
+    </button>
+    <button class="mnav-btn" data-tab="units" onclick="switchTab('units')">
+      <span class="mnav-icon">🖥️</span>
+      <span>Unidades</span>
+    </button>
+    <button class="mnav-btn" data-tab="mail" onclick="switchTab('mail')">
+      <span class="mnav-icon">✉️</span>
+      <span>Correio</span>
+    </button>
+    <button class="mnav-btn" data-tab="settings" onclick="switchTab('settings')">
+      <span class="mnav-icon">🔑</span>
+      <span>Chave</span>
+    </button>
+  </nav>
+
+  <script>
+    let telemetryData = null;
+    let currentTab = 'overview';
+    let currentUnitFilter = 'ALL';
+    let currentMailFolder = 'ALL';
+    let currentSenderFilter = null;
+    let allMailItems = [];
+    let selectedMailId = null;
+
+    function switchTab(tabId) {
+      currentTab = tabId;
+      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+      const target = document.getElementById('view-' + tabId);
+      if (target) target.classList.add('active');
+
+      document.querySelectorAll('.tab-btn, .mnav-btn').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-tab') === tabId);
+      });
+    }
+
+    function computeNodeTokenMetrics(node) {
+      const isIot = (node.caste === 'CASTE_5_IOT_SENSOR' || (node.type || '').includes('IoT'));
+      if (isIot) {
+        return {
+          isIot: true,
+          spent: 0,
+          capacity: 0,
+          usedPct: 0,
+          freePct: 100,
+          label: '0 tok (Sensor IoT Gratuito)',
+          barColor: 'var(--cyan)'
+        };
+      }
+      const spent = parseInt(node.tokens_processed || node.tokens_offloaded || 0, 10);
+      // Capacidade de referência por ciclo/sessão da máquina pública
+      const baseCap = parseInt(node.max_token_budget || 950, 10) * 6;
+      const capacity = Math.max(baseCap, spent + 1200);
+      const usedPct = Math.min(98, Math.round((spent / capacity) * 100));
+      const freePct = Math.max(2, 100 - usedPct);
+      let barColor = 'var(--emerald)';
+      if (usedPct > 75) barColor = 'var(--rose)';
+      else if (usedPct > 45) barColor = 'var(--amber)';
+
+      return {
+        isIot: false,
+        spent,
+        capacity,
+        usedPct,
+        freePct,
+        label: `${spent.toLocaleString('pt-BR')} / ${capacity.toLocaleString('pt-BR')} tok`,
+        barColor
+      };
+    }
+
+    async function fetchTelemetry() {
+      try {
+        const res = await fetch('api.php?action=telemetry&t=' + Date.now());
+        const data = await res.json();
+        telemetryData = data;
+        renderDashboard(data);
+      } catch (err) {
+        console.error('Erro ao carregar telemetria:', err);
+      }
+    }
+
+    function buildEnrichedMailItems(rawMailbox) {
+      const items = [];
+      (rawMailbox || []).forEach(m => {
+        items.push({
+          ...m,
+          direction: 'INBOX'
+        });
+        // Cria também o registro correspondente em "Enviados (Ordens)" para visualizar o que foi pedido à máquina
+        if (m.folder_type === 'WRITE_SYNTH' || m.folder_type === 'READ_SCOUT') {
+          items.push({
+            id: m.id + '_sent',
+            thread_id: m.thread_id,
+            hop: '📤 Ordem Enviada pelo Orquestrador',
+            folder_type: 'SENT',
+            direction: 'SENT',
+            from_node: 'Orquestrador Central RNA (Você)',
+            from_role: '👑 Comando da Colmeia',
+            to_node: m.from_node,
+            to_role: m.from_role,
+            quota_used: m.quota_used,
+            subject: '📤 [Ordem Enviada] ➔ ' + (m.from_node || '').split('/').pop() + ': ' + (m.subject || ''),
+            timestamp: m.timestamp,
+            summary_human: `Instrução transmitida pelo Orquestrador RNA para a unidade ${m.from_node} executar com a cota interna dela.`,
+            body: `Destinatário Acionado: ${m.from_node} (${m.from_role})\nEtapa: ${m.hop}\n\n---\nResposta gerada por esta ordem:\n\n${m.body}`
+          });
+        }
+      });
+      return items;
+    }
+
+    function renderDashboard(data) {
+      const kpis = data.kpis || {};
+      const nodesObj = data.nodes || {};
+      const nodesList = Array.isArray(nodesObj) ? nodesObj : Object.values(nodesObj);
+
+      // Header status
+      const dbOk = data.db_connected ? 'MySQL Conectado' : 'JSON Local';
+      document.getElementById('envBadge').textContent = `${window.location.hostname || 'localhost'} (${dbOk})`;
+      const upTime = data.updated_at ? new Date(data.updated_at).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '--:--';
+      document.getElementById('lastSyncText').textContent = `Atualizado às ${upTime} (Horário de Brasília/SP)`;
+
+      // KPIs
+      const saved = kpis.agent_tokens_saved || data.tokens_saved_estimate || 0;
+      const remoteGen = kpis.remote_tokens_generated || 0;
+      const onlineCount = kpis.active_nodes_count ?? data.nodes_online ?? 0;
+      const totalNodes = kpis.scanned_nodes_count ?? data.nodes_total ?? nodesList.length;
+      const iotCount = kpis.iot_sensors_count ?? data.iot_nodes_count ?? 0;
+      const sovCount = kpis.preserved_apex_nodes_count ?? data.sovereign_tier_s_count ?? 0;
+
+      document.getElementById('kpiSaved').textContent = saved.toLocaleString('pt-BR');
+      document.getElementById('kpiRemoteGen').textContent = `${remoteGen.toLocaleString('pt-BR')} proc. remoto`;
+      document.getElementById('kpiArmy').textContent = `${onlineCount} / ${totalNodes}`;
+      document.getElementById('kpiIotBadge').textContent = `${iotCount} IoT`;
+      document.getElementById('kpiSovereign').textContent = `${sovCount} Soberanos Tier S`;
+      document.getElementById('barArmy').style.width = totalNodes > 0 ? Math.min(100, Math.round((onlineCount / totalNodes) * 100)) + '%' : '10%';
+
+      // Average free quota across non-IoT nodes
+      const llmNodes = nodesList.filter(n => n.caste !== 'CASTE_5_IOT_SENSOR');
+      let sumFree = 0;
+      llmNodes.forEach(n => {
+        sumFree += computeNodeTokenMetrics(n).freePct;
+      });
+      const avgFree = llmNodes.length > 0 ? Math.round(sumFree / llmNodes.length) : 100;
+      document.getElementById('kpiAvgFree').textContent = `${avgFree}% Livre`;
+      document.getElementById('barAvgFree').style.width = `${avgFree}%`;
+      document.getElementById('kpiTasksDone').textContent = `${kpis.total_tasks_completed || 0} missões concluídas`;
+
+      allMailItems = buildEnrichedMailItems(data.mailbox || []);
+      const inboxCount = (data.mailbox || []).length;
+      document.getElementById('kpiMailCount').textContent = inboxCount;
+      document.getElementById('kpiRelaysCount').textContent = `${kpis.total_relay_handoffs || 0} repasses IA➔IA`;
+
+      document.getElementById('tabCountUnits').textContent = totalNodes;
+      document.getElementById('tabCountMail').textContent = inboxCount;
+
+      // Token mask
+      const masked = (data.token_status && data.token_status.masked) || data.hf_token_masked || 'CONFIGURADO';
+      document.getElementById('tokenMaskBadge').textContent = masked;
+
+      // Populate select dropdown
+      const sel = document.getElementById('nodeSelect');
+      const curVal = sel.value;
+      sel.innerHTML = '<option value="">🍄 Automático (Fungo escolhe a máquina com mais tokens livres)</option>';
+      nodesList
+        .filter(n => n.status === 'ONLINE' && n.caste !== 'CASTE_5_IOT_SENSOR')
+        .forEach(n => {
+          const tm = computeNodeTokenMetrics(n);
+          const opt = document.createElement('option');
+          opt.value = n.id;
+          opt.textContent = `${n.id} — ${tm.freePct}% cota livre (${tm.spent} tok gastos | Hifa ${(n.hypha_conductance || 1).toFixed(2)}x)`;
+          sel.appendChild(opt);
+        });
+      sel.value = curVal;
+
+      renderOverviewQuotaList(nodesList);
+      renderUnitsGrid(nodesList);
+      renderMailClient();
+    }
+
+    function renderOverviewQuotaList(nodesList) {
+      const container = document.getElementById('overviewQuotaList');
+      // Prioritize machines that have spent tokens or are online LLMs
+      const prioritized = [...nodesList]
+        .filter(n => n.caste !== 'CASTE_5_IOT_SENSOR')
+        .sort((a, b) => {
+          const aSpent = parseInt(a.tokens_processed || 0, 10);
+          const bSpent = parseInt(b.tokens_processed || 0, 10);
+          if (bSpent !== aSpent) return bSpent - aSpent;
+          const aOn = a.status === 'ONLINE' ? 1 : 0;
+          const bOn = b.status === 'ONLINE' ? 1 : 0;
+          return bOn - aOn;
+        })
+        .slice(0, 5);
+
+      container.innerHTML = prioritized.map(n => {
+        const tm = computeNodeTokenMetrics(n);
+        const isOnline = n.status === 'ONLINE';
+        const statusBadge = isOnline
+          ? '<span class="badge badge-emerald">ONLINE</span>'
+          : '<span class="badge badge-amber">STANDBY</span>';
+        const hypha = Number(n.hypha_conductance || 1.0).toFixed(2);
+
+        return `
+          <div class="unit-quota-item">
+            <div class="uq-header">
+              <div class="uq-name">
+                <span>${n.id}</span>
+                ${statusBadge}
+              </div>
+              <span class="badge badge-cyan">${tm.freePct}% LIVRE (${tm.usedPct}% GASTO)</span>
+            </div>
+            <div class="progress-track" style="height: 8px;">
+              <div class="progress-fill" style="width: ${Math.max(4, tm.usedPct)}%; background: ${tm.barColor};"></div>
+            </div>
+            <div class="uq-stats">
+              <span>Já gastou: <strong>${tm.spent.toLocaleString('pt-BR')} tokens</strong> (${n.tasks_completed || 0} missões)</span>
+              <span>Hifa: ${hypha}x | ${Math.round(n.latency_ms || 0)}ms</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function setUnitFilter(filter) {
+      currentUnitFilter = filter;
+      document.querySelectorAll('.filter-chip').forEach(c => {
+        c.classList.toggle('active', c.getAttribute('data-filter') === filter);
+      });
+      if (telemetryData) {
+        const nodesObj = telemetryData.nodes || {};
+        renderUnitsGrid(Array.isArray(nodesObj) ? nodesObj : Object.values(nodesObj));
+      }
+    }
+
+    function renderUnitsGrid(nodesList) {
+      const grid = document.getElementById('unitsGrid');
+      const filtered = nodesList.filter(n => {
+        if (currentUnitFilter === 'ONLINE') return n.status === 'ONLINE';
+        if (currentUnitFilter === 'USED') return parseInt(n.tokens_processed || 0, 10) > 0;
+        if (currentUnitFilter === 'SOVEREIGN') return n.caste === 'CASTE_1_SOVEREIGN' || n.tier === 'TIER_S_APEX';
+        if (currentUnitFilter === 'GENERAL') return n.caste === 'CASTE_2_GENERAL' || n.tier === 'TIER_A_HEAVY';
+        return true;
+      });
+
+      grid.innerHTML = filtered.map(n => {
+        const tm = computeNodeTokenMetrics(n);
+        const isOnline = n.status === 'ONLINE';
+        const hypha = Number(n.hypha_conductance || 1.0).toFixed(2);
+        const hyphaPct = Math.min(100, Math.round((hypha / 3.0) * 100));
+        const iotNote = n.iot_sample || n.last_iot_reading
+          ? `<div style="font-size:0.75rem; color:#38bdf8; background:rgba(6,182,212,0.1); padding:6px 9px; border-radius:6px;">📡 Leitura Ao Vivo: ${n.iot_sample || n.last_iot_reading}</div>`
+          : '';
+
+        return `
+          <div class="unit-card ${isOnline ? 'online' : ''}">
+            <div class="uc-top">
+              <div>
+                <div class="uc-title">${n.name || n.id}</div>
+                <div class="uc-sub">${n.id}</div>
+              </div>
+              <span class="badge ${isOnline ? 'badge-emerald' : 'badge-amber'}">${n.status || 'STANDBY'}</span>
+            </div>
+
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <span class="badge badge-violet">${n.rank_title || n.caste || 'Unidade RNA'}</span>
+              <span class="badge badge-cyan">${n.access_role || 'READ_SCOUT'}</span>
+            </div>
+
+            ${iotNote}
+
+            <!-- Token Quota & Spent Box -->
+            <div class="quota-box">
+              <div class="quota-row">
+                <span style="color:var(--text-secondary); font-weight:600;">Cota de Tokens da Unidade</span>
+                <span class="quota-pct" style="color:${tm.barColor};">
+                  ${tm.isIot ? '∞ ILIMITADO (0 TOK)' : `${tm.usedPct}% GASTO • ${tm.freePct}% LIVRE`}
+                </span>
+              </div>
+              <div class="progress-track" style="height: 7px;">
+                <div class="progress-fill" style="width: ${tm.isIot ? 100 : Math.max(4, tm.usedPct)}%; background: ${tm.barColor};"></div>
+              </div>
+              <div class="quota-numbers">
+                <span>Já gastou: <strong>${tm.spent.toLocaleString('pt-BR')} tok</strong></span>
+                <span>Capacidade: ${tm.isIot ? 'Feed Público' : tm.capacity.toLocaleString('pt-BR') + ' tok'}</span>
+              </div>
+            </div>
+
+            <!-- Fungal Hypha & Latency -->
+            <div class="quota-box" style="padding: 8px 12px;">
+              <div class="quota-row" style="margin-bottom:3px;">
+                <span style="font-size:0.72rem; color:var(--text-muted);">🍄 Condutância da Hifa (Fungo)</span>
+                <span style="font-family:'JetBrains Mono',monospace; font-size:0.74rem; color:#34d399;">${hypha}x • ${Math.round(n.latency_ms || 0)} ms</span>
+              </div>
+              <div class="progress-track" style="height: 4px;">
+                <div class="progress-fill" style="width: ${hyphaPct}%; background: linear-gradient(90deg, var(--emerald), var(--cyan));"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function setMailFolder(folder) {
+      currentMailFolder = folder;
+      currentSenderFilter = null;
+      document.querySelectorAll('.mail-folder-btn').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-folder') === folder);
+      });
+      renderMailClient();
+    }
+
+    function setSenderFilter(sender) {
+      currentSenderFilter = sender;
+      currentMailFolder = 'SENDER';
+      document.querySelectorAll('.mail-folder-btn').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-sender') === sender);
+      });
+      renderMailClient();
+    }
+
+    function renderMailClient() {
+      const inboxItems = allMailItems.filter(m => m.direction === 'INBOX');
+      const sentItems = allMailItems.filter(m => m.direction === 'SENT');
+      const handoffItems = inboxItems.filter(m => m.folder_type === 'HANDOFF');
+      const synthItems = inboxItems.filter(m => m.folder_type === 'WRITE_SYNTH');
+
+      document.getElementById('fCountAll').textContent = inboxItems.length;
+      document.getElementById('fCountSent').textContent = sentItems.length;
+      document.getElementById('fCountHandoff').textContent = handoffItems.length;
+      document.getElementById('fCountSynth').textContent = synthItems.length;
+
+      // Build sender filter buttons in sidebar
+      const senderCounts = {};
+      inboxItems.forEach(m => {
+        const s = m.from_node || 'Desconhecido';
+        senderCounts[s] = (senderCounts[s] || 0) + 1;
+      });
+      const senderContainer = document.getElementById('mailSenderFilters');
+      senderContainer.innerHTML = Object.entries(senderCounts).map(([sender, count]) => {
+        const shortName = sender.split('/').pop();
+        const isActive = currentSenderFilter === sender;
+        return `
+          <button class="mail-folder-btn ${isActive ? 'active' : ''}" data-sender="${sender}" onclick="setSenderFilter('${sender.replace(/'/g, "\\'")}')">
+            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">🤖 ${shortName}</span>
+            <span class="mail-folder-count">${count}</span>
+          </button>
+        `;
+      }).join('');
+
+      // Filter list
+      let filtered = inboxItems;
+      let title = '📥 Caixa de Entrada (Recebidos)';
+      if (currentMailFolder === 'SENT') {
+        filtered = sentItems;
+        title = '📤 Itens Enviados (Ordens às IAs)';
+      } else if (currentMailFolder === 'HANDOFF') {
+        filtered = handoffItems;
+        title = '🔗 Repasses IA ➔ IA (Passagem de Bastão)';
+      } else if (currentMailFolder === 'WRITE_SYNTH') {
+        filtered = synthItems;
+        title = '🧬 Sínteses Finais Recebidas';
+      } else if (currentMailFolder === 'SENDER' && currentSenderFilter) {
+        filtered = allMailItems.filter(m => m.from_node === currentSenderFilter || m.to_node === currentSenderFilter);
+        title = '🤖 Conversas de ' + currentSenderFilter.split('/').pop();
+      }
+
+      document.getElementById('mailListTitle').textContent = title;
+      document.getElementById('mailListCounter').textContent = `${filtered.length} msgs`;
+
+      const listEl = document.getElementById('mailListContainer');
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<div style="padding:24px; text-align:center; color:var(--text-muted); font-size:0.82rem;">Nenhuma mensagem nesta pasta.</div>';
+        return;
+      }
+
+      if (!selectedMailId || !filtered.some(m => m.id === selectedMailId)) {
+        selectedMailId = filtered[0].id;
+      }
+
+      listEl.innerHTML = filtered.map(m => {
+        const isSel = m.id === selectedMailId;
+        const fromShort = (m.from_node || 'IA').split('/').pop();
+        const toShort = (m.to_node || 'Central').split('/').pop();
+        const timeStr = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }) : '';
+
+        return `
+          <div class="mail-row ${isSel ? 'active' : ''}" onclick="selectMailItem('${m.id}')">
+            <div class="mr-top">
+              <span class="mr-sender">${fromShort}</span>
+              <span class="mr-time">${timeStr}</span>
+            </div>
+            <div class="mr-route">De: ${fromShort} ➔ Para: ${toShort}</div>
+            <div class="mr-subject">${escapeHtml(m.subject || 'Sem assunto')}</div>
+            <div class="mr-preview">${escapeHtml(m.summary_human || m.body || '')}</div>
+          </div>
+        `;
+      }).join('');
+
+      const activeItem = filtered.find(m => m.id === selectedMailId) || filtered[0];
+      if (activeItem) {
+        renderMailReader(activeItem);
+      }
+    }
+
+    function selectMailItem(id) {
+      selectedMailId = id;
+      renderMailClient();
+    }
+
+    let currentReaderItem = null;
+    let showingTranslated = false;
+    let autoTranslatePt = true;
+    const translationCache = {};
+
+    function isLikelyEnglish(text) {
+      if (!text) return false;
+      const sample = text.slice(0, 600).toLowerCase();
+      const enHits = (sample.match(/\b(the|and|with|for|this|that|from|below|function|class|returns|module|using|into|each)\b/g) || []).length;
+      const ptHits = (sample.match(/\b(para|com|que|uma|não|está|pelas|código|função|rede|máquina|síntese)\b/g) || []).length;
+      return enHits >= 3 && enHits > ptHits;
+    }
+
+    async function translateTextToPt(text, cacheKey) {
+      if (!text) return '';
+      if (cacheKey && translationCache[cacheKey]) {
+        return translationCache[cacheKey];
+      }
+      try {
+        const res = await fetch('api.php?action=translate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'translate', text: text })
+        });
+        const data = await res.json();
+        if (data && data.ok && data.translated) {
+          if (cacheKey) translationCache[cacheKey] = data.translated;
+          return data.translated;
+        }
+      } catch (e) {
+        console.error('Erro ao traduzir:', e);
+      }
+      return text;
+    }
+
+    async function renderMailReader(item) {
+      currentReaderItem = item;
+      showingTranslated = false;
+      document.getElementById('readerSubject').textContent = item.subject || 'Mensagem da Máquina';
+      document.getElementById('readerFrom').textContent = `${item.from_node || '-'} (${item.from_role || ''})`;
+      document.getElementById('readerTo').textContent = `${item.to_node || '-'} (${item.to_role || ''})`;
+      document.getElementById('readerHop').textContent = item.hop || item.folder_type || '-';
+      document.getElementById('readerQuota').textContent = item.quota_used || 'Cota Remota';
+      document.getElementById('readerSummaryBox').textContent = item.summary_human || '';
+
+      const rawBody = item.body || '';
+      const btnT = document.getElementById('btnTranslateMail');
+      document.getElementById('readerBody').textContent = rawBody;
+      btnT.textContent = '🇧🇷 Traduzir p/ PT-BR';
+
+      if (autoTranslatePt && isLikelyEnglish(rawBody)) {
+        await toggleTranslateCurrentMail(true);
+      }
+    }
+
+    async function toggleTranslateCurrentMail(forceToPt = false) {
+      if (!currentReaderItem) return;
+      const rawBody = currentReaderItem.body || '';
+      const btnT = document.getElementById('btnTranslateMail');
+      const bodyEl = document.getElementById('readerBody');
+
+      if (showingTranslated && !forceToPt) {
+        showingTranslated = false;
+        bodyEl.textContent = rawBody;
+        btnT.textContent = '🇧🇷 Traduzir p/ PT-BR';
+        return;
+      }
+
+      btnT.disabled = true;
+      btnT.textContent = '⏳ Traduzindo p/ PT-BR...';
+      const translated = await translateTextToPt(rawBody, currentReaderItem.id);
+      if (currentReaderItem) {
+        showingTranslated = true;
+        bodyEl.textContent = translated;
+        btnT.textContent = '🇺🇸 Ver Original (Inglês)';
+      }
+      btnT.disabled = false;
+    }
+
+    function toggleAutoTranslate() {
+      autoTranslatePt = !autoTranslatePt;
+      const btn = document.getElementById('btnAutoTranslate');
+      if (autoTranslatePt) {
+        btn.textContent = '🌐 Auto-PT: ATIVO';
+        btn.style.borderColor = 'var(--emerald)';
+        btn.style.color = '#34d399';
+        if (currentReaderItem && !showingTranslated && isLikelyEnglish(currentReaderItem.body || '')) {
+          toggleTranslateCurrentMail(true);
+        }
+      } else {
+        btn.textContent = '🌐 Auto-PT: OFF';
+        btn.style.borderColor = 'var(--border)';
+        btn.style.color = 'var(--text-secondary)';
+      }
+    }
+
+    /* ==============================================================
+       SISTEMA DE TOASTS & MODAIS MODERNOS (Zero alerts/prompts nativos)
+       ============================================================== */
+    function showToast(message, type = 'info', duration = 4000) {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: '🛰️'
+      };
+      const toast = document.createElement('div');
+      toast.className = `rna-toast rna-toast-${type}`;
+      toast.innerHTML = `
+        <span class="rna-toast-icon">${icons[type] || '🛰️'}</span>
+        <div class="rna-toast-msg">${escapeHtml(message)}</div>
+        <span class="rna-toast-close" onclick="this.parentElement.remove()">✕</span>
+      `;
+      container.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.add('show'));
+
+      if (duration > 0) {
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 350);
+        }, duration);
+      }
+    }
+
+    let globalModalCallback = null;
+
+    function showModalPrompt({ title, description, placeholder = '', defaultValue = '', confirmText = 'Confirmar', cancelText = 'Cancelar', onConfirm }) {
+      const overlay = document.getElementById('globalModalOverlay');
+      const titleEl = document.getElementById('modalTitle');
+      const descEl = document.getElementById('modalDesc');
+      const inputCont = document.getElementById('modalInputContainer');
+      const inputEl = document.getElementById('modalInput');
+      const btnCancel = document.getElementById('modalBtnCancel');
+      const btnConfirm = document.getElementById('modalBtnConfirm');
+
+      titleEl.innerHTML = title || '🛰️ Entrada Requerida';
+      descEl.textContent = description || '';
+      inputCont.style.display = 'block';
+      inputEl.placeholder = placeholder;
+      inputEl.value = defaultValue;
+      btnCancel.style.display = 'inline-block';
+      btnCancel.textContent = cancelText;
+      btnConfirm.textContent = confirmText;
+
+      globalModalCallback = onConfirm;
+      overlay.classList.add('active');
+      setTimeout(() => inputEl.focus(), 100);
+    }
+
+    function showModalAlert({ title, message, type = 'info', confirmText = 'Entendido' }) {
+      const overlay = document.getElementById('globalModalOverlay');
+      const titleEl = document.getElementById('modalTitle');
+      const descEl = document.getElementById('modalDesc');
+      const inputCont = document.getElementById('modalInputContainer');
+      const btnCancel = document.getElementById('modalBtnCancel');
+      const btnConfirm = document.getElementById('modalBtnConfirm');
+
+      const icons = { success: '🎉', error: '❌', warning: '⚠️', info: '🛰️' };
+      titleEl.innerHTML = `${icons[type] || '🛰️'} ${escapeHtml(title || 'Notificação')}`;
+      descEl.innerHTML = message.replace(/\n/g, '<br>');
+      inputCont.style.display = 'none';
+      btnCancel.style.display = 'none';
+      btnConfirm.textContent = confirmText;
+
+      globalModalCallback = null;
+      overlay.classList.add('active');
+    }
+
+    function closeGlobalModal() {
+      const overlay = document.getElementById('globalModalOverlay');
+      overlay.classList.remove('active');
+      globalModalCallback = null;
+    }
+
+    function confirmGlobalModal() {
+      const inputEl = document.getElementById('modalInput');
+      const val = inputEl.value;
+      const cb = globalModalCallback;
+      closeGlobalModal();
+      if (typeof cb === 'function') {
+        cb(val);
+      }
+    }
+
+    let currentMissionResultText = '';
+
+    function copyMissionResult() {
+      if (currentMissionResultText) {
+        navigator.clipboard.writeText(currentMissionResultText);
+        showToast('Proteína copiada para a área de transferência!', 'success');
+      }
+    }
+
+    function copyReaderBody() {
+      const text = document.getElementById('readerBody').textContent;
+      navigator.clipboard.writeText(text);
+      showToast('Conteúdo copiado com sucesso!', 'success');
+    }
+
+    async function dispatchTask(mode) {
+      const prompt = document.getElementById('taskInput').value.trim();
+      const node = document.getElementById('nodeSelect').value;
+      const consoleEl = document.getElementById('liveMissionConsole');
+      const terminalEl = document.getElementById('liveLogTerminal');
+      const progressBar = document.getElementById('liveProgressBar');
+      const progressPercent = document.getElementById('liveProgressPercent');
+      const resultBox = document.getElementById('liveResultBox');
+      const resultStats = document.getElementById('liveResultStats');
+      const resultText = document.getElementById('liveResultText');
+
+      if (!prompt) {
+        showToast('⚠️ Digite uma instrução antes de disparar a missão.', 'warning');
+        return;
+      }
+
+      // Prepara interface em tempo real
+      consoleEl.style.display = 'block';
+      terminalEl.innerHTML = '';
+      resultBox.style.display = 'none';
+      progressBar.style.width = '5%';
+      progressPercent.textContent = '5%';
+      currentMissionResultText = '';
+
+      function addLog(time, nodeName, message) {
+        const line = document.createElement('div');
+        line.className = 'live-log-line';
+        line.innerHTML = `
+          <span class="live-log-time">[${escapeHtml(time)}]</span>
+          <span class="live-log-node">${escapeHtml(nodeName)}</span>
+          <span class="live-log-msg">${escapeHtml(message)}</span>
+        `;
+        terminalEl.appendChild(line);
+        terminalEl.scrollTop = terminalEl.scrollHeight;
+      }
+
+      addLog(new Date().toTimeString().slice(0, 8), 'RNA-Router', 'Disparo imediato acionado pelo usuário (zero espera de cron).');
+
+      const btnRelay = document.getElementById('btnRelay');
+      const btnSend = document.getElementById('btnSend');
+      const btnSynth = document.getElementById('btnSynth');
+      if (btnRelay) btnRelay.disabled = true;
+      if (btnSend) btnSend.disabled = true;
+      if (btnSynth) btnSynth.disabled = true;
+
+      try {
+        const url = `api.php?action=stream_dispatch&mode=${encodeURIComponent(mode)}&node=${encodeURIComponent(node)}&task=${encodeURIComponent(prompt)}`;
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: { 'Accept': 'text/event-stream' }
+        });
+
+        if (!response.body) {
+          throw new Error('ReadableStream não suportado pelo ambiente.');
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split('\n\n');
+          buffer = parts.pop(); // Mantém o pedaço incompleto
+
+          for (const chunk of parts) {
+            const line = chunk.trim();
+            if (line.startsWith('data:')) {
+              const jsonStr = line.slice(5).trim();
+              try {
+                const event = JSON.parse(jsonStr);
+                const progress = event.progress || 0;
+                progressBar.style.width = `${progress}%`;
+                progressPercent.textContent = `${progress}%`;
+
+                addLog(event.time || new Date().toTimeString().slice(0, 8), event.machine || 'RNA-Node', event.msg || '');
+
+                if (event.step === 'COMPLETE' && event.extra) {
+                  const ex = event.extra;
+                  currentMissionResultText = ex.full_response || ex.response_preview || '';
+                  resultStats.innerHTML = `
+                    <span>⏱️ Latência: <strong>${ex.total_latency_ms || ex.latency_ms || '-'} ms</strong></span> |
+                    <span>🔋 Tokens Poupados: <strong style="color:#10b981;">+${ex.tokens_saved || 0}</strong></span> |
+                    <span>🛰️ Máquinas: <strong>${Array.isArray(ex.nodes_used) ? ex.nodes_used.join(' ➔ ') : (ex.node || 'Malha RNA')}</strong></span>
+                    ${ex.sensor_info ? `<br><span style="color:#38bdf8;">📡 Telemetria Orbital: ${escapeHtml(ex.sensor_info)}</span>` : ''}
+                  `;
+                  resultText.textContent = currentMissionResultText;
+                  resultBox.style.display = 'block';
+                  showToast('🎉 Missão concluída com 100% de sucesso!', 'success');
+                  fetchTelemetry();
+                }
+              } catch (e) {
+                console.error("Erro parsing SSE event:", e, jsonStr);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        addLog(new Date().toTimeString().slice(0, 8), 'ERROR', 'Falha na conexão do stream: ' + err.message);
+        showToast('Erro no stream: ' + err.message, 'error');
+      } finally {
+        if (btnRelay) btnRelay.disabled = false;
+        if (btnSend) btnSend.disabled = false;
+        if (btnSynth) btnSynth.disabled = false;
+      }
+    }
+
+    async function triggerScan() {
+      const btn = document.getElementById('btnScanTop');
+      btn.disabled = true;
+      btn.textContent = '⏳ Escaneando...';
+      try {
+        await fetch('api.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'scan', limit: 15 })
+        });
+        showToast('Varredura da malha concluída!', 'success');
+        await fetchTelemetry();
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '📡 Escanear';
+      }
+    }
+
+    function triggerRecruit() {
+      showModalPrompt({
+        title: '🛰️ Recrutar Novas Máquinas e Réplicas no Hugging Face',
+        description: 'Digite uma palavra-chave para caçar LLMs e réplicas específicas no acervo do Hugging Face (ex: deepseek, qwen, coder, llama, mistral, phi, math) ou deixe em branco para varredura geral automática:',
+        placeholder: 'Deixe em branco para varredura geral ou digite ex: deepseek, coder...',
+        defaultValue: '',
+        confirmText: 'Iniciar Recrutamento',
+        onConfirm: async (kw) => {
+          const btn = document.getElementById('btnRecruitTop');
+          btn.disabled = true;
+          btn.textContent = '⏳ Recrutando...';
+          showToast('🛰️ Fungo iniciando caça por novas máquinas no Hugging Face...', 'info', 5000);
+          try {
+            const payload = { action: 'recruit', count: 25 };
+            if (kw && kw.trim()) {
+              payload.keyword = kw.trim();
+            }
+            const res = await fetch('api.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data && data.result) {
+              const r = data.result;
+              showModalAlert({
+                title: 'Recrutamento Concluído!',
+                type: 'success',
+                message: `<strong>+${r.recruited || 0} novas máquinas integradas à malha RNA!</strong><br><br>` +
+                         `• ${r.recruited_online || 0} responderam ONLINE com sucesso e já receberam castas.<br>` +
+                         `• As unidades já estão disponíveis para processar tarefas sem custo de tokens locais.`
+              });
+              showToast(`+${r.recruited || 0} máquinas adicionadas à malha!`, 'success');
+            }
+            await fetchTelemetry();
+          } catch (err) {
+            showToast('Erro no recrutamento: ' + err.message, 'error');
+          } finally {
+            btn.disabled = false;
+            btn.textContent = '➕ Recrutar +IAs';
+          }
+        }
+      });
+    }
+
+    async function saveHfToken() {
+      const val = document.getElementById('hfTokenInput').value.trim();
+      const toast = document.getElementById('tokenStatusToast');
+      if (!val) return;
+      toast.style.display = 'block';
+      toast.textContent = '⏳ Salvando chave...';
+      const res = await fetch('api.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'save_token', hf_token: val })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        toast.textContent = '✅ Chave salva com segurança (' + (data.hf_token_masked || '') + ')!';
+        document.getElementById('hfTokenInput').value = '';
+        await fetchTelemetry();
+      } else {
+        toast.textContent = '❌ Erro ao salvar chave.';
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    fetchTelemetry();
+    setInterval(fetchTelemetry, 20000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+# Credenciais e chaves privadas (NUNCA comitar no GitHub)
+state/secret_config.json
+core_php/db_config.php
+.env
+*.key
+*.pem
+*.log
+
+# Caches e temporarios
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Dados locais de execucao e historico
+mesh/nodes/
+mesh/proteins/
+mesh/mrna/
+mesh/errors/
