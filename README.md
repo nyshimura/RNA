@@ -95,3 +95,4 @@ Quando a skill estiver ativa, basta dizer ao seu assistente de código:
 
 ## 🛡️ Licença
 Distribuído sob a licença MIT. 100% de código aberto, livre e autônomo.
+

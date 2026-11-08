@@ -13,3 +13,4 @@ return [
     'db_pass' => '',
     'default_hf_token' => ''
 ];
+
