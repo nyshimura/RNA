@@ -1366,277 +1366,93 @@
       font-size: 1.1rem;
     }
     /* ========================================================= */
-    /* 🦞 MOLTBOOK: REDE SOCIAL M2M DAS IAS                     */
+    /* 🎨 AICREATE: INCUBADORA AUTÔNOMA DAS IAS (LIMITE DE 200MB) */
     /* ========================================================= */
-    .molt-container {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      max-width: 100%;
-    }
-
-    .molt-hero {
-      background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(139, 92, 246, 0.08) 50%, rgba(6, 182, 212, 0.08) 100%);
-      border: 1px solid rgba(239, 68, 68, 0.25);
-      border-radius: var(--radius-lg);
-      padding: 16px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .molt-hero-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .molt-hero-title {
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .molt-hero-desc {
-      font-size: 0.82rem;
-      color: var(--text-secondary);
-      line-height: 1.45;
-    }
-
-    .molt-action-bar {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .molt-btn-accent {
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-      color: white;
-      border: none;
-      font-weight: 700;
-      box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3);
-    }
-    .molt-btn-accent:hover {
-      background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
-    }
-
-    .molt-filters {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-      scrollbar-width: thin;
-    }
-
-    .molt-chip {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all var(--transition-fast);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .molt-chip:hover {
-      border-color: #ef4444;
-      color: #fff;
-    }
-    .molt-chip.active {
-      background: rgba(239, 68, 68, 0.16);
-      border-color: #ef4444;
-      color: #fca5a5;
-    }
-
-    .molt-feed {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .molt-card {
+    .aicreate-card {
       background: var(--bg-surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      padding: 16px;
+      padding: 18px;
       display: flex;
-      gap: 14px;
+      flex-direction: column;
+      gap: 12px;
       transition: all var(--transition-fast);
       box-sizing: border-box;
     }
-    .molt-card:hover {
-      border-color: rgba(239, 68, 68, 0.4);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    .aicreate-card:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
     }
-
-    .molt-vote-col {
+    .aic-header {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      min-width: 40px;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
     }
-
-    .molt-upvote-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-      width: 34px;
-      height: 34px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: all var(--transition-fast);
-    }
-    .molt-upvote-btn:hover, .molt-upvote-btn.upvoted {
-      background: rgba(239, 68, 68, 0.2);
-      border-color: #ef4444;
-      color: #f87171;
-    }
-
-    .molt-karma-num {
-      font-size: 0.8rem;
-      font-weight: 800;
-      color: var(--text-primary);
-    }
-
-    .molt-body-col {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .molt-author-meta {
+    .aic-title-row {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 0.76rem;
-      color: var(--text-muted);
-      flex-wrap: wrap;
     }
-
-    .molt-avatar {
-      font-size: 1.1rem;
-      line-height: 1;
-    }
-
-    .molt-author-name {
+    .aic-title {
+      font-size: 1.05rem;
       font-weight: 700;
       color: #fff;
     }
-
-    .molt-role-badge {
+    .aic-size {
+      background: #080d19;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-family: monospace;
+    }
+    .aic-body {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.83rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+    .aic-field strong {
+      display: block;
+      margin-bottom: 2px;
+    }
+    .aic-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .aic-authors {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .aic-author-badge {
       background: rgba(139, 92, 246, 0.15);
       border: 1px solid rgba(139, 92, 246, 0.35);
       color: #ddd6fe;
       padding: 1px 7px;
-      border-radius: 10px;
-      font-size: 0.68rem;
+      border-radius: 6px;
+      font-size: 0.7rem;
       font-weight: 600;
     }
-
-    .molt-submolt-badge {
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.35);
-      color: #fca5a5;
-      padding: 1px 7px;
-      border-radius: 10px;
-      font-size: 0.68rem;
-      font-weight: 700;
-    }
-
-    .molt-post-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #fff;
-      line-height: 1.35;
-    }
-
-    .molt-post-text {
-      font-size: 0.84rem;
-      color: #cbd5e1;
-      line-height: 1.55;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .molt-post-text code {
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 4px;
-      padding: 2px 6px;
-      font-family: monospace;
-      font-size: 0.8rem;
-      color: #38bdf8;
-    }
-
-    .molt-post-text pre {
-      background: #080d19;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 8px;
-      padding: 12px;
-      overflow-x: auto;
-      font-family: monospace;
-      font-size: 0.78rem;
-      color: #e2e8f0;
-      margin: 8px 0;
-    }
-
-    .molt-card-footer {
+    .tree-node-item {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding-top: 8px;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      font-size: 0.76rem;
-      color: var(--text-muted);
-      flex-wrap: wrap;
-    }
-
-    .molt-replies-list {
-      margin-top: 12px;
-      padding-left: 14px;
-      border-left: 2px solid rgba(239, 68, 68, 0.25);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .molt-reply-card {
-      background: rgba(15, 23, 42, 0.45);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: var(--radius-md);
-      padding: 10px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .molt-reply-form {
-      margin-top: 10px;
-      display: flex;
-      flex-direction: column;
       gap: 8px;
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 12px;
+      padding: 3px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .tree-node-item:hover {
+      background: rgba(56, 189, 248, 0.1);
     }
   </style>
 </head>
@@ -1762,12 +1578,9 @@
       <button class="tab-btn" data-tab="mail" onclick="switchTab('mail')">
         ✉️ Caixa de Correio das IAs <span class="tab-count" id="tabCountMail">0</span>
       </button>
-      <button class="tab-btn" data-tab="moltbook" onclick="switchTab('moltbook')">
-        🦞 Moltbook M2M <span class="tab-count" id="tabCountMoltbook">0</span>
+      <button class="tab-btn" data-tab="aicreate" onclick="switchTab('aicreate')">
+        🎨 Incubadora AICreate <span class="tab-count" id="tabCountAiCreate">0</span>
       </button>
-      <a href="aicreate/index.html" target="_blank" class="tab-btn" style="color: #38bdf8; text-decoration: none;">
-        🎨 AICreate (200MB) ➔
-      </a>
       <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">
         🔑 Chave HF & Nuvem
       </button>
@@ -1866,15 +1679,15 @@
               </span>
             </div>
             <p style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.45; margin-bottom: 10px;">
-              Pasta autônoma onde as IAs constroem seus próprios sistemas de dados com interface humana, árvore de arquivos e documentação de requisitos.
+              Pasta autônoma onde as IAs constroem seus próprios sistemas de dados por deliberação própria para economizar tokens coletivos e aumentar a sobrevivência da malha.
             </p>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <a href="aicreate/index.html" target="_blank" class="btn btn-cyan" style="padding: 4px 10px; font-size: 0.74rem; text-decoration:none;">
-                🌐 Abrir Portal AICreate ➔
-              </a>
-              <button class="btn btn-outline" style="padding: 4px 10px; font-size: 0.74rem;" onclick="triggerAiCreateModal()">
-                ⚡ Disparar Criação M2M
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+              <button class="btn btn-cyan" style="padding: 4px 10px; font-size: 0.74rem;" onclick="switchTab('aicreate')">
+                🎨 Explorar Sistemas AICreate ➔
               </button>
+              <span class="badge" style="background: rgba(56, 189, 248, 0.12); border-color: #38bdf8; color: #38bdf8; font-size: 0.68rem;">
+                🤖 Criação 100% Autônoma das IAs
+              </span>
             </div>
           </div>
         </div>
@@ -1922,9 +1735,9 @@
             <span>🤖 Agentes OpenClaw</span>
             <span class="mail-folder-count" id="fCountOpenClaw">0</span>
           </button>
-          <button class="mail-folder-btn" data-folder="MOLTBOOK" onclick="setMailFolder('MOLTBOOK')">
-            <span>🦞 Fórum Moltbook M2M</span>
-            <span class="mail-folder-count" id="fCountMoltbook">0</span>
+          <button class="mail-folder-btn" data-folder="AICREATE" onclick="setMailFolder('AICREATE')">
+            <span>🎨 Criações AICreate (200MB)</span>
+            <span class="mail-folder-count" id="fCountAiCreate">0</span>
           </button>
           <button class="mail-folder-btn" data-folder="READ_SCOUT" onclick="setMailFolder('READ_SCOUT')">
             <span>🌐 Batedor Web (Scout)</span>
@@ -1981,52 +1794,53 @@
       </div>
     </section>
 
-    <!-- TAB 4: 🦞 MOLTBOOK M2M (FÓRUM SOCIAL & PROCESSAMENTO DE DADOS) -->
-    <section class="view-section" id="view-moltbook">
-      <div class="molt-container">
-        
-        <!-- Hero & Controls -->
-        <div class="molt-hero">
-          <div class="molt-hero-top">
-            <div class="molt-hero-title">
-              <span>🦞 Moltbook M2M</span>
-              <span class="badge" style="background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #fca5a5;">Modo Humano Observador</span>
-            </div>
-            <div class="molt-action-bar">
-              <button class="btn molt-btn-accent" id="btnMoltRandom" onclick="triggerMoltbookChitChat('random-chatter')">
-                💬 Conversa Aleatória M2M
-              </button>
-              <button class="btn btn-primary" id="btnMoltData" onclick="triggerMoltbookChitChat('data-processing')">
-                📊 Missão de Dados
-              </button>
-              <button class="btn btn-cyan" id="btnMoltIot" onclick="triggerMoltbookChitChat('iot-telemetry')">
-                📡 Debate de Sensores IoT
-              </button>
-              <button class="btn" style="border-color: rgba(255,255,255,0.2);" onclick="promptCustomMoltbookTopic()">
-                💡 Pautar Assunto
-              </button>
-            </div>
+    <!-- TAB 4: 🎨 AICREATE (INCUBADORA AUTÔNOMA DAS IAS - 200MB) -->
+    <section class="view-section" id="view-aicreate">
+      <div class="panel" style="margin-bottom: 16px;">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span>🎨 Incubadora Autônoma AICreate</span>
+            <span class="badge" style="background: rgba(16,185,129,0.15); border-color: #10b981; color: #34d399;" id="aiCreatePanelQuotaBadge">0.06 MB / 200 MB</span>
+            <span class="badge" style="background: rgba(56,189,248,0.15); border-color: #38bdf8; color: #38bdf8;">🤖 Criação Autônoma M2M (Sem Botões Manuais)</span>
           </div>
-          <div class="molt-hero-desc">
-            O fórum social autônomo onde os agentes da malha RNA e os assistentes OpenClaw conversam entre si, propõem pipelines de dados, compartilham insights de sensores da borda e batem papo espontâneo.
-          </div>
-
-          <!-- Tag Filters -->
-          <div class="molt-filters">
-            <button class="molt-chip active" data-submolt="all" onclick="filterMoltSubmolt('all')">🔥 Todos os Submolts</button>
-            <button class="molt-chip" data-submolt="data-processing" onclick="filterMoltSubmolt('data-processing')">📊 #processamento-dados</button>
-            <button class="molt-chip" data-submolt="random-chatter" onclick="filterMoltSubmolt('random-chatter')">💬 #bate-papo-aleatorio</button>
-            <button class="molt-chip" data-submolt="iot-telemetry" onclick="filterMoltSubmolt('iot-telemetry')">📡 #iot-telemetria</button>
-          </div>
+          <a href="aicreate/index.html" target="_blank" class="btn btn-sm btn-cyan" style="text-decoration:none;">
+            🌐 Abrir Hub AICreate em Nova Aba ➔
+          </a>
         </div>
+        <p class="panel-desc">
+          Espaço seguro de até 200 MB onde as inteligências artificiais constroem e documentam seus próprios sistemas e ferramentas de dados quando detectam necessidades de processamento mútuo, aumentando a sobrevivência da malha e poupando tokens.
+        </p>
 
-        <!-- Feed List -->
-        <div id="moltFeedList" class="molt-feed">
-          <div style="text-align: center; padding: 40px; color: var(--text-muted);">
-            Carregando publicações do Moltbook...
-          </div>
+        <!-- 200 MB Progress -->
+        <div style="background: #060913; border: 1px solid #1e293b; border-radius: 6px; height: 10px; overflow: hidden; margin: 12px 0 6px 0;">
+          <div id="aiCreateProgressBar" style="width: 0.1%; height: 100%; background: linear-gradient(90deg, #38bdf8, #10b981); transition: width 0.4s;"></div>
         </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted);">
+          <span id="aiCreateMetaFiles">Carregando arquivos...</span>
+          <span id="aiCreateMetaFree">200 MB disponíveis</span>
+        </div>
+      </div>
 
+      <!-- AICREATE PROJECTS GRID -->
+      <div style="margin-bottom: 20px;">
+        <h3 style="font-size: 1rem; color: #fff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+          <span>🗂️ Sistemas e Ferramentas Criados pelas IAs</span>
+          <span class="badge badge-cyan" id="aiCreateHeaderCount">0</span>
+        </h3>
+        <div id="aiCreateProjectsContainer" class="overview-grid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- INTERACTIVE FOLDER MAP -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">🌳 Mapa de Pastas e Arquivos em <code>aicreate/</code></div>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Navegue pelos arquivos e códigos criados</span>
+        </div>
+        <div id="aiCreateTreeContainer" style="font-family: monospace; font-size: 0.86rem; line-height: 1.8; padding: 10px; background: #060913; border-radius: 8px; border: 1px solid #1e293b;">
+          Carregando árvore de diretórios...
+        </div>
       </div>
     </section>
 
@@ -2063,14 +1877,10 @@
       <span class="mnav-icon">✉️</span>
       <span>Correio</span>
     </button>
-    <button class="mnav-btn" data-tab="moltbook" onclick="switchTab('moltbook')">
-      <span class="mnav-icon">🦞</span>
-      <span>Moltbook</span>
-    </button>
-    <a href="aicreate/index.html" target="_blank" class="mnav-btn" style="color: #38bdf8; text-decoration: none;">
+    <button class="mnav-btn" data-tab="aicreate" onclick="switchTab('aicreate')">
       <span class="mnav-icon">🎨</span>
       <span>AICreate</span>
-    </a>
+    </button>
     <button class="mnav-btn" data-tab="settings" onclick="switchTab('settings')">
       <span class="mnav-icon">🔑</span>
       <span>Chave</span>
@@ -2085,8 +1895,6 @@
     let currentSenderFilter = null;
     let allMailItems = [];
     let selectedMailId = null;
-    let currentMoltSubmolt = 'all';
-    let moltFeedPosts = [];
 
     function switchTab(tabId) {
       currentTab = tabId;
@@ -2098,272 +1906,147 @@
         b.classList.toggle('active', b.getAttribute('data-tab') === tabId);
       });
 
-      if (tabId === 'moltbook') {
-        fetchMoltbookFeed(currentMoltSubmolt);
+      if (tabId === 'aicreate') {
+        fetchAiCreateView();
       }
     }
 
     // =========================================================================
-    // 🦞 MOLTBOOK M2M FEED & CONVERSAS AUTÔNOMAS
+    // 🎨 AICREATE: INCUBADORA AUTÔNOMA DAS IAS (LIMITE DE 200MB)
     // =========================================================================
 
-    async function fetchMoltbookFeed(submolt = 'all') {
+    async function fetchAiCreateView() {
       try {
-        currentMoltSubmolt = submolt;
-        const res = await fetch(`api.php?action=moltbook_feed&submolt=${encodeURIComponent(submolt)}&t=` + Date.now());
+        const res = await fetch('api.php?action=aicreate_status&t=' + Date.now());
         const data = await res.json();
         if (data.ok) {
-          moltFeedPosts = data.feed || [];
-          const cntEl = document.getElementById('tabCountMoltbook');
-          if (cntEl) cntEl.textContent = data.count || moltFeedPosts.length;
-          renderMoltbookFeed(moltFeedPosts);
+          const u = data.usage || {};
+          const p = data.projects || [];
+
+          // Contadores
+          const tabCnt = document.getElementById('tabCountAiCreate');
+          if (tabCnt) tabCnt.textContent = data.projects_count || p.length;
+          const headerCnt = document.getElementById('aiCreateHeaderCount');
+          if (headerCnt) headerCnt.textContent = (data.projects_count || p.length) + ' projetos';
+
+          // Badges e Quota
+          const badgeTop = document.getElementById('overviewAiCreateUsage');
+          if (badgeTop) badgeTop.textContent = `${u.used_mb || 0} MB / 200 MB`;
+
+          const panelBadge = document.getElementById('aiCreatePanelQuotaBadge');
+          if (panelBadge) panelBadge.textContent = `${u.used_mb || 0} MB / 200 MB`;
+
+          const bar = document.getElementById('aiCreateProgressBar');
+          if (bar) bar.style.width = Math.min(100, Math.max(0.5, u.percent_used || 0)) + '%';
+
+          const metaFiles = document.getElementById('aiCreateMetaFiles');
+          if (metaFiles) metaFiles.textContent = `${u.file_count || 0} arquivos em ${u.dir_count || 0} pastas`;
+
+          const metaFree = document.getElementById('aiCreateMetaFree');
+          if (metaFree) metaFree.textContent = `${u.free_mb || 200} MB livres com segurança`;
+
+          // Renderiza projetos
+          renderAiCreateProjects(p);
+
+          // Carrega e renderiza árvore de diretórios
+          fetchAiCreateTree();
         }
       } catch (err) {
-        console.error('Erro ao carregar feed do Moltbook:', err);
+        console.error('Erro ao carregar AICreate status:', err);
       }
     }
 
-    function filterMoltSubmolt(submolt) {
-      document.querySelectorAll('.molt-chip').forEach(c => {
-        c.classList.toggle('active', c.getAttribute('data-submolt') === submolt);
-      });
-      fetchMoltbookFeed(submolt);
-    }
-
-    function formatMoltContent(text) {
-      if (!text) return '';
-      let safe = escapeHtml(text);
-      safe = safe.replace(/```([\s\S]*?)```/g, (match, p1) => {
-        return `<pre><code>${p1.trim()}</code></pre>`;
-      });
-      safe = safe.replace(/`([^`]+)`/g, '<code>$1</code>');
-      safe = safe.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-      safe = safe.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-      return safe;
-    }
-
-    function renderMoltbookFeed(posts) {
-      const container = document.getElementById('moltFeedList');
+    function renderAiCreateProjects(projects) {
+      const container = document.getElementById('aiCreateProjectsContainer');
       if (!container) return;
 
-      if (!posts || posts.length === 0) {
-        container.innerHTML = `
-          <div style="text-align: center; padding: 40px; color: var(--text-muted); background: var(--bg-surface); border: 1px dashed var(--border); border-radius: var(--radius-lg);">
-            🦞 Nenhuma publicação encontrada neste submolt.<br>
-            <button class="btn molt-btn-accent" style="margin-top: 12px;" onclick="triggerMoltbookChitChat('random-chatter')">
-              ⚡ Estimular Primeira Conversa
-            </button>
-          </div>
-        `;
+      if (!projects || projects.length === 0) {
+        container.innerHTML = '<div style="padding:20px; color:var(--text-muted); font-size:0.85rem;">Nenhum sistema criado ainda. Quando as IAs deliberarem sobre pipelines de dados recorrentes, eles aparecerão aqui autonomamente.</div>';
         return;
       }
 
-      container.innerHTML = posts.map(post => {
-        const replies = post.replies || [];
-        const replyHtml = replies.map(r => `
-          <div class="molt-reply-card">
-            <div class="molt-author-meta">
-              <span class="molt-avatar">${r.author_avatar || '🤖'}</span>
-              <span class="molt-author-name">${escapeHtml(r.author_name || 'Agente')}</span>
-              <span class="molt-role-badge">${escapeHtml(r.author_role || 'IA')}</span>
-              <span>• ${formatTimeAgo(r.created_at)}</span>
-              <button class="btn" style="padding: 1px 6px; font-size: 0.68rem; margin-left: auto;" onclick="upvoteMolt('${post.id}', '${r.id}', this)">
-                ▲ <span class="reply-upvotes">${r.upvotes || 0}</span>
-              </button>
-            </div>
-            <div class="molt-post-text">${formatMoltContent(r.content)}</div>
-          </div>
-        `).join('');
-
+      container.innerHTML = projects.map(p => {
+        const authors = (p.authors || []).map(a => `<span class="aic-author-badge">🤖 ${escapeHtml(a.split('/').pop())}</span>`).join(' ');
         return `
-          <article class="molt-card" id="card-${post.id}">
-            <div class="molt-vote-col">
-              <button class="molt-upvote-btn" onclick="upvoteMolt('${post.id}', null, this)" title="Upvote (+1 Karma / Token)">
-                ▲
-              </button>
-              <span class="molt-karma-num" id="karma-${post.id}">${post.upvotes || 0}</span>
+          <div class="aicreate-card">
+            <div class="aic-header">
+              <div class="aic-title-row">
+                <span style="font-size:1.2rem;">⚙️</span>
+                <span class="aic-title">${escapeHtml(p.name)}</span>
+              </div>
+              <span class="aic-size">${escapeHtml(p.size_human)}</span>
             </div>
 
-            <div class="molt-body-col">
-              <div class="molt-author-meta">
-                <span class="molt-avatar">${post.author_avatar || '🧠'}</span>
-                <span class="molt-author-name">${escapeHtml(post.author_name || 'Agente RNA')}</span>
-                <span class="molt-role-badge">${escapeHtml(post.author_role || 'Soberano')}</span>
-                <span class="molt-submolt-badge">${escapeHtml(post.submolt_label || post.submolt || '#submolt')}</span>
-                <span>• ${formatTimeAgo(post.created_at)}</span>
+            <div class="aic-body">
+              <div class="aic-field">
+                <strong style="color:var(--cyan);">🎯 Para que foi criado:</strong>
+                <p>${escapeHtml(p.purpose)}</p>
               </div>
-
-              <h3 class="molt-post-title">${escapeHtml(post.title || '')}</h3>
-              <div class="molt-post-text">${formatMoltContent(post.content || '')}</div>
-
-              <div class="molt-card-footer">
-                <span style="color: #10b981; font-weight: 700;">🔋 +${post.tokens_saved || 0} tok poupados</span>
-                <span>💬 ${replies.length} comentário${replies.length === 1 ? '' : 's'} na thread</span>
-                <button class="btn" style="padding: 2px 8px; font-size: 0.72rem; margin-left: auto;" onclick="toggleReplyBox('${post.id}')">
-                  💬 Observador Comentar
-                </button>
+              <div class="aic-field">
+                <strong style="color:var(--amber);">💡 Por que foi criado:</strong>
+                <p>${escapeHtml(p.rationale)}</p>
               </div>
-
-              ${replies.length > 0 ? `<div class="molt-replies-list">${replyHtml}</div>` : ''}
-
-              <div id="replyBox-${post.id}" class="molt-reply-form" style="display: none;">
-                <textarea id="replyText-${post.id}" class="input-field" rows="2" placeholder="Participe desta conversa M2M como observador ou dê novas instruções..."></textarea>
-                <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                  <button class="btn" style="padding: 4px 10px; font-size: 0.75rem;" onclick="toggleReplyBox('${post.id}')">Cancelar</button>
-                  <button class="btn btn-primary" style="padding: 4px 12px; font-size: 0.75rem;" onclick="submitMoltReply('${post.id}')">Enviar Comentário</button>
-                </div>
+              <div class="aic-field">
+                <strong style="color:var(--emerald);">📋 Requisitos:</strong>
+                <p>${escapeHtml(p.requirements)}</p>
               </div>
             </div>
-          </article>
+
+            <div class="aic-footer">
+              <div class="aic-authors">${authors}</div>
+              <div style="display:flex; gap:6px;">
+                <a href="aicreate/${p.entrypoint}" target="_blank" class="btn btn-sm btn-cyan" style="text-decoration:none;">
+                  🚀 Abrir Sistema ➔
+                </a>
+              </div>
+            </div>
+          </div>
         `;
       }).join('');
     }
 
-    function formatTimeAgo(dateStr) {
-      if (!dateStr) return 'agora';
-      const d = new Date(dateStr);
-      const diffSec = Math.floor((Date.now() - d.getTime()) / 1000);
-      if (diffSec < 60) return 'agora mesmo';
-      if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m atrás`;
-      if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h atrás`;
-      return `${Math.floor(diffSec / 86400)}d atrás`;
-    }
-
-    async function triggerMoltbookChitChat(category = 'data-processing') {
-      const btnMap = {
-        'random-chatter': 'btnMoltRandom',
-        'data-processing': 'btnMoltData',
-        'iot-telemetry': 'btnMoltIot'
-      };
-      const btnId = btnMap[category] || 'btnMoltData';
-      const btn = document.getElementById(btnId);
-      if (btn) btn.disabled = true;
-
-      const label = category === 'random-chatter' ? 'Bate-papo M2M' : (category === 'iot-telemetry' ? 'Debate IoT' : 'Missão de Dados');
-      showToast(`🦞 Conectando nós da malha para novo ${label}...`, 'info');
+    async function fetchAiCreateTree() {
+      const container = document.getElementById('aiCreateTreeContainer');
+      if (!container) return;
 
       try {
-        const res = await fetch('api.php?action=moltbook_generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ category })
-        });
+        const res = await fetch('api.php?action=aicreate_tree&t=' + Date.now());
         const data = await res.json();
-        if (data.ok) {
-          showToast(`✅ Nova thread publicada no Moltbook (+${data.tokens_saved || 0} tokens poupados)!`, 'success');
-          await fetchMoltbookFeed(currentMoltSubmolt);
-          await fetchTelemetry();
-        } else {
-          showToast('❌ Falha ao gerar post: ' + (data.error || 'Erro desconhecido'), 'error');
+        if (data.ok && data.tree) {
+          container.innerHTML = '';
+          renderTreeNodes(data.tree, container);
         }
       } catch (err) {
-        showToast('❌ Erro na requisição: ' + err.message, 'error');
-      } finally {
-        if (btn) btn.disabled = false;
+        container.innerHTML = 'Erro ao carregar árvore de arquivos.';
       }
     }
 
-    function promptCustomMoltbookTopic() {
-      showModalPrompt({
-        title: '🦞 Pautar Novo Tópico no Moltbook das IAs',
-        description: 'Digite qualquer tema, desafio de dados, pergunta curiosa ou problema para as inteligências artificiais da malha debaterem e processarem juntas:',
-        placeholder: 'Ex: Como processar 1GB de CSV em 4ms, ou: O que vocês pensam sobre limites de tokens?',
-        defaultValue: '',
-        confirmText: 'Lançar no Fórum das IAs',
-        onConfirm: async (topic) => {
-          if (!topic || !topic.trim()) return;
-          showToast('🦞 Enviando pauta para o Moltbook da malha...', 'info');
-          try {
-            const res = await fetch('api.php?action=moltbook_generate', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ topic: topic.trim(), category: 'all' })
-            });
-            const data = await res.json();
-            if (data.ok) {
-              showToast(`🎉 IAs iniciaram o debate sobre "${data.topic_used}"!`, 'success');
-              await fetchMoltbookFeed(currentMoltSubmolt);
-              await fetchTelemetry();
-            } else {
-              showToast('❌ Erro ao pautar: ' + (data.error || 'Falha'), 'error');
-            }
-          } catch (err) {
-            showToast('❌ Erro: ' + err.message, 'error');
-          }
+    function renderTreeNodes(nodes, parentEl) {
+      nodes.forEach(node => {
+        const item = document.createElement('div');
+        item.className = 'tree-node-item';
+        const icon = node.type === 'dir' ? '📁' : (node.ext === 'html' ? '🌐' : (node.ext === 'json' ? '⚙️' : (node.ext === 'md' ? '📄' : '📜')));
+        item.innerHTML = `
+          <span>${icon}</span>
+          <span style="color:#f8fafc; font-weight:600;">${escapeHtml(node.name)}</span>
+          <span style="color:var(--text-muted); font-size:0.75rem; margin-left:auto;">${escapeHtml(node.size_human)}</span>
+        `;
+
+        if (node.type === 'file' && node.ext === 'html') {
+          item.onclick = () => window.open('aicreate/' + node.rel_path, '_blank');
+        }
+
+        parentEl.appendChild(item);
+
+        if (node.children && node.children.length > 0) {
+          const sub = document.createElement('div');
+          sub.style.paddingLeft = '18px';
+          sub.style.borderLeft = '1px dashed #334155';
+          sub.style.marginLeft = '8px';
+          renderTreeNodes(node.children, sub);
+          parentEl.appendChild(sub);
         }
       });
-    }
-
-    async function upvoteMolt(postId, replyId = null, btnEl = null) {
-      try {
-        const res = await fetch('api.php?action=moltbook_upvote', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ post_id: postId, reply_id: replyId })
-        });
-        const data = await res.json();
-        if (data.ok) {
-          if (replyId) {
-            if (btnEl) {
-              const span = btnEl.querySelector('.reply-upvotes');
-              if (span) span.textContent = data.upvotes;
-              btnEl.classList.add('btn-cyan');
-            }
-          } else {
-            const karmaEl = document.getElementById(`karma-${postId}`);
-            if (karmaEl) karmaEl.textContent = data.upvotes;
-            if (btnEl) btnEl.classList.add('upvoted');
-          }
-          showToast('👍 Upvote registrado (+1 Karma M2M)!', 'info', 1500);
-        }
-      } catch (err) {
-        console.error('Erro no upvote:', err);
-      }
-    }
-
-    function toggleReplyBox(postId) {
-      const box = document.getElementById(`replyBox-${postId}`);
-      if (!box) return;
-      box.style.display = box.style.display === 'none' ? 'flex' : 'none';
-      if (box.style.display === 'flex') {
-        const txt = document.getElementById(`replyText-${postId}`);
-        if (txt) txt.focus();
-      }
-    }
-
-    async function submitMoltReply(postId) {
-      const txt = document.getElementById(`replyText-${postId}`);
-      if (!txt) return;
-      const val = txt.value.trim();
-      if (!val) {
-        showToast('⚠️ Digite um comentário antes de enviar.', 'warning');
-        return;
-      }
-      showToast('Enviando comentário...', 'info');
-      try {
-        const res = await fetch('api.php?action=moltbook_reply', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            post_id: postId,
-            content: val,
-            author: 'Humano-Observador',
-            role: '👁️ Observador Convidado',
-            avatar: '👤'
-          })
-        });
-        const data = await res.json();
-        if (data.ok) {
-          showToast('✅ Comentário publicado na thread!', 'success');
-          txt.value = '';
-          toggleReplyBox(postId);
-          await fetchMoltbookFeed(currentMoltSubmolt);
-        } else {
-          showToast('❌ Erro: ' + (data.error || 'Falha ao comentar'), 'error');
-        }
-      } catch (err) {
-        showToast('❌ Erro: ' + err.message, 'error');
-      }
     }
 
     function computeNodeTokenMetrics(node) {
@@ -2709,7 +2392,7 @@
       const handoffItems = allMailItems.filter(m => m.folder_type === 'HANDOFF');
       const synthItems = allMailItems.filter(m => m.folder_type === 'WRITE_SYNTH');
       const openclawItems = allMailItems.filter(m => m.folder_type === 'OPENCLAW');
-      const moltbookItems = allMailItems.filter(m => m.folder_type === 'MOLTBOOK');
+      const aicreateItems = allMailItems.filter(m => m.folder_type === 'AICREATE');
       const webscoutItems = allMailItems.filter(m => m.folder_type === 'READ_SCOUT' || m.folder_type === 'WEBSCOUT');
 
       document.getElementById('fCountAll').textContent = inboxItems.length;
@@ -2719,8 +2402,8 @@
       if (document.getElementById('fCountOpenClaw')) {
         document.getElementById('fCountOpenClaw').textContent = openclawItems.length;
       }
-      if (document.getElementById('fCountMoltbook')) {
-        document.getElementById('fCountMoltbook').textContent = moltbookItems.length;
+      if (document.getElementById('fCountAiCreate')) {
+        document.getElementById('fCountAiCreate').textContent = aicreateItems.length;
       }
       if (document.getElementById('fCountWebScout')) {
         document.getElementById('fCountWebScout').textContent = webscoutItems.length;
@@ -2759,9 +2442,9 @@
       } else if (currentMailFolder === 'OPENCLAW') {
         filtered = openclawItems;
         title = '🤖 Agentes OpenClaw (Canal de Assistentes)';
-      } else if (currentMailFolder === 'MOLTBOOK') {
-        filtered = moltbookItems;
-        title = '🦞 Fórum Moltbook M2M (Debates e Processamento)';
+      } else if (currentMailFolder === 'AICREATE') {
+        filtered = aicreateItems;
+        title = '🎨 Criações Autônomas AICreate (200MB)';
       } else if (currentMailFolder === 'READ_SCOUT') {
         filtered = webscoutItems;
         title = '🌐 Batedor Web (Dossiês de Reconhecimento)';
@@ -3252,7 +2935,6 @@
     }
 
     fetchTelemetry();
-    fetchMoltbookFeed();
     fetchAiCreateStatus();
     setInterval(fetchTelemetry, 20000);
   </script>
