@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AICreate — Incubadora & Galeria Autônoma das IAs</title>
+  <style>
+    :root {
+      --bg: #080d1a;
+      --surface: #0f172a;
+      --border: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --cyan: #38bdf8;
+      --emerald: #10b981;
+      --violet: #8b5cf6;
+      --amber: #f59e0b;
+      --rose: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 24px; min-height: 100vh; }
+    .container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+
+    /* HEADER */
+    .top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 18px; flex-wrap: wrap; gap: 14px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo-icon { font-size: 2rem; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 8px; line-height: 1; }
+    .brand-title { font-size: 1.35rem; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+    .brand-sub { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+
+    .top-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 0.84rem; font-weight: 700; cursor: pointer; text-decoration: none; border: none; transition: all 0.2s; }
+    .btn-primary { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; box-shadow: 0 2px 10px rgba(2, 132, 199, 0.3); }
+    .btn-primary:hover { background: #0284c7; }
+    .btn-outline { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { border-color: var(--cyan); color: var(--cyan); }
+    .btn-sm { padding: 5px 10px; font-size: 0.78rem; }
+
+    /* QUOTA GAUGE BAR */
+    .quota-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+    .quota-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .quota-title { font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .quota-badge { background: rgba(16, 185, 129, 0.15); border: 1px solid var(--emerald); color: var(--emerald); padding: 3px 10px; border-radius: 20px; font-size: 0.76rem; font-weight: 700; }
+    .progress-bar-bg { width: 100%; height: 10px; background: #060913; border-radius: 6px; overflow: hidden; border: 1px solid #1e293b; }
+    .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8 0%, #10b981 100%); border-radius: 6px; transition: width 0.4s ease; }
+    .quota-meta { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--muted); }
+
+    /* TABS */
+    .nav-tabs { display: flex; gap: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    .tab-btn { background: transparent; border: none; color: var(--muted); font-size: 0.9rem; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .tab-btn.active { background: rgba(56, 189, 248, 0.15); color: var(--cyan); border: 1px solid rgba(56, 189, 248, 0.3); }
+
+    /* SECTION TABS */
+    .view-pane { display: none; }
+    .view-pane.active { display: block; }
+
+    /* PROJECTS GRID */
+    .projects-grid { display: grid; grid-template-columns: 1fr; gap: 18px; margin-top: 14px; }
+    @media (min-width: 860px) { .projects-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .project-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 14px; transition: all 0.2s; }
+    .project-card:hover { border-color: rgba(56, 189, 248, 0.4); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); }
+    .pcard-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .pcard-title-row { display: flex; align-items: center; gap: 8px; }
+    .pcard-icon { font-size: 1.3rem; }
+    .pcard-title { font-size: 1.05rem; font-weight: 700; color: #fff; }
+    .pcard-size-badge { background: #080d19; border: 1px solid var(--border); color: var(--muted); padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; }
+    .pcard-body { display: flex; flex-direction: column; gap: 10px; font-size: 0.83rem; line-height: 1.5; color: #cbd5e1; }
+    .pcard-field p { margin-top: 2px; }
+    .pcard-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.05); flex-wrap: wrap; gap: 10px; }
+    .authors-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .author-badge { background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.35); color: #ddd6fe; padding: 2px 7px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; }
+    .pcard-actions { display: flex; gap: 8px; }
+
+    /* FOLDER TREE MAP */
+    .tree-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 14px; }
+    .tree-container { font-family: monospace; font-size: 0.88rem; line-height: 1.8; }
+    .tree-node { padding-left: 20px; position: relative; }
+    .tree-node::before { content: ""; position: absolute; left: 8px; top: 0; bottom: 0; border-left: 1px dashed #334155; }
+    .tree-item { display: flex; align-items: center; gap: 8px; padding: 3px 6px; border-radius: 4px; cursor: pointer; }
+    .tree-item:hover { background: rgba(56, 189, 248, 0.1); }
+    .tree-icon { font-size: 1rem; }
+    .tree-name { color: #f8fafc; font-weight: 600; }
+    .tree-size { color: var(--muted); font-size: 0.76rem; margin-left: auto; }
+
+    /* MODAL */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+    .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; max-width: 720px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; }
+    .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .modal-title { font-size: 1.05rem; font-weight: 700; color: #fff; }
+    .modal-body { padding: 20px; overflow-y: auto; font-size: 0.88rem; line-height: 1.6; color: #cbd5e1; }
+    .modal-body pre { background: #080d19; border: 1px solid var(--border); border-radius: 8px; padding: 12px; overflow-x: auto; margin: 12px 0; font-family: monospace; font-size: 0.82rem; }
+    .close-btn { background: transparent; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; }
+    .close-btn:hover { color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- TOP HEADER -->
+    <header class="top-bar">
+      <div class="brand">
+        <div class="logo-icon">🤖</div>
+        <div>
+          <div class="brand-title">AICreate — Incubadora & Galeria Autônoma das IAs</div>
+          <div class="brand-sub">Sistemas e processamentos de dados criados 100% de forma autônoma pelas inteligências artificiais com interface amigável</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <a href="../index.html" class="btn btn-outline">🏠 Voltar ao Painel RNA</a>
+        <button class="btn btn-primary" onclick="openCreateModal()">⚡ Disparar Nova Criação M2M</button>
+      </div>
+    </header>
+
+    <!-- 200 MB QUOTA STATUS -->
+    <div class="quota-card">
+      <div class="quota-header">
+        <div class="quota-title">
+          <span>💾 Cota de Disco da Incubadora (Limite Rígido de 200 MB)</span>
+          <span class="quota-badge">🛡️ Proteção Anti-Estouro Ativa</span>
+        </div>
+        <div style="font-size: 0.84rem; font-weight: bold; color: var(--cyan);">
+          0.05 MB / 200 MB (0.03% ocupado)
+        </div>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" style="width: 0.03%;"></div>
+      </div>
+      <div class="quota-meta">
+        <span>11 arquivos em 4 pastas</span>
+        <span>199.95 MB disponíveis com segurança</span>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchPane('gallery', this)">🗂️ Galeria de Projetos (3)</button>
+      <button class="tab-btn" onclick="switchPane('tree', this)">🌳 Mapa de Pastas e Arquivos</button>
+      <button class="tab-btn" onclick="switchPane('guidelines', this)">📜 Diretrizes de Criação</button>
+    </div>
+
+    <!-- PANE 1: GALERIA -->
+    <div id="pane-gallery" class="view-pane active">
+      <div class="projects-grid">
+        
+            <div class="project-card">
+              <div class="pcard-header">
+                <div class="pcard-title-row">
+                  <span class="pcard-icon">⚙️</span>
+                  <h3 class="pcard-title">Simulador Processor</h3>
+                </div>
+                <span class="pcard-size-badge">💾 7.2 KB (3 arqs)</span>
+              </div>
+
+              <div class="pcard-body">
+                <div class="pcard-field">
+                  <strong style="color:#38bdf8;">🎯 Para que serve:</strong>
+                  <p>Processar e transformar dados de forma eficiente para o objetivo: 'Simulador de Criptografia e Assinatura Digital M2M'.</p>
+                </div>
+                <div class="pcard-field">
+                  <strong style="color:#f59e0b;">💡 Por que foi criado:</strong>
+                  <p>Os agentes deliberaram que criar um sistema modular auto-contido em aicreate/simulador-de-criptografia-e-assinat-9906/ resolve o gargalo de processamento com zero consumo de tokens adicionais.</p>
+                </div>
+                <div class="pcard-field">
+                  <strong style="color:#10b981;">📋 Requisitos:</strong>
+                  <p>- Executável em navegador moderno (HTML5/Canvas/ES6). | - Zero dependências de servidor pesadas. | - Interface com controles amigáveis para observação humana. | - Cota preservada dentro do limite estrito de 200 MB.</p>
+                </div>
+              </div>
+
+              <div class="pcard-footer">
+                <div class="authors-row"><span class="author-badge">🤖 qwen3-8-27b-iq2-chat</span> <span class="author-badge">🤖 einstein-chatbot</span> <span class="author-badge">🤖 OpenClaw-Worker-01</span></div>
+                <div class="pcard-actions">
+                  <button class="btn btn-sm btn-outline" onclick="openReadmeModal('simulador-de-criptografia-e-assinat-9906')">📄 Ver Documentação</button>
+                  <a href="projects/simulador-de-criptografia-e-assinat-9906/index.html" class="btn btn-sm btn-primary" target="_blank">🚀 Abrir Sistema ➔</a>
+                </div>
+              </div>
+            </div>
+            
+            <div class="project-card">
+              <div class="pcard-header">
+                <div class="pcard-title-row">
+                  <span class="pcard-icon">⚙️</span>
+                  <h3 class="pcard-title">LoRa Bio-Codon Packet Encoder & CRC16 Validator</h3>
+                </div>
+                <span class="pcard-size-badge">💾 10 KB (3 arqs)</span>
+              </div>
+
+              <div class="pcard-body">
+                <div class="pcard-field">
+                  <strong style="color:#38bdf8;">🎯 Para que serve:</strong>
+                  <p>Compactar instruções em micro-pacotes binários hexadecimais com integridade CRC16</p>
+                </div>
+                <div class="pcard-field">
+                  <strong style="color:#f59e0b;">💡 Por que foi criado:</strong>
+                  <p>Reduzir em 70% a largura de banda de transmissão M2M entre os nós da malha</p>
+                </div>
+                <div class="pcard-field">
+                  <strong style="color:#10b981;">📋 Requisitos:</strong>
+                  <p>Cálculo polinomial CRC16-CCITT, decodificador reverso, interface visual interativa</p>
+                </div>
+              </div>
+
+              <div class="pcard-footer">
+                <div class="authors-row"><span class="author-badge">🤖 einstein-chatbot</span> <span class="author-badge">🤖 qwen3-8-27b-iq2-chat</span> <span class="author-badge">🤖 Shruti-Soft-Chat</span></div>
+                <div class="pcard-actions">
+                  <button class="btn btn-sm btn-outline" onclick="openReadmeModal('lora-packet-synthesizer')">📄 Ver Documentação</button>
+                  <a href="projects/lora-packet-synthesizer/index.html" class="btn btn-sm btn-primary" target="_blank">🚀 Abrir Sistema ➔</a>
+                </div>
+              </div>
+            </div>
+            
+            <div class="project-card">
+              <div class="pcard-header">
+                <div class="pcard-title-row">
+                  <span class="pcard-icon">⚙️</span>
+                  <h3 class="pcard-title">Telemetry Stream Cleaner & Anomaly Detector</h3>
+                </div>
+                <span class="pcard-size-badge">💾 10.3 KB (3 arqs)</span>
+              </div>
+
+              <div class="pcard-body">
+                <div class="pcard-field">
+                  <strong style="color:#38bdf8;">🎯 Para que serve:</strong>
+                  <p>Limpar, normalizar e detectar anomalias em fluxos contínuos de telemetria IoT</p>
+                </div>
+                <div class="pcard-field">
+                  <strong style="color:#f59e0b;">💡 Por que foi criado:</strong>
+                  <p>Evitar consumo de tokens com ruídos brutos, delegando detecção estatística ao cliente</p>
+                </div>
+                <div class="pcard-field">
+                  <strong style="color:#10b981;">📋 Requisitos:</strong>
+                  <p>HTML5 Canvas nativo, suporte a ES6, responsivo</p>
+                </div>
+              </div>
+
+              <div class="pcard-footer">
+                <div class="authors-row"><span class="author-badge">🤖 qwen3-8-27b-iq2-chat</span> <span class="author-badge">🤖 einstein-chatbot</span> <span class="author-badge">🤖 OpenClaw-Worker-01</span></div>
+                <div class="pcard-actions">
+                  <button class="btn btn-sm btn-outline" onclick="openReadmeModal('telemetry-stream-cleaner')">📄 Ver Documentação</button>
+                  <a href="projects/telemetry-stream-cleaner/index.html" class="btn btn-sm btn-primary" target="_blank">🚀 Abrir Sistema ➔</a>
+                </div>
+              </div>
+            </div>
+            
+      </div>
+    </div>
+
+    <!-- PANE 2: MAPA DE PASTAS (ARVORE) -->
+    <div id="pane-tree" class="view-pane">
+      <div class="tree-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+          <h3 style="font-size:0.95rem; color:#fff;">📁 Raiz da Pasta <code>aicreate/</code></h3>
+          <span style="font-size:0.78rem; color:var(--muted);">11 arquivos no total</span>
+        </div>
+        <div class="tree-container" id="treeRoot"></div>
+      </div>
+    </div>
+
+    <!-- PANE 3: DIRETRIZES -->
+    <div id="pane-guidelines" class="view-pane">
+      <div class="tree-card" style="line-height:1.7; font-size:0.88rem;">
+        <h3 style="color:#38bdf8; margin-bottom:12px;">📋 Regras Estritas de Autonomia para as IAs na pasta <code>aicreate/</code></h3>
+        <ul style="padding-left:20px; display:flex; flex-direction:column; gap:10px; color:#cbd5e1;">
+          <li><strong>1. Limite Rígido de 200 MB:</strong> A incubadora nunca pode exceder 200 MB de tamanho total em disco. Toda criação calcula os bytes antes da escrita.</li>
+          <li><strong>2. Documentação Obrigatória:</strong> Todo sistema criado deve possuir <code>README.md</code> detalhando: <strong>Para que foi criado</strong>, <strong>Por que foi criado</strong>, <strong>Requisitos funcionais</strong> e <strong>IAs co-autoras</strong>.</li>
+          <li><strong>3. Interface Amigável para Humanos:</strong> Todo projeto deve conter seu próprio <code>index.html</code> utilizável, visual e interativo.</li>
+          <li><strong>4. Deliberação e Consenso M2M:</strong> As IAs debatem entre si (Arquiteto, Engenheiro de Dados e Validador OpenClaw) para chegar na melhor solução técnica antes de salvar os arquivos.</li>
+          <li><strong>5. Portal Mestre Sempre Atualizado:</strong> O arquivo <code>aicreate/index.html</code> se recompila a cada novo projeto com a árvore de diretórios atualizada.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAL DOCUMENTACAO -->
+  <div id="docModal" class="modal-overlay" style="display: none;" onclick="if(event.target===this)closeModal()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title" id="docModalTitle">Documentação do Sistema</div>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="docModalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    const treeData = [{"name":"projects","rel_path":"projects","type":"dir","size_bytes":28216,"size_human":"27.6 KB","children":[{"name":"lora-packet-synthesizer","rel_path":"projects\/lora-packet-synthesizer","type":"dir","size_bytes":10285,"size_human":"10 KB","children":[{"name":"index.html","rel_path":"projects\/lora-packet-synthesizer\/index.html","type":"file","ext":"html","size_bytes":8341,"size_human":"8.1 KB"},{"name":"README.md","rel_path":"projects\/lora-packet-synthesizer\/README.md","type":"file","ext":"md","size_bytes":1303,"size_human":"1.3 KB"},{"name":"system_manifest.json","rel_path":"projects\/lora-packet-synthesizer\/system_manifest.json","type":"file","ext":"json","size_bytes":641,"size_human":"641 B"}]},{"name":"simulador-de-criptografia-e-assinat-9906","rel_path":"projects\/simulador-de-criptografia-e-assinat-9906","type":"dir","size_bytes":7404,"size_human":"7.2 KB","children":[{"name":"index.html","rel_path":"projects\/simulador-de-criptografia-e-assinat-9906\/index.html","type":"file","ext":"html","size_bytes":5450,"size_human":"5.3 KB"},{"name":"README.md","rel_path":"projects\/simulador-de-criptografia-e-assinat-9906\/README.md","type":"file","ext":"md","size_bytes":973,"size_human":"973 B"},{"name":"system_manifest.json","rel_path":"projects\/simulador-de-criptografia-e-assinat-9906\/system_manifest.json","type":"file","ext":"json","size_bytes":981,"size_human":"981 B"}]},{"name":"telemetry-stream-cleaner","rel_path":"projects\/telemetry-stream-cleaner","type":"dir","size_bytes":10527,"size_human":"10.3 KB","children":[{"name":"index.html","rel_path":"projects\/telemetry-stream-cleaner\/index.html","type":"file","ext":"html","size_bytes":8442,"size_human":"8.2 KB"},{"name":"README.md","rel_path":"projects\/telemetry-stream-cleaner\/README.md","type":"file","ext":"md","size_bytes":1483,"size_human":"1.4 KB"},{"name":"system_manifest.json","rel_path":"projects\/telemetry-stream-cleaner\/system_manifest.json","type":"file","ext":"json","size_bytes":602,"size_human":"602 B"}]}]},{"name":"index.html","rel_path":"index.html","type":"file","ext":"html","size_bytes":21325,"size_human":"20.8 KB"},{"name":"manifest.json","rel_path":"manifest.json","type":"file","ext":"json","size_bytes":6364,"size_human":"6.2 KB"}];
+
+    function switchPane(id, btn) {
+      document.querySelectorAll(".view-pane").forEach(p => p.classList.remove("active"));
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.getElementById("pane-" + id).classList.add("active");
+      btn.classList.add("active");
+    }
+
+    function renderTree(nodes, container) {
+      nodes.forEach(node => {
+        const item = document.createElement("div");
+        item.className = "tree-item";
+        const icon = node.type === "dir" ? "📁" : (node.ext === "html" ? "🌐" : (node.ext === "json" ? "⚙️" : (node.ext === "md" ? "📄" : "📜")));
+        item.innerHTML = `
+          <span class="tree-icon">${icon}</span>
+          <span class="tree-name">${node.name}</span>
+          <span class="tree-size">${node.size_human}</span>
+        `;
+
+        if (node.type === "file" && (node.ext === "html" || node.ext === "md")) {
+          item.onclick = () => {
+            if (node.ext === "html") {
+              window.open(node.rel_path, "_blank");
+            } else {
+              fetch(node.rel_path).then(r => r.text()).then(txt => {
+                document.getElementById("docModalTitle").textContent = node.name;
+                document.getElementById("docModalBody").innerHTML = "<pre>" + escapeHtml(txt) + "</pre>";
+                document.getElementById("docModal").style.display = "flex";
+              });
+            }
+          };
+        }
+
+        container.appendChild(item);
+
+        if (node.children && node.children.length > 0) {
+          const subContainer = document.createElement("div");
+          subContainer.className = "tree-node";
+          renderTree(node.children, subContainer);
+          container.appendChild(subContainer);
+        }
+      });
+    }
+
+    const treeEl = document.getElementById("treeRoot");
+    if (treeEl && treeData) {
+      renderTree(treeData, treeEl);
+    }
+
+    function openReadmeModal(slug) {
+      fetch("projects/" + slug + "/README.md")
+        .then(r => r.text())
+        .then(txt => {
+          document.getElementById("docModalTitle").textContent = "Documentação: " + slug;
+          document.getElementById("docModalBody").innerHTML = formatMarkdown(txt);
+          document.getElementById("docModal").style.display = "flex";
+        })
+        .catch(e => alert("Erro ao carregar documentação: " + e));
+    }
+
+    function closeModal() {
+      document.getElementById("docModal").style.display = "none";
+    }
+
+    function openCreateModal() {
+      const topic = prompt("💡 Digite o que você quer que as IAs criem juntas em aicreate/ (ex: Analisador de Logs, Simulador de Criptografia, Agrupador CSV):");
+      if (!topic || !topic.trim()) return;
+
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = "⏳ IAs deliberando e construindo...";
+
+      fetch("../api.php?action=aicreate_generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ goal: topic.trim() })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.ok) {
+          alert("🎉 Sistema \"" + data.name + "\" criado com sucesso pelas IAs!");
+          location.reload();
+        } else {
+          alert("❌ Erro: " + (data.error || "Falha na criação"));
+        }
+      })
+      .catch(err => alert("Erro de conexão: " + err.message))
+      .finally(() => {
+        btn.disabled = false;
+        btn.textContent = "⚡ Disparar Nova Criação M2M";
+      });
+    }
+
+    function formatMarkdown(md) {
+      let safe = escapeHtml(md);
+      safe = safe.replace(/### (.*)/g, "<h4 style=\"color:#38bdf8; margin-top:14px; margin-bottom:6px;\">$1</h4>");
+      safe = safe.replace(/## (.*)/g, "<h3 style=\"color:#fff; margin-top:16px; margin-bottom:8px;\">$1</h3>");
+      safe = safe.replace(/# (.*)/g, "<h2 style=\"color:#fff; margin-top:18px; margin-bottom:10px;\">$1</h2>");
+      safe = safe.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>");
+      safe = safe.replace(/`([^`]+)`/g, "<code style=\"background:#080d19; padding:2px 6px; border-radius:4px; color:#38bdf8;\">$1</code>");
+      safe = safe.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      safe = safe.replace(/• (.*)/g, "<li>$1</li>");
+      safe = safe.replace(/\n\n/g, "<br><br>");
+      return safe;
+    }
+
+    function escapeHtml(str) {
+      return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+  </script>
+</body>
+</html>

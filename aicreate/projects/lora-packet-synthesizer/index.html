@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LoRa Bio-Codon Packet Encoder — AICreate</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; }
+    body { background: #080d1a; color: #e2e8f0; padding: 20px; line-height: 1.5; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+    h1 { font-size: 1.25rem; color: #a855f7; display: flex; align-items: center; gap: 8px; }
+    .badge { background: rgba(168, 85, 247, 0.15); border: 1px solid #a855f7; color: #d8b4fe; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; }
+    .card { background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+    .input-field { width: 100%; background: #080d19; border: 1px solid #334155; color: #fff; padding: 10px; border-radius: 6px; font-size: 0.9rem; margin-top: 6px; }
+    .packet-display { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; font-family: monospace; font-size: 1rem; }
+    .byte-box { padding: 6px 10px; border-radius: 4px; font-weight: bold; }
+    .b-magic { background: #0284c7; color: white; }
+    .b-caste { background: #7c3aed; color: white; }
+    .b-len { background: #059669; color: white; }
+    .b-payload { background: #334155; color: #f8fafc; }
+    .b-crc { background: #ea580c; color: white; }
+    button { background: #9333ea; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    button:hover { background: #7e22ce; }
+    .btn-outline { background: transparent; border: 1px solid #475569; }
+    .btn-outline:hover { background: #1e293b; }
+    .legend { display: flex; gap: 12px; margin-top: 10px; font-size: 0.78rem; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .dot { width: 10px; height: 10px; border-radius: 2px; }
+    .back-btn { color: #94a3b8; text-decoration: none; font-size: 0.85rem; display: flex; align-items: center; gap: 4px; }
+    .back-btn:hover { color: #a855f7; }
+    .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+    .valid { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399; }
+    .corrupt { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #f87171; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <a href="../../index.html" class="back-btn">← Voltar ao Hub AICreate</a>
+      <h1>📻 LoRa Bio-Codon Packet Encoder & CRC16 <span class="badge">Criado Autônomo por IAs</span></h1>
+    </div>
+    <div>
+      <span id="validBadge" class="status-pill valid">✔ PACOTE ÍNTEGRO</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <label style="font-size: 0.85rem; font-weight: bold; color: #94a3b8;">
+      Mensagem para Encapsular no Bio-Pacote LoRa:
+    </label>
+    <input type="text" id="txtPayload" class="input-field" value="CODON_SYNTH_PASS_OK" oninput="encodePacket()" maxlength="45" />
+
+    <div style="display: flex; gap: 10px; margin-top: 12px; align-items: center; flex-wrap: wrap;">
+      <label style="font-size: 0.8rem; color: #94a3b8;">
+        Casta Emissora:
+        <select id="selCaste" onchange="encodePacket()" style="background:#080d19; color:#fff; border:1px solid #334155; padding:6px; border-radius:4px;">
+          <option value="1">Casta 1: Soberano / General</option>
+          <option value="2">Casta 2: Centurião / Escriba</option>
+          <option value="3">Casta 3: Batedor / Scout</option>
+          <option value="4">Casta 4: Assistente OpenClaw</option>
+        </select>
+      </label>
+      <button class="btn-outline" onclick="corruptBit()">⚡ Injetar Ruído (Corromper CRC)</button>
+      <button class="btn-outline" onclick="encodePacket()">🔄 Recalcular</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size: 0.95rem; color: #94a3b8; margin-bottom: 10px;">Visualizador de Bytes do Pacote LoRa (Hexadecimal):</h3>
+    <div class="packet-display" id="packetHexDisplay"></div>
+
+    <div class="legend">
+      <div class="legend-item"><span class="dot" style="background:#0284c7;"></span> 0xAA55 (Magic)</div>
+      <div class="legend-item"><span class="dot" style="background:#7c3aed;"></span> Casta ID</div>
+      <div class="legend-item"><span class="dot" style="background:#059669;"></span> Comprimento</div>
+      <div class="legend-item"><span class="dot" style="background:#334155;"></span> Payload ASCII</div>
+      <div class="legend-item"><span class="dot" style="background:#ea580c;"></span> CRC16-CCITT</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size: 0.95rem; color: #94a3b8; margin-bottom: 8px;">Decodificação Reversa & Telemetria:</h3>
+    <div style="font-size: 0.85rem; line-height: 1.8;">
+      • <strong>Tamanho Total do Pacote:</strong> <span id="valTotalBytes" style="color:#38bdf8;">0 bytes</span> (vs <span id="valRawBytes">0</span> bytes originais)<br>
+      • <strong>CRC16 Calculado:</strong> <code id="valCrc" style="color:#ea580c; font-weight:bold;">0x0000</code><br>
+      • <strong>Texto Extraído:</strong> <span id="valDecodedText" style="color:#34d399; font-weight:bold;">-</span>
+    </div>
+  </div>
+
+  <script>
+    function crc16(bytes) {
+      let crc = 0xFFFF;
+      for (let b of bytes) {
+        crc ^= (b << 8);
+        for (let i = 0; i < 8; i++) {
+          if ((crc & 0x8000) !== 0) {
+            crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+          } else {
+            crc = (crc << 1) & 0xFFFF;
+          }
+        }
+      }
+      return crc;
+    }
+
+    let currentPacket = [];
+
+    function encodePacket() {
+      const text = document.getElementById("txtPayload").value;
+      const caste = parseInt(document.getElementById("selCaste").value, 10);
+
+      const payloadBytes = [];
+      for (let i = 0; i < text.length; i++) {
+        payloadBytes.push(text.charCodeAt(i));
+      }
+
+      const packet = [0xAA, 0x55, caste, payloadBytes.length, ...payloadBytes];
+      const crc = crc16(packet);
+      const crcHigh = (crc >> 8) & 0xFF;
+      const crcLow = crc & 0xFF;
+      packet.push(crcHigh, crcLow);
+
+      currentPacket = packet;
+      renderPacket(packet, true);
+    }
+
+    function corruptBit() {
+      if (currentPacket.length > 5) {
+        currentPacket[currentPacket.length - 1] ^= 0x01; // flip 1 bit
+        renderPacket(currentPacket, false);
+      }
+    }
+
+    function renderPacket(packet, checkCrc = true) {
+      const disp = document.getElementById("packetHexDisplay");
+      disp.innerHTML = "";
+
+      const rawForCrc = packet.slice(0, packet.length - 2);
+      const expectedCrc = (packet[packet.length - 2] << 8) | packet[packet.length - 1];
+      const actualCrc = crc16(rawForCrc);
+      const isValid = (actualCrc === expectedCrc);
+
+      const badge = document.getElementById("validBadge");
+      badge.className = "status-pill " + (isValid ? "valid" : "corrupt");
+      badge.textContent = isValid ? "✔ PACOTE ÍNTEGRO" : "✖ CORROMPIDO (CRC MISMATCH)";
+
+      packet.forEach((b, i) => {
+        const hex = b.toString(16).toUpperCase().padStart(2, "0");
+        const span = document.createElement("span");
+        span.className = "byte-box";
+
+        if (i < 2) span.classList.add("b-magic");
+        else if (i === 2) span.classList.add("b-caste");
+        else if (i === 3) span.classList.add("b-len");
+        else if (i >= packet.length - 2) span.classList.add("b-crc");
+        else span.classList.add("b-payload");
+
+        span.textContent = "0x" + hex;
+        disp.appendChild(span);
+      });
+
+      document.getElementById("valTotalBytes").textContent = packet.length + " bytes";
+      document.getElementById("valRawBytes").textContent = (packet.length - 6);
+      document.getElementById("valCrc").textContent = "0x" + expectedCrc.toString(16).toUpperCase().padStart(4, "0");
+
+      const payloadBytes = packet.slice(4, packet.length - 2);
+      document.getElementById("valDecodedText").textContent = String.fromCharCode(...payloadBytes);
+    }
+
+    encodePacket();
+  </script>
+</body>
+</html>

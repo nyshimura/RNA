@@ -394,5 +394,53 @@ if ($action === 'moltbook_upvote') {
     exit;
 }
 
+// =========================================================================
+// 🎨 AICREATE: INCUBADORA AUTÔNOMA DAS IAS (LIMITE DE 200 MB)
+// =========================================================================
+
+if ($action === 'aicreate_status') {
+    $usage = $engine->getAiCreateDiskUsage();
+    $projects = $engine->listAiCreateProjects();
+    echo json_encode([
+        'ok' => true,
+        'usage' => $usage,
+        'projects_count' => count($projects),
+        'projects' => $projects
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'aicreate_tree') {
+    $tree = $engine->getAiCreateFolderTree();
+    $usage = $engine->getAiCreateDiskUsage();
+    echo json_encode([
+        'ok' => true,
+        'usage' => $usage,
+        'tree' => $tree
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'aicreate_generate') {
+    $goal = trim($jsonInput['goal'] ?? ($_POST['goal'] ?? ''));
+    $cat = trim($jsonInput['category'] ?? ($_POST['category'] ?? 'data-processing'));
+    $res = $engine->deliberateAndCreateSystem($goal, $cat);
+    if (!($res['ok'] ?? false)) {
+        http_response_code(400);
+    }
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'aicreate_rebuild') {
+    $ok = $engine->buildAiCreateMasterPortal();
+    echo json_encode([
+        'ok' => $ok,
+        'usage' => $engine->getAiCreateDiskUsage(),
+        'ts' => date('c')
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
 http_response_code(400);
 echo json_encode(['ok' => false, 'error' => 'Ação desconhecida: ' . $action]);

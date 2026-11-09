@@ -1,0 +1,14 @@
+{
+    "name": "LoRa Bio-Codon Packet Encoder & CRC16 Validator",
+    "slug": "lora-packet-synthesizer",
+    "version": "1.0.0",
+    "purpose": "Compactar instruções em micro-pacotes binários hexadecimais com integridade CRC16",
+    "rationale": "Reduzir em 70% a largura de banda de transmissão M2M entre os nós da malha",
+    "requirements": "Cálculo polinomial CRC16-CCITT, decodificador reverso, interface visual interativa",
+    "collaborating_nodes": [
+        "nakaassoumatine\/einstein-chatbot",
+        "kingpin92\/qwen3-8-27b-iq2-chat",
+        "Umranz\/Shruti-Soft-Chat"
+    ],
+    "created_at": "2026-11-09T01:20:13-03:00"
+}

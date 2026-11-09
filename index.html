@@ -1765,6 +1765,9 @@
       <button class="tab-btn" data-tab="moltbook" onclick="switchTab('moltbook')">
         🦞 Moltbook M2M <span class="tab-count" id="tabCountMoltbook">0</span>
       </button>
+      <a href="aicreate/index.html" target="_blank" class="tab-btn" style="color: #38bdf8; text-decoration: none;">
+        🎨 AICreate (200MB) ➔
+      </a>
       <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">
         🔑 Chave HF & Nuvem
       </button>
@@ -1850,6 +1853,29 @@
 
           <div class="unit-quota-list" id="overviewQuotaList">
             <!-- Populated by JS -->
+          </div>
+
+          <!-- AICREATE INCUBATOR OVERVIEW CARD -->
+          <div style="margin-top: 16px; padding: 14px; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 0.9rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px;">
+                🎨 Incubadora AICreate (200MB)
+              </span>
+              <span id="overviewAiCreateUsage" class="badge" style="background: rgba(16,185,129,0.15); border-color: #10b981; color: #34d399; font-size: 0.7rem;">
+                0.06 MB / 200 MB
+              </span>
+            </div>
+            <p style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.45; margin-bottom: 10px;">
+              Pasta autônoma onde as IAs constroem seus próprios sistemas de dados com interface humana, árvore de arquivos e documentação de requisitos.
+            </p>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <a href="aicreate/index.html" target="_blank" class="btn btn-cyan" style="padding: 4px 10px; font-size: 0.74rem; text-decoration:none;">
+                🌐 Abrir Portal AICreate ➔
+              </a>
+              <button class="btn btn-outline" style="padding: 4px 10px; font-size: 0.74rem;" onclick="triggerAiCreateModal()">
+                ⚡ Disparar Criação M2M
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -2041,6 +2067,10 @@
       <span class="mnav-icon">🦞</span>
       <span>Moltbook</span>
     </button>
+    <a href="aicreate/index.html" target="_blank" class="mnav-btn" style="color: #38bdf8; text-decoration: none;">
+      <span class="mnav-icon">🎨</span>
+      <span>AICreate</span>
+    </a>
     <button class="mnav-btn" data-tab="settings" onclick="switchTab('settings')">
       <span class="mnav-icon">🔑</span>
       <span>Chave</span>
@@ -2376,9 +2406,61 @@
         const data = await res.json();
         telemetryData = data;
         renderDashboard(data);
+        fetchAiCreateStatus();
       } catch (err) {
         console.error('Erro ao carregar telemetria:', err);
       }
+    }
+
+    async function fetchAiCreateStatus() {
+      try {
+        const res = await fetch('api.php?action=aicreate_status&t=' + Date.now());
+        const data = await res.json();
+        if (data.ok && data.usage) {
+          const el = document.getElementById('overviewAiCreateUsage');
+          if (el) el.textContent = `${data.usage.used_mb} MB / 200 MB`;
+        }
+      } catch (e) {}
+    }
+
+    function triggerAiCreateModal() {
+      showModalPrompt({
+        title: '🎨 Criar Novo Sistema Autônomo em aicreate/ (200MB)',
+        description: 'Digite o que você quer que as IAs criem juntas (ex: Normalizador de JSON, Rastreador de ISS, Extrator de Logs CSV). Os agentes vão conversar entre si, gerar a documentação completa e a interface humana amigável:',
+        placeholder: 'Ex: Sistema de Agrupamento e Deduplicação de Logs em Tempo Real',
+        defaultValue: '',
+        confirmText: 'Disparar Criação M2M',
+        onConfirm: async (goal) => {
+          if (!goal || !goal.trim()) return;
+          showToast('⏳ Agentes deliberando e construindo o sistema...', 'info', 6000);
+          try {
+            const res = await fetch('api.php?action=aicreate_generate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ goal: goal.trim() })
+            });
+            const data = await res.json();
+            if (data.ok) {
+              showModalAlert({
+                title: '🎉 Sistema Criado com Sucesso!',
+                type: 'success',
+                message: `<strong>Sistema "${escapeHtml(data.name)}" gerado na pasta <code>${escapeHtml(data.slug)}</code>!</strong><br><br>` +
+                         `• <strong>Para quê:</strong> ${escapeHtml(data.purpose)}<br>` +
+                         `• <strong>Por quê:</strong> ${escapeHtml(data.rationale)}<br>` +
+                         `• <strong>Cota de Disco:</strong> ${data.usage.used_mb} MB / 200 MB (${data.usage.free_mb} MB livres)<br><br>` +
+                         `<a href="${data.entrypoint}" target="_blank" class="btn btn-primary" style="display:inline-block; margin-top:8px;">🚀 Abrir Novo Sistema ➔</a>`
+              });
+              showToast(`Sistema "${data.name}" criado com sucesso!`, 'success');
+              await fetchAiCreateStatus();
+              await fetchTelemetry();
+            } else {
+              showToast('❌ Erro: ' + (data.error || 'Falha ao criar sistema'), 'error');
+            }
+          } catch (err) {
+            showToast('❌ Falha na conexão: ' + err.message, 'error');
+          }
+        }
+      });
     }
 
     function buildEnrichedMailItems(rawMailbox) {
@@ -3171,6 +3253,7 @@
 
     fetchTelemetry();
     fetchMoltbookFeed();
+    fetchAiCreateStatus();
     setInterval(fetchTelemetry, 20000);
   </script>
 </body>

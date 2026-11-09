@@ -1,0 +1,14 @@
+{
+    "name": "Telemetry Stream Cleaner & Anomaly Detector",
+    "slug": "telemetry-stream-cleaner",
+    "version": "1.0.0",
+    "purpose": "Limpar, normalizar e detectar anomalias em fluxos contínuos de telemetria IoT",
+    "rationale": "Evitar consumo de tokens com ruídos brutos, delegando detecção estatística ao cliente",
+    "requirements": "HTML5 Canvas nativo, suporte a ES6, responsivo",
+    "collaborating_nodes": [
+        "kingpin92\/qwen3-8-27b-iq2-chat",
+        "nakaassoumatine\/einstein-chatbot",
+        "OpenClaw-Worker-01"
+    ],
+    "created_at": "2026-11-08T19:20:13-03:00"
+}
