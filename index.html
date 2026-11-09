@@ -1581,9 +1581,6 @@
       <button class="tab-btn" data-tab="aicreate" onclick="switchTab('aicreate')">
         🎨 Incubadora AICreate <span class="tab-count" id="tabCountAiCreate">0</span>
       </button>
-      <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">
-        🔑 Chave HF & Nuvem
-      </button>
     </nav>
 
     <!-- TAB 1: PAINEL CENTRAL & MISSÕES -->
@@ -1672,7 +1669,7 @@
           <div style="margin-top: 16px; padding: 14px; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-md);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
               <span style="font-size: 0.9rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px;">
-                🎨 Incubadora AICreate (200MB)
+                🎨 Incubadora AICreate
               </span>
               <span id="overviewAiCreateUsage" class="badge" style="background: rgba(16,185,129,0.15); border-color: #10b981; color: #34d399; font-size: 0.7rem;">
                 0.06 MB / 200 MB
@@ -1736,7 +1733,7 @@
             <span class="mail-folder-count" id="fCountOpenClaw">0</span>
           </button>
           <button class="mail-folder-btn" data-folder="AICREATE" onclick="setMailFolder('AICREATE')">
-            <span>🎨 Criações AICreate (200MB)</span>
+            <span>🎨 Criações AICreate</span>
             <span class="mail-folder-count" id="fCountAiCreate">0</span>
           </button>
           <button class="mail-folder-btn" data-folder="READ_SCOUT" onclick="setMailFolder('READ_SCOUT')">
@@ -1794,7 +1791,7 @@
       </div>
     </section>
 
-    <!-- TAB 4: 🎨 AICREATE (INCUBADORA AUTÔNOMA DAS IAS - 200MB) -->
+    <!-- TAB 4: 🎨 AICREATE (INCUBADORA AUTÔNOMA DAS IAS) -->
     <section class="view-section" id="view-aicreate">
       <div class="panel" style="margin-bottom: 16px;">
         <div class="panel-header">
@@ -1844,23 +1841,6 @@
       </div>
     </section>
 
-    <!-- TAB 5: CHAVE HF & NUVEM -->
-    <section class="view-section" id="view-settings">
-      <div class="panel" style="max-width: 640px;">
-        <div class="panel-header">
-          <div class="panel-title">🔑 Chave Hugging Face & Segurança Cloud</div>
-          <span class="badge badge-emerald" id="tokenMaskBadge">NÃO CONFIGURADO</span>
-        </div>
-        <p class="panel-desc">
-          Sua chave fica guardada apenas em <code>state/secret_config.json</code> e no banco MySQL protegido por <code>.htaccess</code>. Ela nunca é enviada para Spaces de terceiros.
-        </p>
-
-        <input type="password" id="hfTokenInput" class="input-field" placeholder="Cole sua chave hf_..." style="margin-bottom: 12px;" />
-        <button class="btn btn-primary" onclick="saveHfToken()">💾 Salvar Chave com Segurança</button>
-        <div class="status-toast" id="tokenStatusToast"></div>
-      </div>
-    </section>
-
   </main>
 
   <!-- MOBILE BOTTOM NAVIGATION -->
@@ -1880,10 +1860,6 @@
     <button class="mnav-btn" data-tab="aicreate" onclick="switchTab('aicreate')">
       <span class="mnav-icon">🎨</span>
       <span>AICreate</span>
-    </button>
-    <button class="mnav-btn" data-tab="settings" onclick="switchTab('settings')">
-      <span class="mnav-icon">🔑</span>
-      <span>Chave</span>
     </button>
   </nav>
 
@@ -2221,9 +2197,10 @@
       document.getElementById('tabCountUnits').textContent = totalNodes;
       document.getElementById('tabCountMail').textContent = inboxCount;
 
-      // Token mask
+      // Token mask (se badge existir)
       const masked = (data.token_status && data.token_status.masked) || data.hf_token_masked || 'CONFIGURADO';
-      document.getElementById('tokenMaskBadge').textContent = masked;
+      const tmb = document.getElementById('tokenMaskBadge');
+      if (tmb) tmb.textContent = masked;
 
       // Populate select dropdown
       const sel = document.getElementById('nodeSelect');
@@ -2444,7 +2421,7 @@
         title = '🤖 Agentes OpenClaw (Canal de Assistentes)';
       } else if (currentMailFolder === 'AICREATE') {
         filtered = aicreateItems;
-        title = '🎨 Criações Autônomas AICreate (200MB)';
+        title = '🎨 Criações Autônomas AICreate';
       } else if (currentMailFolder === 'READ_SCOUT') {
         filtered = webscoutItems;
         title = '🌐 Batedor Web (Dossiês de Reconhecimento)';
@@ -2904,27 +2881,6 @@
           }
         }
       });
-    }
-
-    async function saveHfToken() {
-      const val = document.getElementById('hfTokenInput').value.trim();
-      const toast = document.getElementById('tokenStatusToast');
-      if (!val) return;
-      toast.style.display = 'block';
-      toast.textContent = '⏳ Salvando chave...';
-      const res = await fetch('api.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'save_token', hf_token: val })
-      });
-      const data = await res.json();
-      if (data.ok) {
-        toast.textContent = '✅ Chave salva com segurança (' + (data.hf_token_masked || '') + ')!';
-        document.getElementById('hfTokenInput').value = '';
-        await fetchTelemetry();
-      } else {
-        toast.textContent = '❌ Erro ao salvar chave.';
-      }
     }
 
     function escapeHtml(str) {

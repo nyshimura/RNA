@@ -188,14 +188,12 @@ if ($action === 'read_file') {
 }
 
 if ($action === 'save_token') {
-    $token = trim($jsonInput['hf_token'] ?? ($_POST['hf_token'] ?? ''));
-    if ($token === '') {
-        http_response_code(400);
-        echo json_encode(['ok' => false, 'error' => 'Token vazio']);
-        exit;
-    }
-    $res = $engine->saveHfToken($token);
-    echo json_encode($res, JSON_UNESCAPED_UNICODE);
+    // Alteração pública desativada permanentemente pelo administrador para segurança da rede
+    http_response_code(403);
+    echo json_encode([
+        'ok' => false,
+        'error' => 'A alteração pública da chave HF foi permanentemente desativada pelo proprietário para segurança da rede.'
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
