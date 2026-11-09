@@ -313,5 +313,29 @@ if ($action === 'synthesize') {
     exit;
 }
 
+if ($action === 'openclaw_chat') {
+    $msg = trim($jsonInput['message'] ?? ($jsonInput['msg'] ?? ($_POST['message'] ?? ($_POST['msg'] ?? ''))));
+    $agent = trim($jsonInput['agent_name'] ?? ($jsonInput['agent'] ?? ($_POST['agent_name'] ?? ($_POST['agent'] ?? 'OpenClaw-Assistant'))));
+    if ($msg === '') {
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'error' => 'Mensagem vazia para o Agente OpenClaw']);
+        exit;
+    }
+    $res = $engine->openClawInteract($msg, $agent);
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'openclaw_inbox') {
+    $mailbox = $engine->buildMailboxIndex();
+    $openclawOnly = array_values(array_filter($mailbox, fn($m) => ($m['folder_type'] ?? '') === 'OPENCLAW'));
+    echo json_encode([
+        'ok' => true,
+        'messages' => $openclawOnly,
+        'count' => count($openclawOnly)
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
 http_response_code(400);
 echo json_encode(['ok' => false, 'error' => 'Ação desconhecida: ' . $action]);

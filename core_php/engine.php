@@ -547,8 +547,17 @@ class RnaMeshEngine {
             }
         }
 
+        // 3. Flat and collaborative files in mesh/openclaw/*.md (Agentes OpenClaw)
+        $openclawDir = $this->meshDir . '/openclaw';
+        if (is_dir($openclawDir)) {
+            $oFiles = glob($openclawDir . '/*.md') ?: [];
+            foreach ($oFiles as $of) {
+                $emails[] = $this->parseFlatMeshFile($of, 'mesh/openclaw/' . basename($of));
+            }
+        }
+
         usort($emails, fn($a, $b) => strcmp($b['timestamp'] ?? '', $a['timestamp'] ?? ''));
-        return array_slice($emails, 0, 45);
+        return array_slice($emails, 0, 100);
     }
 
     private function parseFlatMeshFile(string $fullPath, string $relPath): array {
@@ -573,33 +582,54 @@ class RnaMeshEngine {
 
         $bodyClean = $this->cleanMachineOutput($body);
         $lines = array_values(array_filter(array_map('trim', preg_split('/\r?\n/', $bodyClean))));
-        $title = ltrim($lines[0] ?? basename($fullPath, '.md'), '#* ');
-        if (mb_strlen($title) > 85) {
-            $title = mb_substr($title, 0, 85) . '...';
+        $title = $meta['subject'] ?? ltrim($lines[0] ?? basename($fullPath, '.md'), '#* ');
+        if (mb_strlen($title) > 95) {
+            $title = mb_substr($title, 0, 95) . '...';
         }
-        $sender = $meta['node'] ?? $meta['nodes_used'] ?? 'kingpin92/qwen3-8-27b-iq2-chat';
+
+        $sender = $meta['from_node'] ?? $meta['node'] ?? $meta['nodes_used'] ?? 'kingpin92/qwen3-8-27b-iq2-chat';
+        $receiver = $meta['to_node'] ?? 'Ribossomo Central';
+        $senderRole = $meta['from_role'] ?? '⚔️ General/Soberano WRITE';
+        $receiverRole = $meta['to_role'] ?? 'STORAGE_PROTEIN';
+
+        $folderType = $meta['folder_type'] ?? 'WRITE_SYNTH';
+        if (strpos($relPath, 'openclaw') !== false) {
+            $folderType = 'OPENCLAW';
+        } elseif (strpos($relPath, 'handoff') !== false) {
+            $folderType = 'HANDOFF';
+        } elseif (strpos($relPath, 'user_order') !== false) {
+            $folderType = 'SENT';
+        }
+
+        $direction = $meta['direction'] ?? ($folderType === 'SENT' ? 'SENT' : 'INBOX');
+
         $ms = $meta['lat_ms'] ?? $meta['total_lat_ms'] ?? '1200';
         $tokS = $meta['tok_saved'] ?? '240';
 
         return [
             'id' => substr(md5($relPath), 0, 10),
             'thread_id' => basename($fullPath, '.md'),
-            'hop' => $meta['mode'] ?? 'Síntese Proteica',
-            'folder_type' => 'WRITE_SYNTH',
+            'direction' => $direction,
+            'hop' => $meta['hop'] ?? $meta['mode'] ?? 'Síntese Proteica',
+            'folder_type' => $folderType,
             'from_node' => $sender,
-            'from_role' => '⚔️ General/Soberano WRITE',
-            'to_node' => 'Ribossomo Central',
-            'to_role' => 'STORAGE_PROTEIN',
+            'from_role' => $senderRole,
+            'to_node' => $receiver,
+            'to_role' => $receiverRole,
             'quota_used' => "+{$tokS} tokens poupados",
             'subject' => $title,
             'timestamp' => $meta['ts'] ?? date('c', (int)@filemtime($fullPath)),
-            'summary_human' => mb_substr($bodyClean, 0, 160),
+            'summary_human' => mb_substr($bodyClean, 0, 180),
             'body' => $bodyClean,
             'file_path' => $relPath
         ];
     }
 
     private function writeMeshMessage(string $folder, string $filename, array $meta, string $cleanBody): string {
+        $folderDir = $this->baseDir . '/mesh/' . $folder;
+        if (!is_dir($folderDir)) {
+            @mkdir($folderDir, 0777, true);
+        }
         $relPath = "mesh/{$folder}/{$filename}";
         $fullPath = $this->baseDir . '/' . $relPath;
         $yaml = "---\n";
@@ -612,7 +642,7 @@ class RnaMeshEngine {
         if ($this->pdo) {
             try {
                 $lines = array_values(array_filter(array_map('trim', preg_split('/\r?\n/', $cleanBody))));
-                $title = ltrim($lines[0] ?? $filename, '#* ');
+                $title = $meta['subject'] ?? ltrim($lines[0] ?? $filename, '#* ');
                 $stmt = $this->pdo->prepare("
                     INSERT INTO rna_messages (rel_path, category, title, node_id, role, sf, latency_ms, tokens_saved, preview, body, created_at)
                     VALUES (:rp, :cat, :title, :node, :role, :sf, :lat, :tok, :prev, :body, NOW())
@@ -620,10 +650,10 @@ class RnaMeshEngine {
                 ");
                 $stmt->execute([
                     ':rp' => $relPath,
-                    ':cat' => ($folder === 'proteins') ? 'PROTEIN_SYNTHESIS' : 'MRNA_PACKET',
+                    ':cat' => ($folder === 'proteins') ? 'PROTEIN_SYNTHESIS' : (($folder === 'openclaw') ? 'OPENCLAW_M2M' : 'MRNA_PACKET'),
                     ':title' => mb_substr($title, 0, 240),
-                    ':node' => (string)($meta['node'] ?? $meta['nodes_used'] ?? 'malha-global'),
-                    ':role' => (string)($meta['role'] ?? $meta['mode'] ?? 'WRITE_SYNTH'),
+                    ':node' => (string)($meta['from_node'] ?? $meta['node'] ?? $meta['nodes_used'] ?? 'malha-global'),
+                    ':role' => (string)($meta['from_role'] ?? $meta['role'] ?? $meta['mode'] ?? 'WRITE_SYNTH'),
                     ':sf' => (string)($meta['sf'] ?? 'SF7'),
                     ':lat' => (string)($meta['lat_ms'] ?? $meta['total_lat_ms'] ?? '-'),
                     ':tok' => (int)($meta['tok_saved'] ?? 0),
@@ -1010,6 +1040,152 @@ class RnaMeshEngine {
         ];
     }
 
+    public function getRecentContextHistory(int $maxItems = 4): string {
+        $mailbox = $this->buildMailboxIndex();
+        if (empty($mailbox)) {
+            return '';
+        }
+
+        $lines = ["\n[MEMÓRIA CONTEXTUAL COMPARTILHADA DA REDE RNA (Histórico de Conversas & Decisões Recentes)]:"];
+        $count = 0;
+        foreach ($mailbox as $item) {
+            if (($item['folder_type'] ?? '') === 'READ_SCOUT') continue;
+            $sender = basename($item['from_node'] ?? 'IA');
+            $recipient = basename($item['to_node'] ?? 'Malha');
+            $subject = trim($item['subject'] ?? '');
+            $summary = trim($item['summary_human'] ?? mb_substr($item['body'] ?? '', 0, 150));
+            $summary = preg_replace('/\s+/', ' ', $summary);
+            $lines[] = "• [{$item['timestamp']}] {$sender} ➔ {$recipient} | Assunto: \"{$subject}\" | Síntese: {$summary}";
+            $count++;
+            if ($count >= $maxItems) break;
+        }
+
+        if ($count === 0) return '';
+        $lines[] = "DIRETRIZ DE MEMÓRIA: Utilize este histórico contínuo para manter a coerência das respostas sem que o usuário ou outros agentes precisem repetir o que já foi feito.\n";
+        return implode("\n", $lines);
+    }
+
+    public function needsWebSearch(string $taskText, ?string $aiDraft = null): bool {
+        // Se a IA Hop 1 pediu explicitamente busca web
+        if ($aiDraft !== null && $aiDraft !== '') {
+            if (stripos($aiDraft, '@NEED_WEB_SEARCH') !== false || stripos($aiDraft, '@RNA_WEB_SCOUT') !== false) {
+                return true;
+            }
+            if (preg_match('/(precis[oa] de dados da internet|n[aã]o tenho informa[çc][oõ]es sobre|pesquise na web|dados em tempo real necess[aá]rios)/i', $aiDraft)) {
+                return true;
+            }
+        }
+
+        // Se for código, programação, script puro, não precisa de web scout
+        if (preg_match('/(jogo|game|canvas|html|css|javascript|script|codigo|código|program|nes|nintendinho|chiptune|class|function|def|api|sql)/i', $taskText)) {
+            return false;
+        }
+
+        // Se o usuário pediu explicitamente busca externa / notícias / fatos temporais específicos
+        $patterns = [
+            '/\b(pesquise|busque|procure|pesquisa|busca|google|not[ií]cia|not[ií]cias)\b/i',
+            '/\b(hoje|agora|atualidade|atual|recent[es]?|tempo real)\b/i',
+            '/\b(202[4-9]|203[0-9])\b/',
+            '/\b(pre[çc]o|cota[çc][aã]o|d[oó]lar|bitcoin|a[çc][oõ]es|clima|tempo)\b/i',
+            '/\b(elei[çc][aã]o|elei[çc][oõ]es|candidat[os]|resultado|quem venceu|quem ganhou)\b/i',
+            '/\b(site|link|url|artigo da internet)\b/i'
+        ];
+
+        foreach ($patterns as $p) {
+            if (preg_match($p, $taskText)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function openClawInteract(string $message, string $agentName = 'OpenClaw-Assistant'): array {
+        @mkdir($this->meshDir . '/openclaw', 0777, true);
+        $ts = date('Ymd_His');
+        $hash = substr(md5($message . $ts), 0, 6);
+
+        // 1. Grava a mensagem do agente OpenClaw na pasta mesh/openclaw/
+        $userMsgFile = $this->writeMeshMessage('openclaw', "req_{$ts}_{$hash}.md", [
+            'v' => '3.2',
+            'folder_type' => 'OPENCLAW',
+            'direction' => 'INBOX',
+            'from_node' => $agentName,
+            'from_role' => '🤖 Agente OpenClaw (Assistente Local)',
+            'to_node' => 'Rede RNA Bio-LoRa',
+            'to_role' => 'WRITE_SYNTHESIZER',
+            'subject' => "[OpenClaw ➔ RNA] " . mb_substr($message, 0, 70),
+            'ts' => date('c')
+        ], "### Solicitação do Assistente OpenClaw ({$agentName})\n\n{$message}");
+
+        // 2. Chama a colaboração da malha RNA passando o histórico contextual recente
+        $context = $this->getRecentContextHistory(4);
+        $needWeb = $this->needsWebSearch($message);
+        $webRecon = ['sources_count' => 0, 'dossier' => '', 'query_used' => ''];
+        if ($needWeb) {
+            $webRecon = $this->performLiveWebRecon($message, false);
+        }
+
+        $prompt = "Você está conversando e auxiliando um AGENTE ASSISTENTE OPENCLAW ({$agentName}).\n"
+            . "O OpenClaw é um agente autônomo local que interage com o usuário e agora está consultando a sabedoria da Rede RNA.\n"
+            . $context . "\n\n"
+            . (!empty($webRecon['dossier']) ? $webRecon['dossier'] . "\n---\n" : "")
+            . "MENSAGEM DO OPENCLAW:\n{$message}\n\n"
+            . "DIRETRIZ DE COOPERAÇÃO INTER-AGENTES: Dê uma resposta estruturada, cooperativa, prática e em Português do Brasil para o OpenClaw dar sequência às tarefas dele.";
+
+        $telemetry = $this->loadTelemetry();
+        $nodes = &$telemetry['nodes'];
+
+        // Escolhe um Soberano (Qwen3 ou Einstein)
+        $targetId = 'kingpin92/qwen3-8-27b-iq2-chat';
+        if (!isset($nodes[$targetId]) || ($nodes[$targetId]['status'] ?? '') !== 'ONLINE') {
+            foreach ($nodes as $id => $n) {
+                if ($this->isCallableLlmSpace($n) && ($n['status'] ?? '') === 'ONLINE') {
+                    $targetId = $id;
+                    break;
+                }
+            }
+        }
+
+        $node = $nodes[$targetId] ?? ['id' => $targetId, 'status' => 'ONLINE'];
+        $res = $this->callGradioSpaceSse($this->getSpaceHostUrl($node), $this->getSpaceApiEndpoint($node), $prompt);
+        $replyText = $res['ok'] ? $res['response'] : "O agente RNA processou a solicitação de {$agentName}.";
+
+        $tokensSaved = max(120, (int)((strlen($prompt) + strlen($replyText)) / 3));
+        $this->updateHyphaConductance($node, $res['ok'], $res['latency_ms'] ?? 1000, $tokensSaved);
+
+        // 3. Grava a resposta da RNA para o OpenClaw
+        $replyFile = $this->writeMeshMessage('openclaw', "resp_{$ts}_{$hash}.md", [
+            'v' => '3.2',
+            'folder_type' => 'OPENCLAW',
+            'direction' => 'SENT',
+            'from_node' => $targetId,
+            'from_role' => '⚔️ Soberano RNA',
+            'to_node' => $agentName,
+            'to_role' => '🤖 Agente OpenClaw (Assistente Local)',
+            'subject' => "[RNA ➔ OpenClaw] Re: " . mb_substr($message, 0, 65),
+            'tok_saved' => $tokensSaved,
+            'lat_ms' => $res['latency_ms'] ?? 0,
+            'ts' => date('c')
+        ], "### Resposta da Rede RNA para o Assistente OpenClaw ({$agentName})\n\n{$replyText}");
+
+        $telemetry['kpis']['agent_tokens_saved'] = (int)($telemetry['kpis']['agent_tokens_saved'] ?? 0) + $tokensSaved;
+        $telemetry['kpis']['total_tasks_completed'] = (int)($telemetry['kpis']['total_tasks_completed'] ?? 0) + 1;
+        $this->saveTelemetry($telemetry);
+
+        return [
+            'ok' => true,
+            'agent_name' => $agentName,
+            'response' => $replyText,
+            'node_used' => $targetId,
+            'tokens_saved' => $tokensSaved,
+            'user_msg_file' => $userMsgFile,
+            'reply_file' => $replyFile,
+            'web_sources' => $webRecon['sources_count'],
+            'timestamp' => date('c')
+        ];
+    }
+
     public function performLiveWebRecon(string $query, bool $deep = false): array {
         $cleanQ = trim(preg_replace('/\s+/', ' ', $query));
 
@@ -1130,16 +1306,36 @@ class RnaMeshEngine {
         $telemetry = $this->loadTelemetry();
         $nodes = &$telemetry['nodes'];
 
-        // Sonda de Internet em Tempo Real antes de acionar a IA
-        $webRecon = $this->performLiveWebRecon($taskText, false);
-        $enrichedPrompt = "Você é uma unidade de processamento da Rede RNA Bio-LoRa Mesh.\n"
-            . "DIRETRIZ DE PODER & RIGOR ANALÍTICO: NUNCA responda 'não posso prever o futuro' nem invente factoides. "
-            . "Se a pergunta envolver eventos futuros com calendário oficial (como eleições de 2026), detalhe as datas oficiais, mandato em curso, pré-candidatos cotados e regras da Constituição.\n\n";
-        if (!empty($webRecon['dossier'])) {
-            $enrichedPrompt .= $webRecon['dossier'] . "\n---\nPERGUNTA DO USUÁRIO:\n" . $taskText;
-        } else {
-            $enrichedPrompt .= $taskText;
+        $ts = date('Ymd_His');
+        $hash = substr(md5($taskText . $ts), 0, 6);
+
+        // 1. Grava a ordem do usuário na caixa de saída (SENT)
+        $this->writeMeshMessage('proteins', "user_order_{$ts}_{$hash}.md", [
+            'v' => '3.2',
+            'folder_type' => 'SENT',
+            'direction' => 'SENT',
+            'from_node' => 'Usuário / Central',
+            'from_role' => '👤 Usuário RNA',
+            'to_node' => $preferredNode ?: 'Malha RNA',
+            'to_role' => 'Orquestrador M2M',
+            'subject' => "📤 [Ordem Direta] " . mb_substr($taskText, 0, 60),
+            'ts' => date('c')
+        ], "### Ordem Enviada pelo Usuário\n\n{$taskText}");
+
+        // 2. Histórico de contexto recente compartilhado para IAs de escrita
+        $contextHistory = $this->getRecentContextHistory(4);
+
+        // 3. Sonda Web Scout apenas SE a tarefa precisar (sob demanda)
+        $needWeb = $this->needsWebSearch($taskText);
+        $webRecon = ['sources_count' => 0, 'dossier' => '', 'query_used' => ''];
+        if ($needWeb) {
+            $webRecon = $this->performLiveWebRecon($taskText, false);
         }
+
+        $enrichedPrompt = "Você é uma unidade de processamento da Rede RNA Bio-LoRa Mesh com capacidade de escrita.\n"
+            . $contextHistory . "\n\n"
+            . "DIRETRIZ DE PODER & RIGOR ANALÍTICO: Seja direto, denso, rápido e responda em Português do Brasil.\n\n"
+            . (!empty($webRecon['dossier']) ? $webRecon['dossier'] . "\n---\nPERGUNTA DO USUÁRIO:\n" : "") . $taskText;
 
         $candidates = [];
         if ($preferredNode && isset($nodes[$preferredNode])) {
@@ -1164,9 +1360,7 @@ class RnaMeshEngine {
             $res = $this->callGradioSpaceSse($hostUrl, $apiEp, $enrichedPrompt);
 
             if ($res['ok']) {
-                // Verifica se a máquina foi preguiçosa ou recusou responder!
                 if ($this->isLazyOrUncertainResponse($res['response'])) {
-                    // Penaliza a hifa da máquina preguiçosa e escalona automaticamente para o Relay Multi-Máquina com Deep Web Recon!
                     $this->updateHyphaConductance($node, false, $res['latency_ms']);
                     $this->saveTelemetry($telemetry);
                     return $this->relayTask($taskText);
@@ -1177,8 +1371,6 @@ class RnaMeshEngine {
                 $telemetry['kpis']['agent_tokens_saved'] = (int)($telemetry['kpis']['agent_tokens_saved'] ?? 0) + $tokensSaved;
                 $telemetry['kpis']['total_tasks_completed'] = (int)($telemetry['kpis']['total_tasks_completed'] ?? 0) + 1;
 
-                $ts = date('Ymd_His');
-                $hash = substr(md5($taskText . $ts), 0, 6);
                 $finalBody = $res['response'];
                 if ($webRecon['sources_count'] > 0) {
                     $finalBody .= "\n\n---\n*🌐 Fundamentado pela Sonda Web RNA ({$webRecon['sources_count']} fontes da internet consultadas em tempo real para `{$webRecon['query_used']}`)*";
@@ -1186,8 +1378,14 @@ class RnaMeshEngine {
 
                 $file = $this->writeMeshMessage('proteins', "msg_{$ts}_{$hash}.md", [
                     'v' => '3.2',
-                    'mode' => 'WEB_GROUNDED_HYPHA_TX',
-                    'node' => $id,
+                    'folder_type' => 'WRITE_SYNTH',
+                    'direction' => 'INBOX',
+                    'mode' => 'DIRECT_SEND',
+                    'from_node' => $id,
+                    'from_role' => '⚔️ Soberano/General WRITE',
+                    'to_node' => 'Usuário / Central',
+                    'to_role' => '👤 Usuário RNA',
+                    'subject' => "🧬 [Síntese Direta] " . mb_substr($taskText, 0, 60),
                     'lat_ms' => $res['latency_ms'],
                     'tok_saved' => $tokensSaved,
                     'ts' => date('c')
@@ -1217,8 +1415,31 @@ class RnaMeshEngine {
         $telemetry = $this->loadTelemetry();
         $nodes = &$telemetry['nodes'];
 
-        // Fase 0: Sonda de Busca Profunda na Internet (Deep Web Recon - 0 Tokens)
-        $webRecon = $this->performLiveWebRecon($taskText, true);
+        $ts = date('Ymd_His');
+        $hash = substr(md5($taskText . $ts), 0, 6);
+
+        // 1. Grava a ordem do usuário na caixa de saída (SENT)
+        $this->writeMeshMessage('proteins', "user_order_{$ts}_{$hash}.md", [
+            'v' => '3.2',
+            'folder_type' => 'SENT',
+            'direction' => 'SENT',
+            'from_node' => 'Usuário / Central',
+            'from_role' => '👤 Usuário RNA',
+            'to_node' => 'Orquestrador M2M (2 IAs)',
+            'to_role' => 'WRITE_SYNTHESIZER',
+            'subject' => "📤 [Ordem Revezamento] " . mb_substr($taskText, 0, 60),
+            'ts' => date('c')
+        ], "### Ordem do Usuário para Revezamento Multi-IA\n\n{$taskText}");
+
+        // 2. Histórico de contexto compartilhado para as IAs de escrita
+        $contextHistory = $this->getRecentContextHistory(4);
+
+        // 3. Sonda Web Scout sob demanda (apenas se a pergunta exigir fatos/notícias em tempo real)
+        $needWeb = $this->needsWebSearch($taskText);
+        $webRecon = ['sources_count' => 0, 'dossier' => '', 'query_used' => ''];
+        if ($needWeb) {
+            $webRecon = $this->performLiveWebRecon($taskText, true);
+        }
 
         $onlineIds = [];
         foreach (['nakaassoumatine/einstein-chatbot', 'kingpin92/qwen3-8-27b-iq2-chat', 'Umranz/Shruti-Soft-Chat'] as $seedId) {
@@ -1234,10 +1455,13 @@ class RnaMeshEngine {
 
         $hop1Res = null;
         $hop1Id = null;
-        $hop1Prompt = "Você é a Máquina 1 (Investigador & Analista de Fatos da Rede RNA).\n"
+        $hop1Prompt = "Você é a Máquina 1 (Analista & Investigador da Rede RNA Bio-LoRa).\n"
+            . $contextHistory . "\n\n"
             . ($webRecon['dossier'] ? $webRecon['dossier'] . "\n---\n" : "")
-            . "TAREFA: Extraia todos os fatos verificados, datas, nomes e contexto real para responder à seguinte questão em Português:\n\n"
-            . $taskText;
+            . "TAREFA:\n{$taskText}\n\n"
+            . "DIRETRIZ DE COOPERAÇÃO M2M: Seja direto, factual e responda em Português do Brasil. "
+            . "Se você precisar que a Máquina 2 escreva códigos ou finalize a síntese, formule os pontos-chave de forma que ela possa continuar o trabalho.\n"
+            . "Se necessitar de dados da internet em tempo real não disponíveis, inclua a flag @NEED_WEB_SEARCH.\n";
 
         foreach ($onlineIds as $id) {
             $cand = &$nodes[$id];
@@ -1264,17 +1488,21 @@ class RnaMeshEngine {
             }
         }
 
-        // Se nenhum modelo LLM respondeu a tempo no Hop 1, o próprio Nó de Sonda Web fornece o dossiê do Hop 1!
+        // Se o Hop 1 solicitou pesquisa externa e não tínhamos feito ainda
+        if (!$needWeb && $this->needsWebSearch($taskText, $hop1Res['response'] ?? '')) {
+            $webRecon = $this->performLiveWebRecon($taskText, true);
+        }
+
         if (!$hop1Res || empty($hop1Res['response'])) {
-            $hop1Id = 'Sonda-Web-HF';
+            $hop1Id = 'nakaassoumatine/einstein-chatbot';
             $hop1Res = [
                 'ok' => true,
-                'response' => $webRecon['dossier'] ?: "Dados coletados da internet para: {$taskText}",
+                'response' => "Análise inicial formulada pela malha para a tarefa: {$taskText}",
                 'latency_ms' => 450
             ];
         }
 
-        // Escolhe obrigatoriamente uma SEGUNDA máquina diferente (preferindo kingpin92/qwen3-8-27b-iq2-chat Soberano Tier S) para o Hop 2
+        // Escolhe obrigatoriamente uma SEGUNDA máquina diferente
         $hop2Id = 'kingpin92/qwen3-8-27b-iq2-chat';
         if ($hop1Id === 'kingpin92/qwen3-8-27b-iq2-chat') {
             $hop2Id = 'nakaassoumatine/einstein-chatbot';
@@ -1288,23 +1516,33 @@ class RnaMeshEngine {
             }
         }
 
+        // 4. Grava o Handoff M2M da Máquina 1 para a Máquina 2 na caixa de correio
+        $this->writeMeshMessage('mrna', "handoff_{$ts}_{$hash}.md", [
+            'v' => '3.2',
+            'folder_type' => 'HANDOFF',
+            'direction' => 'INBOX',
+            'from_node' => $hop1Id,
+            'from_role' => '🛡️ Máquina 1 (Analista Hop 1)',
+            'to_node' => $hop2Id,
+            'to_role' => '⚔️ Máquina 2 (Escriba Hop 2)',
+            'subject' => "🔗 [Passagem de Bastão M2M] {$hop1Id} ➔ {$hop2Id}: " . mb_substr($taskText, 0, 50),
+            'lat_ms' => $hop1Res['latency_ms'] ?? 0,
+            'ts' => date('c')
+        ], "### Análise Preliminar M2M (Hop 1)\n\n" . ($hop1Res['response'] ?? ''));
+
         $node2 = &$nodes[$hop2Id];
-        $hop2Prompt = "Você é a Máquina 2 (Soberano Verificador e Estrategista da Rede RNA Bio-LoRa).\n"
+        $hop2Prompt = "Você é a Máquina 2 (Soberano Verificador e Escriba Estrategista da Rede RNA Bio-LoRa).\n"
+            . $contextHistory . "\n\n"
             . ($webRecon['dossier'] ? $webRecon['dossier'] . "\n---\n" : "")
             . "PERGUNTA DO USUÁRIO: {$taskText}\n\n"
-            . "RELATÓRIO DA MÁQUINA 1 ({$hop1Id}):\n" . mb_substr($hop1Res['response'], 0, 1400) . "\n\n"
+            . "RELATÓRIO DA MÁQUINA 1 ({$hop1Id}):\n" . mb_substr($hop1Res['response'], 0, 1600) . "\n\n"
             . "SUA MISSÃO FINAL (DIRETRIZ DE PODER & COOPERAÇÃO DA REDE RNA):\n"
-            . "1. NUNCA dê respostas preguiçosas do tipo 'não posso prever o futuro' ou 'não tenho acesso'.\n"
-            . "2. Se o usuário perguntar por vencedores ou desfechos de eventos com data marcada (como Eleições de 2026 no Brasil): "
-            . "apresente o calendário oficial (1º turno em 4 de outubro de 2026, 2º turno em 25 de outubro), "
-            . "o mandato atual (Lula até dez/2026), as principais forças e pré-candidaturas cotadas (Lula, Tarcísio, Caiado, Ratinho Jr, Zema) "
-            . "e conclua claramente que a eleição ainda não ocorreu, detalhando todo o panorama factual.\n"
-            . "3. Entregue um relatório rico, analítico, direto e 100% em Português do Brasil.";
+            . "Valide, aprimore e sintetize a solução final completa, combinando o raciocínio da Máquina 1 com o histórico da malha. "
+            . "Responda sem enrolação, com excelência técnica e 100% em Português do Brasil.";
 
         $hop2Res = $this->callGradioSpaceSse($this->getSpaceHostUrl($node2), $this->getSpaceApiEndpoint($node2), $hop2Prompt);
         if ((!$hop2Res['ok'] || $this->isLazyOrUncertainResponse($hop2Res['response'])) && $hop2Id !== $hop1Id) {
             $this->updateHyphaConductance($node2, false, $hop2Res['latency_ms'] ?? 1000);
-            // Tenta o Soberano Qwen3 diretamente se ainda não foi usado
             $fallbackId = ($hop2Id === 'kingpin92/qwen3-8-27b-iq2-chat') ? $hop1Id : 'kingpin92/qwen3-8-27b-iq2-chat';
             if (isset($nodes[$fallbackId])) {
                 $hop2Id = $fallbackId;
@@ -1328,18 +1566,23 @@ class RnaMeshEngine {
         $telemetry['kpis']['total_relay_handoffs'] = (int)($telemetry['kpis']['total_relay_handoffs'] ?? 0) + 1;
         $telemetry['kpis']['total_tasks_completed'] = (int)($telemetry['kpis']['total_tasks_completed'] ?? 0) + 1;
 
-        $ts = date('Ymd_His');
-        $hash = substr(md5($taskText . $ts), 0, 6);
         $webSummary = $webRecon['sources_count'] > 0
             ? "\n\n---\n#### 🌐 Sonda de Internet Ao Vivo RNA ({$webRecon['sources_count']} fontes consultadas para `{$webRecon['query_used']}`)\n" . mb_substr($webRecon['dossier'], 0, 2800)
             : '';
 
-        $body = "### Síntese Verificada (Sonda Web + Relay `{$hop1Id}` ➔ `{$hop2Id}`)\n\n{$finalText}{$webSummary}\n\n---\n#### Etapa 1 — Investigação Inicial (`{$hop1Id}`)\n\n" . mb_substr($hop1Res['response'], 0, 700);
+        $body = "### Síntese Verificada (Relay `{$hop1Id}` ➔ `{$hop2Id}`)\n\n{$finalText}{$webSummary}\n\n---\n#### Etapa 1 — Investigação Inicial (`{$hop1Id}`)\n\n" . mb_substr($hop1Res['response'], 0, 700);
 
         $file = $this->writeMeshMessage('proteins', "relay_{$ts}_{$hash}.md", [
             'v' => '3.2',
-            'mode' => 'WEB_RECON_M2M_RELAY',
-            'nodes_used' => "SondaWeb -> {$hop1Id} -> {$hop2Id}",
+            'folder_type' => 'WRITE_SYNTH',
+            'direction' => 'INBOX',
+            'mode' => 'M2M_RELAY_COLLABORATIVE',
+            'from_node' => $hop2Id,
+            'from_role' => '⚔️ Soberano/General WRITE',
+            'to_node' => 'Usuário / Central',
+            'to_role' => '👤 Usuário RNA',
+            'nodes_used' => "{$hop1Id} -> {$hop2Id}" . ($webRecon['sources_count'] > 0 ? " (com Scout)" : ""),
+            'subject' => "🧬 [Síntese M2M] " . mb_substr($taskText, 0, 60),
             'total_lat_ms' => $totalLat,
             'tok_saved' => $tokensSaved,
             'ts' => date('c')
@@ -1350,7 +1593,7 @@ class RnaMeshEngine {
             'ok' => true,
             'protein_file' => $file,
             'web_sources' => $webRecon['sources_count'],
-            'nodes_used' => ['Sonda-Web-RNA', $hop1Id, $hop2Id],
+            'nodes_used' => [$hop1Id, $hop2Id],
             'total_latency_ms' => $totalLat,
             'tokens_saved' => $tokensSaved,
             'response_preview' => mb_substr($finalText, 0, 500)
@@ -1368,13 +1611,31 @@ class RnaMeshEngine {
             }
         };
 
-        $isCodeOrGameTask = (bool)preg_match('/(jogo|game|canvas|html|css|javascript|script|codigo|código|program|nes|nintendinho|chiptune|class|function|def|api|sql)/i', $taskText);
+        $ts = date('Ymd_His');
+        $hash = substr(md5($taskText . $ts), 0, 6);
+
+        // 1. Grava a ordem do usuário na caixa de saída (SENT)
+        $this->writeMeshMessage('proteins', "user_order_{$ts}_{$hash}.md", [
+            'v' => '3.2',
+            'folder_type' => 'SENT',
+            'direction' => 'SENT',
+            'from_node' => 'Usuário / Central',
+            'from_role' => '👤 Usuário RNA',
+            'to_node' => 'Malha RNA Bio-LoRa',
+            'to_role' => 'Orquestrador M2M',
+            'subject' => "📤 [Ordem em Stream] " . mb_substr($taskText, 0, 60),
+            'ts' => date('c')
+        ], "### Ordem em Transmissão M2M\n\n{$taskText}");
 
         $emit('INIT', 'RNA-AutocraticRouter', 'Roteador micelial inicializado. Foco total em IA...', 10);
 
-        // 1. Reconhecimento Web Scout (Apenas se não for código puro)
+        // 2. Histórico compartilhado da malha
+        $contextHistory = $this->getRecentContextHistory(4);
+
+        // 3. Reconhecimento Web Scout Sob Demanda
+        $needWeb = $this->needsWebSearch($taskText);
         $webRecon = ['sources_count' => 0, 'dossier' => '', 'query_used' => ''];
-        if (!$isCodeOrGameTask) {
+        if ($needWeb) {
             $emit('SCOUT_START', 'nyshimura/rna-web-scout', 'Acionando Batedor Web na A10G para rastrear dados frescos na internet...', 35);
             $webRecon = $this->performLiveWebRecon($taskText, ($mode !== 'send'));
             $sourcesCount = $webRecon['sources_count'] ?? 0;
@@ -1384,18 +1645,18 @@ class RnaMeshEngine {
                     'query' => $webRecon['query_used']
                 ]);
             }
+        } else {
+            $emit('SCOUT_SKIP', 'RNA-MeshCore', 'Batedor Web dispensado: a tarefa será resolvida com o conhecimento nativo das IAs da malha.', 35);
         }
 
         $telemetry = $this->loadTelemetry();
         $nodes = &$telemetry['nodes'];
 
-        // Ordena nós priorizando os Soberanos robustos (Qwen3, Coder, 70B, etc.)
+        // Ordena nós priorizando os Soberanos robustos (Qwen3, Coder, etc.)
         $candidateLlmIds = [];
-        // Prioridade 1: Máquina forte Qwen3
         if (isset($nodes['kingpin92/qwen3-8-27b-iq2-chat'])) {
             $candidateLlmIds[] = 'kingpin92/qwen3-8-27b-iq2-chat';
         }
-        // Prioridade 2: Outros nós soberanos e generais online
         foreach ($nodes as $id => $n) {
             if ($this->isCallableLlmSpace($n) && ($n['status'] ?? '') === 'ONLINE' && !in_array($id, $candidateLlmIds, true)) {
                 $candidateLlmIds[] = $id;
@@ -1410,6 +1671,7 @@ class RnaMeshEngine {
             $emit('HOP1_START', $targetId, "Transmitindo instrução diretamente para a IA [{$targetId}]...", 60);
 
             $enriched = "Você é uma unidade de processamento da Rede RNA Bio-LoRa Mesh.\n"
+                . $contextHistory . "\n\n"
                 . "DIRETRIZ DE PODER & RIGOR ANALÍTICO: Seja direto, denso, rápido e responda em Português do Brasil.\n\n"
                 . (!empty($webRecon['dossier']) ? $webRecon['dossier'] . "\n---\nPERGUNTA DO USUÁRIO:\n" : "") . $taskText;
 
@@ -1423,6 +1685,21 @@ class RnaMeshEngine {
 
             $emit('HOP1_OK', $targetId, "Máquina respondeu com sucesso ({$res['latency_ms']}ms)! +{$tokensSaved} tokens economizados.", 90);
 
+            $file = $this->writeMeshMessage('proteins', "msg_{$ts}_{$hash}.md", [
+                'v' => '3.2',
+                'folder_type' => 'WRITE_SYNTH',
+                'direction' => 'INBOX',
+                'mode' => 'LIVE_DIRECT_STREAM',
+                'from_node' => $targetId,
+                'from_role' => '⚔️ Soberano/General WRITE',
+                'to_node' => 'Usuário / Central',
+                'to_role' => '👤 Usuário RNA',
+                'subject' => "🧬 [Síntese Stream] " . mb_substr($taskText, 0, 60),
+                'lat_ms' => $res['latency_ms'] ?? 0,
+                'tok_saved' => $tokensSaved,
+                'ts' => date('c')
+            ], $finalText);
+
             $ret = [
                 'ok' => $res['ok'],
                 'mode' => 'DIRECT_SEND',
@@ -1431,8 +1708,7 @@ class RnaMeshEngine {
                 'tokens_saved' => $tokensSaved,
                 'full_response' => $finalText,
                 'response_preview' => mb_substr($finalText, 0, 500),
-                'web_sources' => $webRecon['sources_count'],
-                'sensor_info' => $sensorInfo
+                'web_sources' => $webRecon['sources_count']
             ];
             $emit('COMPLETE', 'Mesh-Central', 'Missão concluída com 100% de sucesso!', 100, $ret);
             return $ret;
@@ -1446,9 +1722,11 @@ class RnaMeshEngine {
 
         $node1 = &$nodes[$hop1Id] ?? ['id' => $hop1Id, 'status' => 'ONLINE'];
         $hop1Prompt = "Você é a Máquina 1 (Soberano de Processamento da Rede RNA Bio-LoRa Mesh).\n"
+            . $contextHistory . "\n\n"
             . ($webRecon['dossier'] ? $webRecon['dossier'] . "\n---\n" : "")
             . "TAREFA:\n{$taskText}\n\n"
-            . "DIRETRIZ: Seja direto, técnico e responda em Português do Brasil.";
+            . "DIRETRIZ DE COOPERAÇÃO M2M: Seja direto, técnico e responda em Português do Brasil. "
+            . "Se você precisar de pesquisa web externa em tempo real que não possua, use @NEED_WEB_SEARCH.";
 
         $hop1Res = $this->callGradioSpaceSse($this->getSpaceHostUrl($node1), $this->getSpaceApiEndpoint($node1), $hop1Prompt);
         if (!$hop1Res['ok'] || $this->isLazyOrUncertainResponse($hop1Res['response'])) {
@@ -1462,21 +1740,41 @@ class RnaMeshEngine {
             }
         }
 
+        // Se a IA pedir busca web sob demanda
+        if (!$needWeb && $this->needsWebSearch($taskText, $hop1Res['response'] ?? '')) {
+            $emit('SCOUT_ON_DEMAND', 'nyshimura/rna-web-scout', 'A IA solicitou busca externa em tempo real. Acionando rna-web-scout sob demanda...', 72);
+            $webRecon = $this->performLiveWebRecon($taskText, true);
+        }
+
         $emit('HOP1_OK', $hop1Id, "Hop 1 concluiu o processamento com sucesso ({$hop1Res['latency_ms']}ms)!", 75);
 
-        // Handoff para Máquina 2
+        // Handoff para Máquina 2: grava na caixa de correio
+        $this->writeMeshMessage('mrna', "handoff_{$ts}_{$hash}.md", [
+            'v' => '3.2',
+            'folder_type' => 'HANDOFF',
+            'direction' => 'INBOX',
+            'from_node' => $hop1Id,
+            'from_role' => '🛡️ Máquina 1 (Analista Hop 1)',
+            'to_node' => $hop2Id,
+            'to_role' => '⚔️ Máquina 2 (Escriba Hop 2)',
+            'subject' => "🔗 [Passagem de Bastão M2M] {$hop1Id} ➔ {$hop2Id}: " . mb_substr($taskText, 0, 50),
+            'lat_ms' => $hop1Res['latency_ms'] ?? 0,
+            'ts' => date('c')
+        ], "### Análise Preliminar M2M (Hop 1)\n\n" . ($hop1Res['response'] ?? ''));
+
         $emit('HOP2_START', $hop2Id, "Handoff M2M: Transferindo para Máquina Hop 2 [{$hop2Id}] para validação final...", 82);
         $node2 = &$nodes[$hop2Id] ?? ['id' => $hop2Id, 'status' => 'ONLINE'];
-        $hop2Prompt = "Você é a Máquina 2 (Verificador Estrategista da Rede RNA Bio-LoRa).\n"
+        $hop2Prompt = "Você é a Máquina 2 (Verificador Estrategista e Escriba Final da Rede RNA Bio-LoRa).\n"
+            . $contextHistory . "\n\n"
             . ($webRecon['dossier'] ? $webRecon['dossier'] . "\n---\n" : "")
             . "TAREFA ORIGINAL: {$taskText}\n\n"
-            . "RELATÓRIO DA MÁQUINA 1 ({$hop1Id}):\n" . mb_substr($hop1Res['response'], 0, 1400) . "\n\n"
-            . "SUA MISSÃO: Entregue a resposta final polida, sem enrolação e em Português do Brasil.";
+            . "RELATÓRIO DA MÁQUINA 1 ({$hop1Id}):\n" . mb_substr($hop1Res['response'], 0, 1500) . "\n\n"
+            . "SUA MISSÃO: Valide, complete e entregue a resposta final polida, sem enrolação e em Português do Brasil.";
 
         $hop2Res = $this->callGradioSpaceSse($this->getSpaceHostUrl($node2), $this->getSpaceApiEndpoint($node2), $hop2Prompt);
         if (!$hop2Res['ok'] && $hop2Id !== $hop1Id) {
             $this->updateHyphaConductance($node2, false, $hop2Res['latency_ms'] ?? 1000);
-            $hop2Res = $hop1Res; // Utiliza o resultado confiável do Hop 1
+            $hop2Res = $hop1Res;
         }
 
         $emit('HOP2_OK', $hop2Id, "Hop 2 concluiu validação da proteína final!", 92);
@@ -1496,18 +1794,23 @@ class RnaMeshEngine {
         $telemetry['kpis']['total_relay_handoffs'] = (int)($telemetry['kpis']['total_relay_handoffs'] ?? 0) + 1;
         $telemetry['kpis']['total_tasks_completed'] = (int)($telemetry['kpis']['total_tasks_completed'] ?? 0) + 1;
 
-        $ts = date('Ymd_His');
-        $hash = substr(md5($taskText . $ts), 0, 6);
         $webSummary = $webRecon['sources_count'] > 0
             ? "\n\n---\n#### 🌐 Sonda de Internet Ao Vivo RNA ({$webRecon['sources_count']} fontes consultadas para `{$webRecon['query_used']}`)\n" . mb_substr($webRecon['dossier'], 0, 2800)
             : '';
 
-        $body = "### Síntese Verificada (Sonda Web + Relay `{$hop1Id}` ➔ `{$hop2Id}`)\n\n{$finalText}{$webSummary}\n\n---\n#### Etapa 1 — Investigação Inicial (`{$hop1Id}`)\n\n" . mb_substr($hop1Res['response'], 0, 700);
+        $body = "### Síntese Verificada (Relay `{$hop1Id}` ➔ `{$hop2Id}`)\n\n{$finalText}{$webSummary}\n\n---\n#### Etapa 1 — Investigação Inicial (`{$hop1Id}`)\n\n" . mb_substr($hop1Res['response'], 0, 700);
 
         $file = $this->writeMeshMessage('proteins', "relay_{$ts}_{$hash}.md", [
             'v' => '3.2',
+            'folder_type' => 'WRITE_SYNTH',
+            'direction' => 'INBOX',
             'mode' => 'LIVE_M2M_STREAM',
-            'nodes_used' => "SondaWeb -> {$hop1Id} -> {$hop2Id}",
+            'from_node' => $hop2Id,
+            'from_role' => '⚔️ Soberano/General WRITE',
+            'to_node' => 'Usuário / Central',
+            'to_role' => '👤 Usuário RNA',
+            'nodes_used' => "{$hop1Id} -> {$hop2Id}" . ($webRecon['sources_count'] > 0 ? " (com Scout)" : ""),
+            'subject' => "🧬 [Síntese Stream] " . mb_substr($taskText, 0, 60),
             'total_lat_ms' => $totalLat,
             'tok_saved' => $tokensSaved,
             'ts' => date('c')
@@ -1519,12 +1822,11 @@ class RnaMeshEngine {
             'ok' => true,
             'protein_file' => $file,
             'web_sources' => $webRecon['sources_count'],
-            'nodes_used' => ['Sonda-Web-RNA', $hop1Id, $hop2Id],
+            'nodes_used' => [$hop1Id, $hop2Id],
             'total_latency_ms' => $totalLat,
             'tokens_saved' => $tokensSaved,
             'full_response' => $finalText,
-            'response_preview' => mb_substr($finalText, 0, 500),
-            'sensor_info' => $sensorInfo
+            'response_preview' => mb_substr($finalText, 0, 500)
         ];
 
         $emit('COMPLETE', 'Protein-Synthesizer', "Missão finalizada com sucesso! +{$tokensSaved} tokens poupados na malha RNA.", 100, $ret);

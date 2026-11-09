@@ -15,4 +15,5 @@ __pycache__/
 mesh/nodes/
 mesh/proteins/
 mesh/mrna/
+mesh/openclaw/
 mesh/errors/

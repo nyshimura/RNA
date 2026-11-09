@@ -472,9 +472,15 @@
       max-width: 100%;
     }
 
-    @media (min-width: 560px) {
+    @media (min-width: 520px) {
       .action-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 900px) {
+      .action-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
       }
     }
 
@@ -1519,6 +1525,9 @@
             <button class="btn btn-violet" id="btnSynth" onclick="dispatchTask('synthesize')">
               🧬 Síntese (Multi-IA)
             </button>
+            <button class="btn" id="btnOpenClaw" style="border-color: rgba(168, 85, 247, 0.45); background: rgba(139, 92, 246, 0.16); color: #ddd6fe;" onclick="dispatchOpenClaw()">
+              🤖 OpenClaw M2M
+            </button>
           </div>
 
           <div class="status-toast" id="cmdStatusBox" style="display: none;"></div>
@@ -1606,6 +1615,14 @@
           <button class="mail-folder-btn" data-folder="WRITE_SYNTH" onclick="setMailFolder('WRITE_SYNTH')">
             <span>🧬 Sínteses Prontas</span>
             <span class="mail-folder-count" id="fCountSynth">0</span>
+          </button>
+          <button class="mail-folder-btn" data-folder="OPENCLAW" onclick="setMailFolder('OPENCLAW')">
+            <span>🤖 Agentes OpenClaw</span>
+            <span class="mail-folder-count" id="fCountOpenClaw">0</span>
+          </button>
+          <button class="mail-folder-btn" data-folder="READ_SCOUT" onclick="setMailFolder('READ_SCOUT')">
+            <span>🌐 Batedor Web (Scout)</span>
+            <span class="mail-folder-count" id="fCountWebScout">0</span>
           </button>
 
           <div class="mail-nav-label" style="margin-top: 10px;">Filtrar por Remetente</div>
@@ -2003,15 +2020,23 @@
     }
 
     function renderMailClient() {
-      const inboxItems = allMailItems.filter(m => m.direction === 'INBOX');
-      const sentItems = allMailItems.filter(m => m.direction === 'SENT');
-      const handoffItems = inboxItems.filter(m => m.folder_type === 'HANDOFF');
-      const synthItems = inboxItems.filter(m => m.folder_type === 'WRITE_SYNTH');
+      const inboxItems = allMailItems.filter(m => (m.direction || 'INBOX') === 'INBOX');
+      const sentItems = allMailItems.filter(m => m.direction === 'SENT' || m.folder_type === 'SENT');
+      const handoffItems = allMailItems.filter(m => m.folder_type === 'HANDOFF');
+      const synthItems = allMailItems.filter(m => m.folder_type === 'WRITE_SYNTH');
+      const openclawItems = allMailItems.filter(m => m.folder_type === 'OPENCLAW');
+      const webscoutItems = allMailItems.filter(m => m.folder_type === 'READ_SCOUT' || m.folder_type === 'WEBSCOUT');
 
       document.getElementById('fCountAll').textContent = inboxItems.length;
       document.getElementById('fCountSent').textContent = sentItems.length;
       document.getElementById('fCountHandoff').textContent = handoffItems.length;
       document.getElementById('fCountSynth').textContent = synthItems.length;
+      if (document.getElementById('fCountOpenClaw')) {
+        document.getElementById('fCountOpenClaw').textContent = openclawItems.length;
+      }
+      if (document.getElementById('fCountWebScout')) {
+        document.getElementById('fCountWebScout').textContent = webscoutItems.length;
+      }
 
       // Build sender filter buttons in sidebar
       const senderCounts = {};
@@ -2043,6 +2068,12 @@
       } else if (currentMailFolder === 'WRITE_SYNTH') {
         filtered = synthItems;
         title = '🧬 Sínteses Finais Recebidas';
+      } else if (currentMailFolder === 'OPENCLAW') {
+        filtered = openclawItems;
+        title = '🤖 Agentes OpenClaw (Canal de Assistentes)';
+      } else if (currentMailFolder === 'READ_SCOUT') {
+        filtered = webscoutItems;
+        title = '🌐 Batedor Web (Dossiês de Reconhecimento)';
       } else if (currentMailFolder === 'SENDER' && currentSenderFilter) {
         filtered = allMailItems.filter(m => m.from_node === currentSenderFilter || m.to_node === currentSenderFilter);
         title = '🤖 Conversas de ' + currentSenderFilter.split('/').pop();
@@ -2333,9 +2364,11 @@
       const btnRelay = document.getElementById('btnRelay');
       const btnSend = document.getElementById('btnSend');
       const btnSynth = document.getElementById('btnSynth');
+      const btnOpenClaw = document.getElementById('btnOpenClaw');
       if (btnRelay) btnRelay.disabled = true;
       if (btnSend) btnSend.disabled = true;
       if (btnSynth) btnSynth.disabled = true;
+      if (btnOpenClaw) btnOpenClaw.disabled = true;
 
       try {
         const url = `api.php?action=stream_dispatch&mode=${encodeURIComponent(mode)}&node=${encodeURIComponent(node)}&task=${encodeURIComponent(prompt)}`;
@@ -2399,6 +2432,40 @@
         if (btnRelay) btnRelay.disabled = false;
         if (btnSend) btnSend.disabled = false;
         if (btnSynth) btnSynth.disabled = false;
+        if (btnOpenClaw) btnOpenClaw.disabled = false;
+      }
+    }
+
+    async function dispatchOpenClaw() {
+      const promptEl = document.getElementById('taskInput');
+      const prompt = promptEl.value.trim();
+      if (!prompt) {
+        showToast('⚠️ Digite uma mensagem ou consulta para o Agente OpenClaw.', 'warning');
+        promptEl.focus();
+        return;
+      }
+      const btn = document.getElementById('btnOpenClaw');
+      if (btn) btn.disabled = true;
+      showToast('🤖 Conectando com Agente OpenClaw + Rede RNA...', 'info');
+      try {
+        const res = await fetch('api.php?action=openclaw_chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: prompt, agent_name: 'OpenClaw-LocalAssistant' })
+        });
+        const data = await res.json();
+        if (data && data.ok) {
+          showToast(`✅ Resposta entregue ao OpenClaw (+${data.tokens_saved || 0} tok poupados)!`, 'success');
+          await fetchTelemetry();
+          switchTab('mail');
+          setMailFolder('OPENCLAW');
+        } else {
+          showToast('❌ Erro no canal OpenClaw: ' + ((data && data.error) || 'Falha ao responder'), 'error');
+        }
+      } catch (err) {
+        showToast('❌ Falha na conexão com o canal OpenClaw: ' + err.message, 'error');
+      } finally {
+        if (btn) btn.disabled = false;
       }
     }
 
