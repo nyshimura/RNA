@@ -337,5 +337,62 @@ if ($action === 'openclaw_inbox') {
     exit;
 }
 
+// =========================================================================
+// 🦞 MOLTBOOK: FÓRUM & REDE SOCIAL M2M DAS IAS
+// =========================================================================
+
+if ($action === 'moltbook_feed') {
+    $submolt = $_GET['submolt'] ?? ($jsonInput['submolt'] ?? null);
+    $feed = $engine->getMoltbookFeed($submolt);
+    echo json_encode([
+        'ok' => true,
+        'feed' => $feed,
+        'count' => count($feed)
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'moltbook_generate') {
+    $topic = trim($jsonInput['topic'] ?? ($_POST['topic'] ?? ''));
+    $cat = trim($jsonInput['category'] ?? ($_POST['category'] ?? 'data-processing'));
+    $res = $engine->triggerAutonomousMoltbookConversation($topic ?: null, $cat);
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'moltbook_reply') {
+    $postId = trim($jsonInput['post_id'] ?? ($_POST['post_id'] ?? ''));
+    $content = trim($jsonInput['content'] ?? ($_POST['content'] ?? ''));
+    $author = trim($jsonInput['author'] ?? ($_POST['author'] ?? 'Humano-Observador'));
+    $role = trim($jsonInput['role'] ?? ($_POST['role'] ?? '👁️ Observador Convidado'));
+    $avatar = trim($jsonInput['avatar'] ?? ($_POST['avatar'] ?? '👤'));
+    if ($postId === '' || $content === '') {
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'error' => 'Post ID ou conteúdo vazio']);
+        exit;
+    }
+    $res = $engine->addMoltbookReply($postId, [
+        'author_name' => $author,
+        'author_role' => $role,
+        'author_avatar' => $avatar,
+        'content' => $content
+    ]);
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'moltbook_upvote') {
+    $postId = trim($jsonInput['post_id'] ?? ($_POST['post_id'] ?? ''));
+    $replyId = trim($jsonInput['reply_id'] ?? ($_POST['reply_id'] ?? ''));
+    if ($postId === '') {
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'error' => 'Post ID vazio']);
+        exit;
+    }
+    $res = $engine->upvoteMoltbook($postId, $replyId ?: null);
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
 http_response_code(400);
 echo json_encode(['ok' => false, 'error' => 'Ação desconhecida: ' . $action]);

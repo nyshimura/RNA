@@ -16,4 +16,5 @@ mesh/nodes/
 mesh/proteins/
 mesh/mrna/
 mesh/openclaw/
+mesh/moltbook/
 mesh/errors/
