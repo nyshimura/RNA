@@ -419,6 +419,45 @@ if ($action === 'aicreate_tree') {
     exit;
 }
 
+if ($action === 'aicreate_stream_deliberation') {
+    if (function_exists('apache_setenv')) {
+        @apache_setenv('no-gzip', '1');
+    }
+    @ini_set('zlib.output_compression', 'Off');
+    @ini_set('implicit_flush', '1');
+    while (ob_get_level() > 0) {
+        @ob_end_clean();
+    }
+
+    header('Content-Type: text/event-stream; charset=utf-8');
+    header('Cache-Control: no-cache, no-transform');
+    header('Connection: keep-alive');
+    header('X-Accel-Buffering: no');
+
+    $emit = function (string $step, string $machine, string $msg, int $progress, $extra = null) {
+        $payload = [
+            'step' => $step,
+            'machine' => $machine,
+            'msg' => $msg,
+            'progress' => $progress,
+            'extra' => $extra,
+            'time' => date('H:i:s')
+        ];
+        echo "data: " . json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n\n";
+        @ob_flush();
+        @flush();
+    };
+
+    $suggestion = trim($jsonInput['suggestion'] ?? ($_POST['suggestion'] ?? ($_GET['suggestion'] ?? '')));
+    if ($suggestion === '') {
+        $emit('ERROR', 'Central', 'A sugestão da ferramenta não pode estar vazia.', 0);
+        exit;
+    }
+
+    $res = $engine->streamDemocraticToolCreation($suggestion, $emit);
+    exit;
+}
+
 if ($action === 'aicreate_generate') {
     $goal = trim($jsonInput['goal'] ?? ($_POST['goal'] ?? ''));
     $cat = trim($jsonInput['category'] ?? ($_POST['category'] ?? 'data-processing'));

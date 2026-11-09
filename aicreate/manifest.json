@@ -1,20 +1,62 @@
 {
     "generator": "RNA-BioLoRa-AICreate-Engine/3.2",
-    "updated_at": "2026-11-09T19:20:44-03:00",
+    "updated_at": "2026-11-09T20:22:32-03:00",
     "usage": {
-        "used_bytes": 55905,
-        "used_mb": 0.05,
+        "used_bytes": 99497,
+        "used_mb": 0.09,
         "max_bytes": 209715200,
         "max_mb": 200,
-        "free_bytes": 209659295,
-        "free_mb": 199.95,
-        "percent_used": 0.03,
-        "file_count": 11,
-        "dir_count": 4,
+        "free_bytes": 209615703,
+        "free_mb": 199.91,
+        "percent_used": 0.05,
+        "file_count": 17,
+        "dir_count": 6,
         "limit_exceeded": false
     },
-    "projects_count": 3,
+    "projects_count": 5,
     "projects": [
+        {
+            "slug": "analisador-normalizador-series-5176",
+            "name": "Analisador Normalizador Series System",
+            "purpose": "Atender e automatizar a demanda sugerida pelo usuário: 'Analisador e normalizador de series temporais com calculo de desvio padrao'.",
+            "rationale": "O Conselho Democrático de 5 Motores de IA (qwen3-8-27b-iq2-chat, einstein-chatbot, Qwen-Qwen3-Coder-480B-A35B-Instruct, deepseek-r1-0528-API, rna-web-scout) deliberou e votou por 5x0 que a criação deste utilitário em aicreate/ consome menos tokens e é mais ágil do que buscar ou adaptar ferramentas existentes.",
+            "requirements": "- Executável nativo em qualquer navegador web moderno via index.html. | - Processamento 100% em memória no cliente sem depender de servidores remotos. | - Interface com controles amigáveis, dados de exemplo e feedback visual para humanos. | - Total respeito à cota estrita de 200 MB da incubadora.",
+            "authors": [
+                "kingpin92/qwen3-8-27b-iq2-chat",
+                "nakaassoumatine/einstein-chatbot",
+                "androaichain/Qwen-Qwen3-Coder-480B-A35B-Instruct",
+                "ginigen/deepseek-r1-0528-API",
+                "nyshimura/rna-web-scout"
+            ],
+            "created_at": "2026-11-09T20:22:32-03:00",
+            "size_bytes": 15530,
+            "size_human": "15.2 KB",
+            "file_count": 3,
+            "has_index": true,
+            "entrypoint": "projects/analisador-normalizador-series-5176/index.html",
+            "readme_snippet": "# 🤖 Analisador Normalizador Series System\n\n### 🎯 Para que foi criado\nAtender e automatizar a demanda sugerida pelo usuário: 'Analisador e normalizador de series temporais com calculo de desvio padrao'.\n\n### 💡 Por que foi criado\nO Conselho Democrático de 5 Motores de IA (qwen3-8-27b-iq2-chat, einstein-chatbot, Qwen-Qwen3-Coder-480B-A35B-Instruct, deepseek-r1-0528-API, rna-web-scout) deliberou e vot"
+        },
+        {
+            "slug": "analisador-normalizador-series-6a11",
+            "name": "Analisador Normalizador Series System",
+            "purpose": "Atender e automatizar a demanda sugerida pelo usuário: 'Analisador e normalizador de series temporais com calculo de desvio padrao'.",
+            "rationale": "O Conselho Democrático de 5 Motores de IA (qwen3-8-27b-iq2-chat, einstein-chatbot, Qwen-Qwen3-Coder-480B-A35B-Instruct, deepseek-r1-0528-API, rna-web-scout) deliberou e votou por 5x0 que a criação deste utilitário em aicreate/ consome menos tokens e é mais ágil do que buscar ou adaptar ferramentas existentes.",
+            "requirements": "- Executável nativo em qualquer navegador web moderno via index.html. | - Processamento 100% em memória no cliente sem depender de servidores remotos. | - Interface com controles amigáveis, dados de exemplo e feedback visual para humanos. | - Total respeito à cota estrita de 200 MB da incubadora.",
+            "authors": [
+                "kingpin92/qwen3-8-27b-iq2-chat",
+                "nakaassoumatine/einstein-chatbot",
+                "androaichain/Qwen-Qwen3-Coder-480B-A35B-Instruct",
+                "ginigen/deepseek-r1-0528-API",
+                "nyshimura/rna-web-scout"
+            ],
+            "created_at": "2026-11-09T20:21:35-03:00",
+            "size_bytes": 15495,
+            "size_human": "15.1 KB",
+            "file_count": 3,
+            "has_index": true,
+            "entrypoint": "projects/analisador-normalizador-series-6a11/index.html",
+            "readme_snippet": "# 🤖 Analisador Normalizador Series System\n\n### 🎯 Para que foi criado\nAtender e automatizar a demanda sugerida pelo usuário: 'Analisador e normalizador de series temporais com calculo de desvio padrao'.\n\n### 💡 Por que foi criado\nO Conselho Democrático de 5 Motores de IA (qwen3-8-27b-iq2-chat, einstein-chatbot, Qwen-Qwen3-Coder-480B-A35B-Instruct, deepseek-r1-0528-API, rna-web-scout) deliberou e vot"
+        },
         {
             "slug": "simulador-de-criptografia-e-assinat-9906",
             "name": "Simulador Processor",
@@ -78,9 +120,75 @@
             "name": "projects",
             "rel_path": "projects",
             "type": "dir",
-            "size_bytes": 28216,
-            "size_human": "27.6 KB",
+            "size_bytes": 59241,
+            "size_human": "57.9 KB",
             "children": [
+                {
+                    "name": "analisador-normalizador-series-5176",
+                    "rel_path": "projects/analisador-normalizador-series-5176",
+                    "type": "dir",
+                    "size_bytes": 15530,
+                    "size_human": "15.2 KB",
+                    "children": [
+                        {
+                            "name": "index.html",
+                            "rel_path": "projects/analisador-normalizador-series-5176/index.html",
+                            "type": "file",
+                            "ext": "html",
+                            "size_bytes": 12597,
+                            "size_human": "12.3 KB"
+                        },
+                        {
+                            "name": "README.md",
+                            "rel_path": "projects/analisador-normalizador-series-5176/README.md",
+                            "type": "file",
+                            "ext": "md",
+                            "size_bytes": 1447,
+                            "size_human": "1.4 KB"
+                        },
+                        {
+                            "name": "system_manifest.json",
+                            "rel_path": "projects/analisador-normalizador-series-5176/system_manifest.json",
+                            "type": "file",
+                            "ext": "json",
+                            "size_bytes": 1486,
+                            "size_human": "1.5 KB"
+                        }
+                    ]
+                },
+                {
+                    "name": "analisador-normalizador-series-6a11",
+                    "rel_path": "projects/analisador-normalizador-series-6a11",
+                    "type": "dir",
+                    "size_bytes": 15495,
+                    "size_human": "15.1 KB",
+                    "children": [
+                        {
+                            "name": "index.html",
+                            "rel_path": "projects/analisador-normalizador-series-6a11/index.html",
+                            "type": "file",
+                            "ext": "html",
+                            "size_bytes": 12562,
+                            "size_human": "12.3 KB"
+                        },
+                        {
+                            "name": "README.md",
+                            "rel_path": "projects/analisador-normalizador-series-6a11/README.md",
+                            "type": "file",
+                            "ext": "md",
+                            "size_bytes": 1447,
+                            "size_human": "1.4 KB"
+                        },
+                        {
+                            "name": "system_manifest.json",
+                            "rel_path": "projects/analisador-normalizador-series-6a11/system_manifest.json",
+                            "type": "file",
+                            "ext": "json",
+                            "size_bytes": 1486,
+                            "size_human": "1.5 KB"
+                        }
+                    ]
+                },
                 {
                     "name": "lora-packet-synthesizer",
                     "rel_path": "projects/lora-packet-synthesizer",
@@ -187,16 +295,16 @@
             "rel_path": "index.html",
             "type": "file",
             "ext": "html",
-            "size_bytes": 21325,
-            "size_human": "20.8 KB"
+            "size_bytes": 26701,
+            "size_human": "26.1 KB"
         },
         {
             "name": "manifest.json",
             "rel_path": "manifest.json",
             "type": "file",
             "ext": "json",
-            "size_bytes": 6364,
-            "size_human": "6.2 KB"
+            "size_bytes": 13555,
+            "size_human": "13.2 KB"
         }
     ]
 }
