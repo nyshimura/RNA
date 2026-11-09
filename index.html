@@ -2268,9 +2268,19 @@
       try {
         const res = await fetch('api.php?action=aicreate_status&t=' + Date.now());
         const data = await res.json();
-        if (data.ok && data.usage) {
-          const el = document.getElementById('overviewAiCreateUsage');
-          if (el) el.textContent = `${data.usage.used_mb} MB / 200 MB`;
+        if (data.ok) {
+          const cnt = data.projects_count ?? (data.projects ? data.projects.length : 0);
+          const tabCnt = document.getElementById('tabCountAiCreate');
+          if (tabCnt) tabCnt.textContent = cnt;
+          const headerCnt = document.getElementById('aiCreateHeaderCount');
+          if (headerCnt) headerCnt.textContent = cnt + ' projetos';
+
+          if (data.usage) {
+            const el = document.getElementById('overviewAiCreateUsage');
+            if (el) el.textContent = `${data.usage.used_mb} MB / 200 MB`;
+            const panelBadge = document.getElementById('aiCreatePanelQuotaBadge');
+            if (panelBadge) panelBadge.textContent = `${data.usage.used_mb} MB / 200 MB`;
+          }
         }
       } catch (e) { }
     }
@@ -2524,6 +2534,10 @@
 
       document.getElementById('tabCountUnits').textContent = totalNodes;
       document.getElementById('tabCountMail').textContent = inboxCount;
+
+      const aiCount = data.aicreate_projects_count ?? kpis.total_synthesized_projects ?? 0;
+      const tabAiCreate = document.getElementById('tabCountAiCreate');
+      if (tabAiCreate) tabAiCreate.textContent = aiCount;
 
       // Token mask (se badge existir)
       const masked = (data.token_status && data.token_status.masked) || data.hf_token_masked || 'CONFIGURADO';

@@ -365,9 +365,14 @@ class RnaMeshEngine {
         $mailbox = $this->buildMailboxIndex();
         $data['mailbox'] = $mailbox;
 
+        $aiProjectDirs = glob($this->aiCreateDir . '/projects/*', GLOB_ONLYDIR) ?: [];
+        $aiProjectsCount = count($aiProjectDirs);
+        $data['aicreate_projects_count'] = $aiProjectsCount;
+
         if (!isset($data['kpis']) || !is_array($data['kpis'])) {
             $data['kpis'] = [];
         }
+        $data['kpis']['total_synthesized_projects'] = $aiProjectsCount;
         $data['kpis']['agent_tokens_saved'] = (int)($data['kpis']['agent_tokens_saved'] ?? 9132);
         $data['kpis']['remote_tokens_generated'] = (int)($data['kpis']['remote_tokens_generated'] ?? 5382);
         $data['kpis']['active_nodes_count'] = ($this->cachedOnlineNodes > 0) ? $this->cachedOnlineNodes : $online;
