@@ -6,6 +6,23 @@
 
 date_default_timezone_set('America/Sao_Paulo');
 
+// Polyfills para compatibilidade total PHP 7.4 - 8.4 em hospedagens compartilhadas
+if (!function_exists('str_contains')) {
+    function str_contains(string $haystack, string $needle): bool {
+        return '' === $needle || false !== strpos($haystack, $needle);
+    }
+}
+if (!function_exists('str_starts_with')) {
+    function str_starts_with(string $haystack, string $needle): bool {
+        return 0 === strncmp($haystack, $needle, strlen($needle));
+    }
+}
+if (!function_exists('str_ends_with')) {
+    function str_ends_with(string $haystack, string $needle): bool {
+        return '' === $needle || substr($haystack, -strlen($needle)) === $needle;
+    }
+}
+
 class RnaMeshEngine {
     public const MAX_AICREATE_BYTES = 209715200; // 200 MB (200 * 1024 * 1024)
     private string $baseDir;
@@ -3556,7 +3573,7 @@ class RnaMeshEngine {
         return array_slice($list, 0, $limit);
     }
 
-    public function formatRelativeTime(int|string $timestamp): string {
+    public function formatRelativeTime($timestamp): string {
         $ts = is_numeric($timestamp) ? (int)$timestamp : strtotime((string)$timestamp);
         if (!$ts) return 'recentemente';
         $diff = time() - $ts;
