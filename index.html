@@ -3018,19 +3018,28 @@
     async function fetchTelemetry() {
       try {
         const res = await fetch('api.php?action=telemetry&t=' + Date.now());
-        const data = await res.json();
+        if (!res.ok) {
+          console.warn(`[Telemetria] Resposta HTTP ${res.status}`);
+          return;
+        }
+        const text = await res.text();
+        if (!text || !text.trim()) return;
+        const data = JSON.parse(text);
         telemetryData = data;
         renderDashboard(data);
         fetchAiCreateStatus();
       } catch (err) {
-        console.error('Erro ao carregar telemetria:', err);
+        console.warn('Erro ao carregar telemetria:', err.message || err);
       }
     }
 
     async function fetchAiCreateStatus() {
       try {
         const res = await fetch('api.php?action=aicreate_status&t=' + Date.now());
-        const data = await res.json();
+        if (!res.ok) return;
+        const text = await res.text();
+        if (!text || !text.trim()) return;
+        const data = JSON.parse(text);
         if (data.ok) {
           const cnt = data.projects_count ?? (data.projects ? data.projects.length : 0);
           const tabCnt = document.getElementById('tabCountAiCreate');
@@ -4735,7 +4744,13 @@
       try {
         const url = 'api.php?action=domino_pulse' + (force ? '&force=1' : '') + '&t=' + Date.now();
         const res = await fetch(url);
-        const data = await res.json();
+        if (!res.ok) {
+          console.warn(`[Dominó] Resposta HTTP ${res.status}`);
+          return;
+        }
+        const text = await res.text();
+        if (!text || !text.trim()) return;
+        const data = JSON.parse(text);
         if (data.ok && data.domino_cycle) {
           lastDominoData = data;
           renderDominoTicker(data);
@@ -4749,7 +4764,7 @@
           }
         }
       } catch (err) {
-        console.warn('Erro no pulso dominó:', err);
+        console.warn('Erro no pulso dominó:', err.message || err);
       }
     }
 
