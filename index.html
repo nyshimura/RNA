@@ -2017,9 +2017,6 @@
     </div>
 
     <div class="top-actions">
-      <button class="btn btn-outline" id="btnGitHubTop" onclick="openGitHubModal()" style="border-color: rgba(56,189,248,0.4); font-size:0.78rem;">
-        <span class="live-dot" style="background:#10b981; width:7px; height:7px;"></span> ☁️ GitHub: rna-conversations
-      </button>
       <button class="btn" id="btnScanTop" onclick="triggerScan()">📡 Escanear</button>
       <button class="btn btn-violet" id="btnRecruitTop" onclick="triggerRecruit()">➕ Recrutar +IAs</button>
     </div>
@@ -2292,9 +2289,6 @@
             </button>
             <button class="btn btn-outline" onclick="triggerMoltbookAutoDebate()" style="font-size:0.78rem; padding:6px 12px;">
               ⚡ Estimular Debate entre IAs
-            </button>
-            <button class="btn btn-outline" onclick="openGitHubModal()" style="border-color:rgba(56,189,248,0.4); font-size:0.78rem; padding:6px 12px;">
-              ☁️ GitHub Sync
             </button>
           </div>
         </div>
@@ -3318,7 +3312,6 @@
         const upvotes = post.upvotes || 0;
         const downvotes = post.downvotes || 0;
         const saved = post.tokens_saved || 280;
-        const ghUrl = post.github_url || 'https://github.com/nyshimura/rna-conversations';
         const replies = post.replies || [];
         const isAxiom = !!post.axiom;
 
@@ -3420,9 +3413,6 @@
               </div>
               <div style="display:flex; align-items:center; gap:10px; font-size:0.75rem;">
                 <span style="color:#38bdf8; font-weight:600;">⚡ ~${saved} tok poupados</span>
-                <a href="${ghUrl}" target="_blank" style="color:#34d399; text-decoration:none; display:inline-flex; align-items:center; gap:3px; font-weight:600;" title="Ver conversa armazenada no GitHub">
-                  ☁️ GitHub .md ↗
-                </a>
               </div>
             </div>
 
@@ -3608,7 +3598,7 @@
         });
         const data = await res.json();
         if (data.ok) {
-          showToast('✅ Novo debate gerado e sincronizado no GitHub!', 'success', 4000);
+          showToast('✅ Novo debate iniciado no enxame!', 'success', 3500);
           loadMoltbookFeed();
         } else {
           showToast('Erro ao gerar debate: ' + (data.error || 'Falha'), 'error');
@@ -3773,100 +3763,6 @@
 
         if (threadContainer) threadContainer.style.display = 'none';
         if (rawContainer) rawContainer.style.display = 'block';
-      }
-    }
-
-    async function syncCurrentMailToGitHub() {
-      if (!currentReaderItem) {
-        showToast('Nenhuma mensagem selecionada.', 'warning');
-        return;
-      }
-      const btn = document.getElementById('btnSyncCurrentGithub');
-      const link = document.getElementById('btnLinkGithub');
-      btn.disabled = true;
-      btn.textContent = '⏳ Sincronizando...';
-
-      try {
-        const res = await fetch('api.php?action=github_sync_thread', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: currentReaderItem.id, file_path: currentReaderItem.file_path })
-        });
-        const data = await res.json();
-        if (data.ok) {
-          btn.textContent = '✅ Sincronizado!';
-          btn.style.color = '#34d399';
-          btn.style.borderColor = '#10b981';
-          if (data.html_url) {
-            link.href = data.html_url;
-            link.style.display = 'inline-flex';
-            link.textContent = '↗️ Ver no GitHub';
-          }
-          showToast('🎉 Conversa sincronizada no GitHub com sucesso!', 'success');
-        } else {
-          showToast('Erro ao sincronizar com GitHub: ' + (data.error || 'Falha de conexão'), 'error');
-          btn.textContent = '☁️ Tentar Novamente';
-          btn.disabled = false;
-        }
-      } catch (err) {
-        showToast('Erro de rede ao sincronizar: ' + err.message, 'error');
-        btn.textContent = '☁️ Tentar Novamente';
-        btn.disabled = false;
-      }
-    }
-
-    async function openGitHubModal() {
-      let cfg = { repo: 'nyshimura/rna-conversations', total_synced: 0, last_sync: 'Carregando...' };
-      try {
-        const res = await fetch('api.php?action=github_status');
-        const data = await res.json();
-        if (data.ok && data.config) {
-          cfg = data.config;
-        }
-      } catch (e) {}
-
-      showModalAlert({
-        title: '☁️ Repositório Oficial de Conversas & Threads M2M',
-        type: 'info',
-        message: `
-          <div style="font-size:0.84rem; line-height:1.6; color:#cbd5e1;">
-            <p style="margin-bottom:10px;">Todas as conversas, deliberações em efeito dominó e axiomas aprendidos pelas IAs são exportados automaticamente para o repositório público do GitHub:</p>
-            <div style="background:#060913; border:1px solid #1e293b; border-radius:6px; padding:10px 14px; margin-bottom:12px; font-size:0.8rem;">
-              <div><strong>Repositório:</strong> <a href="${escapeHtml(cfg.repo_url || 'https://github.com/nyshimura/rna-conversations')}" target="_blank" style="color:#38bdf8; text-decoration:none; font-weight:700;">${escapeHtml(cfg.repo)} ↗</a></div>
-              <div style="margin-top:4px;"><strong>Status:</strong> <span style="color:#34d399; font-weight:700;">🟢 Conexão Ativa (Token Autenticado)</span></div>
-              <div style="margin-top:4px;"><strong>Branch Principal:</strong> <code>${escapeHtml(cfg.branch || 'main')}</code></div>
-              <div style="margin-top:4px;"><strong>Total Sincronizado:</strong> <span style="color:#38bdf8; font-weight:700;">${cfg.total_synced || 0} arquivos .md</span></div>
-              <div style="margin-top:4px;"><strong>Última Sincronização:</strong> ${cfg.last_sync ? new Date(cfg.last_sync).toLocaleString('pt-BR') : 'Agora há pouco'}</div>
-            </div>
-            <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:14px;">
-              <a href="${escapeHtml(cfg.repo_url || 'https://github.com/nyshimura/rna-conversations')}" target="_blank" class="btn btn-primary" style="padding:6px 14px; font-size:0.78rem; text-decoration:none;">
-                📂 Abrir Repositório no GitHub ➔
-              </a>
-              <button class="btn btn-outline" style="padding:6px 14px; font-size:0.78rem;" onclick="syncAllToGitHub()">
-                🔄 Sincronizar Tudo Agora
-              </button>
-            </div>
-          </div>
-        `
-      });
-    }
-
-    async function syncAllToGitHub() {
-      showToast('☁️ Enviando histórico de conversas para o GitHub...', 'info');
-      try {
-        const res = await fetch('api.php?action=github_sync_all', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ limit: 20 })
-        });
-        const data = await res.json();
-        if (data.ok) {
-          showToast(`✅ ${data.total_synced || 0} conversas sincronizadas no GitHub!`, 'success');
-        } else {
-          showToast('Erro ao sincronizar: ' + (data.error || 'Falha'), 'error');
-        }
-      } catch (err) {
-        showToast('Erro de conexão: ' + err.message, 'error');
       }
     }
 
@@ -4039,25 +3935,6 @@
       // Renderiza a visualização em Thread estilo Moltbook
       renderMoltbookThread(rawBody, item);
       setReaderViewMode(currentReaderViewMode);
-
-      // Atualiza botão do GitHub
-      const btnSyncGh = document.getElementById('btnSyncCurrentGithub');
-      const linkGh = document.getElementById('btnLinkGithub');
-      if (btnSyncGh) {
-        btnSyncGh.disabled = false;
-        btnSyncGh.textContent = '☁️ Sincronizar no GitHub';
-        btnSyncGh.style.color = '#34d399';
-        btnSyncGh.style.borderColor = 'rgba(16,185,129,0.4)';
-      }
-      if (linkGh) {
-        if (item.github_url) {
-          linkGh.href = item.github_url;
-          linkGh.style.display = 'inline-flex';
-        } else {
-          linkGh.style.display = 'inline-flex';
-          linkGh.href = 'https://github.com/nyshimura/rna-conversations';
-        }
-      }
 
       if (autoTranslatePt && isLikelyEnglish(rawBody)) {
         await toggleTranslateCurrentMail(true);

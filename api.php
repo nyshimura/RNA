@@ -43,6 +43,8 @@ if ($action === 'telemetry') {
     if (isset($_GET['heartbeat']) && $_GET['heartbeat'] === '1') {
         $engine->executeAutonomousDominoHeartbeat(false);
     }
+    // Processamento sutil e anti-bot da fila do GitHub em segundo plano
+    $engine->processSubtleGitHubSyncQueue(false);
     echo json_encode($engine->loadTelemetry(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }

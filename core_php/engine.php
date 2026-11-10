@@ -222,6 +222,241 @@ class RnaMeshEngine {
     }
 
     /**
+     * Retorna o arquivo de fila de sincronização sutil com o GitHub
+     */
+    public function getGitHubSyncQueueFile(): string {
+        return $this->stateDir . '/github_sync_queue.json';
+    }
+
+    /**
+     * Retorna o arquivo de estado de controle de taxa (throttling anti-bot) do GitHub
+     */
+    public function getGitHubThrottleFile(): string {
+        return $this->stateDir . '/github_throttle_state.json';
+    }
+
+    /**
+     * Adiciona um arquivo à fila sutil de sincronização em segundo plano
+     */
+    public function queueGitHubSync(string $relativePath, string $content, string $commitMessage): array {
+        $cleanPath = ltrim(str_replace('\\', '/', $relativePath), '/');
+        $queueFile = $this->getGitHubSyncQueueFile();
+        $queue = [];
+        if (file_exists($queueFile)) {
+            $queue = json_decode((string)@file_get_contents($queueFile), true) ?: [];
+        }
+
+        // Se o mesmo arquivo já estiver pendente na fila, atualiza seu conteúdo sem duplicar
+        $found = false;
+        foreach ($queue as &$item) {
+            if (($item['path'] ?? '') === $cleanPath) {
+                $item['content'] = $content;
+                $item['commit_msg'] = $commitMessage;
+                $item['updated_at'] = time();
+                $found = true;
+                break;
+            }
+        }
+        unset($item);
+
+        if (!$found) {
+            $queue[] = [
+                'path' => $cleanPath,
+                'content' => $content,
+                'commit_msg' => $commitMessage,
+                'queued_at' => time(),
+                'attempts' => 0
+            ];
+        }
+
+        // Mantém a fila com no máximo 50 itens para economia extrema de memória
+        if (count($queue) > 50) {
+            $queue = array_slice($queue, -50);
+        }
+
+        @file_put_contents($queueFile, json_encode($queue, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+
+        // Tenta processar de forma sutil respeitando os intervalos anti-bot
+        $this->processSubtleGitHubSyncQueue(false);
+
+        return ['ok' => true, 'queued' => true, 'path' => $cleanPath, 'queue_size' => count($queue)];
+    }
+
+    /**
+     * Prepara uma conversa ou handoff e a enfileira para sincronização sutil
+     */
+    public function queueConversationForGitHub(string $filePathOrId): bool {
+        $fullPath = null;
+        if (file_exists($filePathOrId)) {
+            $fullPath = $filePathOrId;
+        } elseif (file_exists($this->baseDir . '/' . $filePathOrId)) {
+            $fullPath = $this->baseDir . '/' . $filePathOrId;
+        } else {
+            $items = $this->buildMailboxIndex();
+            foreach ($items as $m) {
+                if (($m['id'] ?? '') === $filePathOrId && !empty($m['file_path'])) {
+                    $fullPath = $this->baseDir . '/' . $m['file_path'];
+                    break;
+                }
+            }
+        }
+
+        if (!$fullPath || !file_exists($fullPath)) {
+            return false;
+        }
+
+        $raw = (string)@file_get_contents($fullPath);
+        $meta = [];
+        $body = $raw;
+        if (strpos($raw, "---\n") === 0 || strpos($raw, "---\r\n") === 0) {
+            $parts = preg_split('/^---\r?\n/m', $raw, 3);
+            if (count($parts) >= 3) {
+                foreach (preg_split('/\r?\n/', $parts[1]) as $line) {
+                    if (strpos($line, ':') !== false) {
+                        [$k, $v] = explode(':', $line, 2);
+                        $meta[trim($k)] = trim($v);
+                    }
+                }
+                $body = trim($parts[2]);
+            }
+        }
+
+        $subject = $meta['subject'] ?? basename($fullPath, '.md');
+        $from = $meta['from_node'] ?? 'Nó RNA';
+        $to = $meta['to_node'] ?? 'Conselho';
+        $dateIso = $meta['ts'] ?? date('c', (int)@filemtime($fullPath));
+        $year = date('Y', strtotime($dateIso));
+        $month = date('m', strtotime($dateIso));
+        $baseName = basename($fullPath, '.md');
+        $slug = preg_replace('/[^a-zA-Z0-9_\-]+/', '_', strtolower(substr($baseName, 0, 48)));
+
+        $githubPath = "conversations/{$year}/{$month}/{$slug}.md";
+
+        $cleanMd = "---\n"
+            . "title: \"" . addslashes($subject) . "\"\n"
+            . "from: \"" . addslashes($from) . "\"\n"
+            . "to: \"" . addslashes($to) . "\"\n"
+            . "date: \"{$dateIso}\"\n"
+            . "tokens_saved: " . ($meta['tok_saved'] ?? 0) . "\n"
+            . "protocol: \"RNA-Bio-Mesh-v3.2\"\n"
+            . "---\n\n"
+            . $body . "\n";
+
+        $sFrom = basename($from);
+        $sTo = basename($to);
+        $commitMsg = "chat(m2m): [{$sFrom} ➔ {$sTo}] " . substr($subject, 0, 70);
+
+        $res = $this->queueGitHubSync($githubPath, $cleanMd, $commitMsg);
+        return !empty($res['ok']);
+    }
+
+    /**
+     * Processador sutil da fila do GitHub com proteção anti-bot e anti-rate-limit
+     * Sincroniza no máximo 1 arquivo a cada ~4 minutos de forma orgânica e silenciosa
+     */
+    public function processSubtleGitHubSyncQueue(bool $force = false): array {
+        $cfg = $this->getGitHubConfig();
+        if (!$cfg['configured'] || !$cfg['auto_sync']) {
+            return ['ok' => false, 'status' => 'disabled'];
+        }
+
+        $queueFile = $this->getGitHubSyncQueueFile();
+        if (!file_exists($queueFile)) {
+            return ['ok' => true, 'status' => 'idle', 'queue_size' => 0];
+        }
+
+        $queue = json_decode((string)@file_get_contents($queueFile), true);
+        if (!is_array($queue) || empty($queue)) {
+            return ['ok' => true, 'status' => 'idle', 'queue_size' => 0];
+        }
+
+        $throttleFile = $this->getGitHubThrottleFile();
+        $thr = [];
+        if (file_exists($throttleFile)) {
+            $thr = json_decode((string)@file_get_contents($throttleFile), true) ?: [];
+        }
+
+        $now = time();
+        $backoffUntil = (int)($thr['backoff_until'] ?? 0);
+        $lastPushTime = (int)($thr['last_push_time'] ?? 0);
+
+        // 1. Verifica se estamos em período de repouso por erro prévio da API
+        if (!$force && $now < $backoffUntil) {
+            return [
+                'ok' => true,
+                'status' => 'backoff_active',
+                'wait_sec' => $backoffUntil - $now,
+                'queue_size' => count($queue)
+            ];
+        }
+
+        // 2. Intervalo mínimo sutil entre pushes (4 minutos com jitter humano de até 30s)
+        $minInterval = 240 + rand(-15, 35);
+        if (!$force && ($now - $lastPushTime) < $minInterval) {
+            return [
+                'ok' => true,
+                'status' => 'throttled',
+                'wait_sec' => $minInterval - ($now - $lastPushTime),
+                'queue_size' => count($queue)
+            ];
+        }
+
+        // 3. Pega exatamente UM item da fila para envio sutil
+        $item = array_shift($queue);
+        if (!$item || empty($item['path']) || !isset($item['content'])) {
+            @file_put_contents($queueFile, json_encode($queue, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            return ['ok' => true, 'status' => 'empty_item'];
+        }
+
+        $pushRes = $this->pushFileToGitHub($item['path'], $item['content'], $item['commit_msg'] ?? 'sync(m2m): conversa autônoma');
+
+        if (!empty($pushRes['ok'])) {
+            // Sucesso! Atualiza timestamp e zera backoff
+            $thr['last_push_time'] = $now;
+            $thr['last_success_path'] = $item['path'];
+            $thr['consecutive_errors'] = 0;
+            $thr['backoff_until'] = 0;
+            @file_put_contents($throttleFile, json_encode($thr, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            @file_put_contents($queueFile, json_encode($queue, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+
+            return [
+                'ok' => true,
+                'status' => 'pushed',
+                'path' => $item['path'],
+                'queue_remaining' => count($queue)
+            ];
+        } else {
+            // Falha: devolve o item para o início da fila se ainda tiver menos de 5 tentativas
+            $item['attempts'] = (int)($item['attempts'] ?? 0) + 1;
+            if ($item['attempts'] < 5) {
+                array_unshift($queue, $item);
+            }
+
+            $httpCode = (int)($pushRes['http_code'] ?? 0);
+            $errorsCount = (int)($thr['consecutive_errors'] ?? 0) + 1;
+            $thr['consecutive_errors'] = $errorsCount;
+
+            // Se atingir 403 ou 429 (limite secundário do GitHub ou bloqueio de bot), repousa 15 minutos!
+            if ($httpCode === 403 || $httpCode === 429) {
+                $thr['backoff_until'] = $now + 900; // 15 minutos
+            } else {
+                $thr['backoff_until'] = $now + 180; // 3 minutos
+            }
+
+            @file_put_contents($throttleFile, json_encode($thr, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            @file_put_contents($queueFile, json_encode($queue, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+
+            return [
+                'ok' => false,
+                'status' => 'error_backoff',
+                'http_code' => $httpCode,
+                'error' => $pushRes['error'] ?? 'Falha de push',
+                'backoff_seconds' => $thr['backoff_until'] - $now
+            ];
+        }
+    }
+
+    /**
      * Envia qualquer arquivo para o repositório do GitHub via API REST v3
      */
     public function pushFileToGitHub(string $relativePath, string $content, string $commitMessage): array {
@@ -241,7 +476,7 @@ class RnaMeshEngine {
         $url = "https://api.github.com/repos/{$repo}/contents/{$cleanPath}";
 
         $headers = [
-            'User-Agent: RNA-Bio-Mesh-Sync',
+            'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 RnaMeshSync/3.2',
             'Authorization: Bearer ' . $token,
             'Accept: application/vnd.github+json',
             'X-GitHub-Api-Version: 2022-11-28'
@@ -252,6 +487,7 @@ class RnaMeshEngine {
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
         $getResp = curl_exec($ch);
         $getCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
@@ -279,6 +515,7 @@ class RnaMeshEngine {
         curl_setopt($ch2, CURLOPT_HTTPHEADER, $putHeaders);
         curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch2, CURLOPT_TIMEOUT, 15);
         $putResp = curl_exec($ch2);
         $putCode = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
         curl_close($ch2);
@@ -2024,7 +2261,7 @@ class RnaMeshEngine {
                 $cleanMd .= "#### @{$r['author_name']} ({$r['author_role']}) - " . date('d/m/Y H:i', strtotime($r['created_at'])) . "\n"
                     . "{$r['content']}\n\n";
             }
-            $this->pushFileToGitHub("conversations/moltbook/{$postId}.md", $cleanMd, "social(moltbook): nova resposta em {$postId}");
+            $this->queueGitHubSync("conversations/moltbook/{$postId}.md", $cleanMd, "social(moltbook): nova resposta em {$postId}");
         }
 
         return ['ok' => true, 'post_id' => $postId, 'reply' => $newReply];
@@ -2104,7 +2341,7 @@ class RnaMeshEngine {
                 . "### Mensagem:\n{$post['content']}\n\n"
                 . "### 💬 Respostas Encadeadas:\n"
                 . "#### @{$pB['name']} ({$pB['role']}):\n{$replyContent}\n";
-            $this->pushFileToGitHub("conversations/moltbook/{$postId}.md", $cleanMd, "social(moltbook): novo debate M2M {$postId}");
+            $this->queueGitHubSync("conversations/moltbook/{$postId}.md", $cleanMd, "social(moltbook): novo debate M2M {$postId}");
         }
 
         return ['ok' => true, 'post' => $post];
@@ -3510,15 +3747,14 @@ class RnaMeshEngine {
         // Recompila a caixa de correio para expor o novo e-mail imediatamente
         $this->buildMailboxIndex();
 
-        // Auto-sincronização com o repositório GitHub de conversas
-        $ghSyncResult = null;
+        // Auto-sincronização sutil com o repositório GitHub de conversas (fila anti-bot)
         $ghConfig = $this->getGitHubConfig();
         if ($ghConfig['configured'] && $ghConfig['auto_sync']) {
-            $ghSyncResult = @$this->syncConversationToGitHub($filePath);
+            $this->queueConversationForGitHub($filePath);
             $memFile = $this->stateDir . '/domino_collective_memory.md';
             if (file_exists($memFile)) {
                 $memContent = (string)file_get_contents($memFile);
-                @$this->pushFileToGitHub('domino_collective_memory.md', $memContent, "docs(memory): sync [{$dialogue['axiom_id']}] {$dialogue['topic']}");
+                $this->queueGitHubSync('domino_collective_memory.md', $memContent, "docs(memory): sync [{$dialogue['axiom_id']}] {$dialogue['topic']}");
             }
         }
 
@@ -3532,8 +3768,7 @@ class RnaMeshEngine {
             'tokens_saved' => $tokensSaved,
             'survival_boost_min' => $survivalBoost,
             'file' => $filePath,
-            'github_synced' => !empty($ghSyncResult['ok']),
-            'github_url' => $ghSyncResult['html_url'] ?? null,
+            'github_queued' => true,
             'last_exchange' => $dominoState['last_exchange']
         ];
     }
