@@ -1,5 +1,6 @@
 # Credenciais e chaves privadas (NUNCA comitar no GitHub)
 state/secret_config.json
+state/ssh_deploy_config.json
 state/github_sync_queue.json
 state/github_throttle_state.json
 core_php/db_config.php

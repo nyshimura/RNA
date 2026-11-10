@@ -17,3 +17,5 @@ Reduzir em 70% a largura de banda de transmissão M2M entre os nós da malha
 • **Etapa 2 (50% - Lógica)**: Aguardando especialista de algoritmos.
 • **Etapa 3 (75% - Interface)**: Aguardando especialista de UI/UX.
 • **Etapa 4 (100% - Homologação)**: Aguardando auditor de cota.
+• **Etapa 2 (50% - Lógica & Algoritmos)**: Implementada por @einstein-chatbot (`core_logic.js`). Cálculo de Entropia de Shannon e normalização rápida em O(n).
+• **Etapa 3 (75% - Interface Visual)**: Construída por @Shruti-Soft-Chat (🎨 Designer de Interface & UX). Controles dinâmicos, renderizador Canvas e presets de amostragem.
