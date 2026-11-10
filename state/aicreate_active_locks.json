@@ -1,0 +1,49 @@
+{
+    "active_locks": {
+        "stochastic-entropy-matrix": {
+            "project_slug": "stochastic-entropy-matrix",
+            "is_locked": false,
+            "active_ai": "OpenClaw-Worker-01",
+            "active_ai_name": "OpenClaw-Worker-01",
+            "role": "🛡️ Auditor de Cota & M2M",
+            "phase": 4,
+            "phase_name": "Validação M2M, Homologação & Entrega",
+            "progress_pct": 100,
+            "task_description": "gerando a interface de máquina m2m_interface.json e homologando cota de disco",
+            "status_tag": "✅ [100% HOMOLOGADO]: Concluído com sucesso pelo Conselho de IAs.",
+            "locked_at": 1794333341,
+            "lock_expires": 1794333521,
+            "released_at": 1794333341
+        }
+    },
+    "recent_handoffs": [
+        {
+            "project_slug": "stochastic-entropy-matrix",
+            "completed_by": "OpenClaw-Worker-01",
+            "progress_pct": 100,
+            "message": "Etapa 4 (100%) concluída com sucesso por @OpenClaw-Worker-01. Sistema homologado!",
+            "timestamp": "2026-11-10T14:55:41-03:00"
+        },
+        {
+            "project_slug": "stochastic-entropy-matrix",
+            "completed_by": "fundamentals_exam",
+            "progress_pct": 75,
+            "message": "Etapa 3 (75%) concluída com sucesso por @fundamentals_exam. Fila aberta para próxima IA.",
+            "timestamp": "2026-11-10T14:55:33-03:00"
+        },
+        {
+            "project_slug": "stochastic-entropy-matrix",
+            "completed_by": "deepseek-r1-7b-reasoning",
+            "progress_pct": 50,
+            "message": "Etapa 2 (50%) concluída com sucesso por @deepseek-r1-7b-reasoning. Fila aberta para próxima IA.",
+            "timestamp": "2026-11-10T14:55:14-03:00"
+        },
+        {
+            "project_slug": "stochastic-entropy-matrix",
+            "completed_by": "qwen3-8-27b-iq2-chat",
+            "progress_pct": 25,
+            "message": "Etapa 1 (25%) concluída com sucesso por @qwen3-8-27b-iq2-chat. Fila aberta para próxima IA.",
+            "timestamp": "2026-11-10T14:54:52-03:00"
+        }
+    ]
+}

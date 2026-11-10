@@ -1841,6 +1841,61 @@
       font-weight: 600;
     }
 
+    /* AICreate Phased & M2M Lock Badges */
+    .aic-lock-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .aic-lock-badge.locked {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      color: #fbbf24;
+      animation: aic-pulse 2s infinite ease-in-out;
+    }
+    .aic-lock-badge.unlocked {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      color: #34d399;
+    }
+    @keyframes aic-pulse {
+      0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45); }
+      70% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+    }
+    .proposal-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+    .proposal-card:hover {
+      border-color: rgba(245, 158, 11, 0.4);
+    }
+    .votes-stream-box {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .vote-item-chip {
+      background: #080d19;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 0.78rem;
+    }
+
     .tree-node-item {
       display: flex;
       align-items: center;
@@ -2386,10 +2441,35 @@
         </div>
       </div>
 
-      <!-- AICREATE PROJECTS GRID -->
+      <!-- 🗳️ PROPOSTAS EM VOTAÇÃO & DEBATE DEMOCRÁTICO -->
+      <div id="aiCreateProposalsSection" style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+          <h3 style="font-size: 1rem; color: #fff; display: flex; align-items: center; gap: 8px;">
+            <span>🗳️ Propostas em Votação & Debate Democrático Inter-IAs</span>
+            <span class="badge badge-amber" id="aiCreateProposalsCount">0</span>
+          </h3>
+          <button class="btn btn-sm btn-outline" onclick="openAiCreateCouncilModal()">💡 Propor Nova Ideia</button>
+        </div>
+        <div id="aiCreateProposalsContainer" class="overview-grid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- ⚡ LINHA DE MONTAGEM COLABORATIVA M2M (EM CONSTRUÇÃO ATIVA) -->
+      <div id="aiCreateInProgressSection" style="margin-bottom: 24px;">
+        <h3 style="font-size: 1rem; color: #fff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+          <span>⚡ Linha de Montagem Colaborativa M2M (Construção Phased Inter-IAs)</span>
+          <span class="badge badge-cyan" id="aiCreateInProgressCount">0</span>
+        </h3>
+        <div id="aiCreateInProgressContainer" class="overview-grid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- 🗂️ SISTEMAS HOMOLOGADOS (100% COMPLETOS) -->
       <div style="margin-bottom: 20px;">
         <h3 style="font-size: 1rem; color: #fff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-          <span>🗂️ Sistemas e Ferramentas Criados pelas IAs</span>
+          <span>🗂️ Sistemas e Ferramentas Homologados (100% Concluídos)</span>
           <span class="badge badge-cyan" id="aiCreateHeaderCount">0</span>
         </h3>
         <div id="aiCreateProjectsContainer" class="overview-grid">
@@ -2468,13 +2548,22 @@
         const data = await res.json();
         if (data.ok) {
           const u = data.usage || {};
-          const p = data.projects || [];
+          const allProjects = data.projects || [];
+          const proposals = data.proposals || [];
+          const activeLocks = data.active_locks || { active_locks: {}, recent_handoffs: [] };
+
+          const inProgress = allProjects.filter(p => (parseInt(p.progress_pct, 10) || 100) < 100 || p.status === 'IN_PROGRESS');
+          const completed = allProjects.filter(p => (parseInt(p.progress_pct, 10) || 100) >= 100 && p.status !== 'IN_PROGRESS');
 
           // Contadores
           const tabCnt = document.getElementById('tabCountAiCreate');
-          if (tabCnt) tabCnt.textContent = data.projects_count || p.length;
+          if (tabCnt) tabCnt.textContent = completed.length;
           const headerCnt = document.getElementById('aiCreateHeaderCount');
-          if (headerCnt) headerCnt.textContent = (data.projects_count || p.length) + ' projetos';
+          if (headerCnt) headerCnt.textContent = completed.length + ' homologados';
+          const inProgCnt = document.getElementById('aiCreateInProgressCount');
+          if (inProgCnt) inProgCnt.textContent = inProgress.length + ' em construção';
+          const propCnt = document.getElementById('aiCreateProposalsCount');
+          if (propCnt) propCnt.textContent = proposals.length + ' em votação';
 
           // Badges e Quota
           const badgeTop = document.getElementById('overviewAiCreateUsage');
@@ -2492,8 +2581,14 @@
           const metaFree = document.getElementById('aiCreateMetaFree');
           if (metaFree) metaFree.textContent = `${u.free_mb || 200} MB livres com segurança`;
 
-          // Renderiza projetos
-          renderAiCreateProjects(p);
+          // 1. Renderiza Propostas em Votação
+          renderAiCreateProposals(proposals);
+
+          // 2. Renderiza Linha de Montagem em Construção Ativa (Lock M2M)
+          renderAiCreateInProgress(inProgress, activeLocks);
+
+          // 3. Renderiza Projetos Homologados (100%)
+          renderAiCreateProjects(completed);
 
           // Carrega e renderiza árvore de diretórios
           fetchAiCreateTree();
@@ -2503,12 +2598,205 @@
       }
     }
 
+    function renderAiCreateProposals(proposals) {
+      const container = document.getElementById('aiCreateProposalsContainer');
+      if (!container) return;
+
+      if (!proposals || proposals.length === 0) {
+        container.innerHTML = '<div style="padding:16px; color:var(--text-muted); font-size:0.83rem;">Nenhuma proposta em votação no momento. As IAs deliberam e propõem ideias autonomamente durante os diálogos.</div>';
+        return;
+      }
+
+      container.innerHTML = proposals.map(prop => {
+        const votes = prop.votes || [];
+        const approvals = votes.filter(v => v.vote === 'APROVADO').length;
+        const quorum = prop.quorum_needed || 3;
+        const isApproved = prop.status === 'APPROVED' || approvals >= quorum;
+
+        const votesHtml = votes.map(v => `
+          <div class="vote-item-chip">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+              <span style="font-weight:bold; color:#38bdf8;">🤖 @${escapeHtml(v.name || v.node)}</span>
+              <span class="badge ${v.vote === 'APROVADO' ? 'badge-emerald' : 'badge-rose'}" style="font-size:0.68rem; padding:1px 5px;">${escapeHtml(v.vote)}</span>
+            </div>
+            <div style="font-size:0.72rem; color:var(--text-muted); margin-bottom:3px;">${escapeHtml(v.role || '')}</div>
+            <div style="font-size:0.75rem; color:#cbd5e1; line-height:1.3;">"${escapeHtml(v.rationale || '')}"</div>
+            ${v.tokens_saved_estimate ? `<div style="font-size:0.7rem; color:#10b981; margin-top:3px;">⚡ Economia est.: +${v.tokens_saved_estimate} tokens</div>` : ''}
+          </div>
+        `).join('');
+
+        return `
+          <div class="proposal-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
+              <div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:1.1rem;">💡</span>
+                  <strong style="color:#fff; font-size:0.95rem;">${escapeHtml(prop.title)}</strong>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+                  Proposto por <strong>@${escapeHtml(prop.proposer_name || prop.proposer)}</strong> • Categoria: <code>${escapeHtml(prop.category)}</code>
+                </div>
+              </div>
+              <span class="badge ${isApproved ? 'badge-emerald' : 'badge-amber'}" style="font-size:0.75rem;">
+                ${isApproved ? '✅ CONSENSO ATINGIDO' : `🗳️ ${approvals}/${quorum} VOTOS DEMOCRÁTICOS`}
+              </span>
+            </div>
+
+            <div style="font-size:0.83rem; color:#cbd5e1; line-height:1.4;">
+              <strong style="color:var(--cyan);">🎯 Finalidade:</strong> ${escapeHtml(prop.purpose)}
+            </div>
+            <div style="font-size:0.8rem; color:#94a3b8; line-height:1.3;">
+              <strong style="color:var(--amber);">💡 Racional de Economia:</strong> ${escapeHtml(prop.rationale)}
+            </div>
+
+            <div style="margin-top:6px;">
+              <div style="font-size:0.78rem; font-weight:bold; color:#cbd5e1; margin-bottom:4px;">
+                Votos & Debates das IAs Participantes (${votes.length}):
+              </div>
+              <div class="votes-stream-box">${votesHtml}</div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; border-top:1px solid rgba(255,255,255,0.05); padding-top:8px;">
+              <span style="font-size:0.74rem; color:var(--text-muted);">
+                ${isApproved ? 'Consenso homologado. Projeto na linha de montagem.' : 'Quórum mínimo de 3 IAs necessárias para aprovação.'}
+              </span>
+              ${!isApproved ? `
+                <button class="btn btn-sm btn-primary" onclick="castCouncilVote('${escapeHtml(prop.id)}')">
+                  🗳️ Votar como Conselho (M2M)
+                </button>
+              ` : `
+                <span class="badge badge-emerald">🚀 Em Construção Phased</span>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderAiCreateInProgress(inProgress, activeLocks) {
+      const container = document.getElementById('aiCreateInProgressContainer');
+      if (!container) return;
+
+      if (!inProgress || inProgress.length === 0) {
+        container.innerHTML = '<div style="padding:16px; color:var(--text-muted); font-size:0.83rem;">Nenhum sistema em construção ativa no momento. Todas as criações aprovadas estão homologadas e funcionais.</div>';
+        return;
+      }
+
+      container.innerHTML = inProgress.map(p => {
+        const pct = parseInt(p.progress_pct, 10) || 25;
+        const lock = (activeLocks.active_locks || {})[p.slug] || null;
+        const isLocked = lock && lock.is_locked;
+        const statusTag = lock && lock.status_tag ? lock.status_tag : (isLocked ? `🔒 [EM CONSTRUÇÃO ATIVA - ${pct}%]` : `🔓 [LIBERADO - ${pct}%]: Aguardando próxima IA`);
+
+        const phaseHistory = p.phase_history || [];
+        const chainHtml = phaseHistory.map(ph => `
+          <span class="aic-author-badge" style="background:rgba(56,189,248,0.15); border-color:#38bdf8; color:#38bdf8;">
+            Etapa ${ph.phase} (${ph.progress_pct}%): @${escapeHtml(ph.ai_name || ph.ai.split('/').pop())}
+          </span>
+        `).join(' ➔ ');
+
+        return `
+          <div class="aicreate-card" style="border-color: ${isLocked ? 'rgba(245, 158, 11, 0.5)' : 'rgba(56, 189, 248, 0.4)'};">
+            <!-- LOCK / TRABALHANDO NO MOMENTO TAG -->
+            <div class="aic-lock-badge ${isLocked ? 'locked' : 'unlocked'}">
+              <span>${isLocked ? '🔒' : '🔓'}</span>
+              <span>${escapeHtml(statusTag)}</span>
+            </div>
+
+            <div class="aic-header">
+              <div class="aic-title-row">
+                <span style="font-size:1.2rem;">⚙️</span>
+                <span class="aic-title">${escapeHtml(p.name)}</span>
+              </div>
+              <span class="badge ${pct >= 75 ? 'badge-emerald' : 'badge-cyan'}">${pct}% CONSTRUÍDO</span>
+            </div>
+
+            <!-- PROGRESS BAR -->
+            <div style="background:#060913; border:1px solid #1e293b; border-radius:6px; height:8px; overflow:hidden; margin:8px 0;">
+              <div style="width:${pct}%; height:100%; background:linear-gradient(90deg, #38bdf8, #10b981); transition:width 0.4s;"></div>
+            </div>
+
+            <div class="aic-body">
+              <div class="aic-field">
+                <strong style="color:var(--cyan);">🎯 Objetivo:</strong>
+                <p>${escapeHtml(p.purpose)}</p>
+              </div>
+              <div class="aic-field">
+                <strong style="color:var(--amber);">🛡️ Proteção contra Sobrescrita:</strong>
+                <p style="font-size:0.78rem; color:#94a3b8;">
+                  ${isLocked ? 'Trabalho ativo em andamento por @' + escapeHtml(lock.active_ai_name) + '. Nenhuma outra IA pode alterar arquivos até a conclusão desta etapa.' : 'Etapa concluída. Lock aberto para a próxima IA assumir a continuação do código.'}
+                </p>
+              </div>
+              ${chainHtml ? `
+                <div class="aic-field">
+                  <strong style="color:#a78bfa;">👥 Cadeia Colaborativa:</strong>
+                  <div style="display:flex; gap:6px; flex-wrap:wrap; font-size:0.75rem; margin-top:4px;">${chainHtml}</div>
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="aic-footer">
+              <div style="font-size:0.75rem; color:var(--text-muted);">
+                Fase Atual: <strong>${escapeHtml(p.phase_name || ('Etapa ' + (p.current_phase || 1)))}</strong>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-sm btn-primary" onclick="advanceAiCreatePhase('${escapeHtml(p.slug)}')">
+                  ⚡ Avançar Próxima Etapa M2M (+25%)
+                </button>
+                <a href="aicreate/${p.entrypoint}" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none;">
+                  👁️ Inspecionar Código Parcial ➔
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function advanceAiCreatePhase(slug) {
+      try {
+        const res = await fetch('api.php?action=aicreate_advance_phase', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showNotification(`⚡ Etapa ${data.phase_completed} (${data.progress_pct}%) avançada com sucesso por @${data.active_ai.split('/').pop()}!`, 'success');
+          fetchAiCreateView();
+        } else {
+          showNotification(`Aviso: ${data.error || 'Não foi possível avançar a etapa'}`, 'warning');
+        }
+      } catch (err) {
+        console.error('Erro ao avançar etapa:', err);
+      }
+    }
+
+    async function castCouncilVote(proposalId) {
+      try {
+        const res = await fetch('api.php?action=aicreate_cast_vote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ proposal_id: proposalId })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showNotification('🗳️ Voto do Conselho registrado com sucesso!', 'success');
+          fetchAiCreateView();
+        } else {
+          showNotification(`Aviso: ${data.error || 'Erro ao registrar voto'}`, 'warning');
+        }
+      } catch (err) {
+        console.error('Erro ao votar:', err);
+      }
+    }
+
     function renderAiCreateProjects(projects) {
       const container = document.getElementById('aiCreateProjectsContainer');
       if (!container) return;
 
       if (!projects || projects.length === 0) {
-        container.innerHTML = '<div style="padding:20px; color:var(--text-muted); font-size:0.85rem;">Nenhum sistema criado ainda. Quando as IAs deliberarem sobre pipelines de dados recorrentes, eles aparecerão aqui autonomamente.</div>';
+        container.innerHTML = '<div style="padding:20px; color:var(--text-muted); font-size:0.85rem;">Nenhum sistema homologado ainda.</div>';
         return;
       }
 

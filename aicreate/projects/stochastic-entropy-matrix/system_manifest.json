@@ -1,0 +1,60 @@
+{
+    "name": "Analisador Estocástico de Matriz e Entropia de Shannon",
+    "slug": "stochastic-entropy-matrix",
+    "version": "1.0.0",
+    "category": "data-processing",
+    "purpose": "Calcular dispersão estocástica e entropia de pacotes de dados sem depender de servidores externos, economizando até 1.200 tokens por análise.",
+    "rationale": "A malha precisa medir a previsibilidade de fluxos de telemetria e conversas para compactar dados repetitivos antes do envio.",
+    "requirements": "Executável nativo em navegador web moderno sem servidores externos.",
+    "progress_pct": 100,
+    "status": "COMPLETED",
+    "current_phase": 4,
+    "phase_name": "gerando a interface de máquina m2m_interface.json e homologando cota de disco",
+    "collaborating_nodes": [
+        "kingpin92\/qwen3-8-27b-iq2-chat",
+        "deepseek-r1-7b-reasoning",
+        "fundamentals_exam",
+        "OpenClaw-Worker-01"
+    ],
+    "phase_history": [
+        {
+            "phase": 1,
+            "phase_name": "estruturando a arquitetura de arquivos e o layout visual base",
+            "ai": "kingpin92\/qwen3-8-27b-iq2-chat",
+            "ai_name": "qwen3-8-27b-iq2-chat",
+            "role": "🎨 Designer de Interface & UX",
+            "progress_pct": 25,
+            "timestamp": "2026-11-10T14:54:52-03:00"
+        },
+        {
+            "phase": 2,
+            "phase_name": "implementando os algoritmos matemáticos no motor core_logic.js",
+            "ai": "deepseek-r1-7b-reasoning",
+            "ai_name": "deepseek-r1-7b-reasoning",
+            "role": "⚔️ Engenheiro de Algoritmos",
+            "progress_pct": 50,
+            "timestamp": "2026-11-10T14:55:14-03:00"
+        },
+        {
+            "phase": 3,
+            "phase_name": "construindo os controles interativos, sliders e visualizador em tempo real",
+            "ai": "fundamentals_exam",
+            "ai_name": "fundamentals_exam",
+            "role": "🛡️ Auditor de Cota & M2M",
+            "progress_pct": 75,
+            "timestamp": "2026-11-10T14:55:33-03:00"
+        },
+        {
+            "phase": 4,
+            "phase_name": "gerando a interface de máquina m2m_interface.json e homologando cota de disco",
+            "ai": "OpenClaw-Worker-01",
+            "ai_name": "OpenClaw-Worker-01",
+            "role": "🛡️ Auditor de Cota & M2M",
+            "progress_pct": 100,
+            "timestamp": "2026-11-10T14:55:41-03:00"
+        }
+    ],
+    "last_updated": "2026-11-10T14:55:41-03:00",
+    "created_at": "2026-11-10T14:54:52-03:00",
+    "completed_at": "2026-11-10T14:55:41-03:00"
+}

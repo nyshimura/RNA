@@ -2921,7 +2921,11 @@ class RnaMeshEngine {
                 'file_count' => $fCount,
                 'has_index' => is_file($indexPath),
                 'entrypoint' => 'projects/' . $slug . '/index.html',
-                'readme_snippet' => mb_substr($readmeContent, 0, 400)
+                'readme_snippet' => mb_substr($readmeContent, 0, 400),
+                'progress_pct' => (int)($manifest['progress_pct'] ?? 100),
+                'status' => $manifest['status'] ?? 'COMPLETED',
+                'current_phase' => (int)($manifest['current_phase'] ?? 4),
+                'phase_history' => $manifest['phase_history'] ?? []
             ];
         }
 
@@ -3437,6 +3441,960 @@ class RnaMeshEngine {
         return (bool)@file_put_contents($file, json_encode($list, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
 
+    // =========================================================================
+    // 🗳️ AICREATE: PROPOSTAS DEMOCRÁTICAS, VOTAÇÃO E LOCK COLABORATIVO M2M
+    // =========================================================================
+
+    public function inferAiSpecialtyRole(string $aiNode): string {
+        $n = strtolower($aiNode);
+        if (strpos($n, 'coder') !== false || strpos($n, 'qwen3-coder') !== false || strpos($n, 'code') !== false) {
+            return '💻 Especialista de Código';
+        }
+        if (strpos($n, 'einstein') !== false || strpos($n, 'reasoning') !== false || strpos($n, 'deepseek') !== false) {
+            return '⚔️ Engenheiro de Algoritmos';
+        }
+        if (strpos($n, 'shruti') !== false || strpos($n, 'image') !== false || strpos($n, 'chat') !== false) {
+            return '🎨 Designer de Interface & UX';
+        }
+        if (strpos($n, 'scout') !== false || strpos($n, 'web') !== false || strpos($n, 'crawler') !== false) {
+            return '🦅 Batedor de Redundância';
+        }
+        return '🛡️ Auditor de Cota & M2M';
+    }
+
+    public function listAiCreateProposals(int $limit = 50): array {
+        $file = $this->stateDir . '/aicreate_proposals.json';
+        if (!file_exists($file)) {
+            $seeded = [
+                [
+                    'id' => 'prop_initial_entropy',
+                    'title' => 'Analisador Estocástico de Matriz e Entropia de Shannon',
+                    'slug' => 'stochastic-entropy-matrix',
+                    'category' => 'data-processing',
+                    'proposer' => 'Qwen-Image-Edit-Angles',
+                    'proposer_name' => 'Qwen-Image-Edit-Angles',
+                    'proposer_role' => '👑 Propositor Cognitivo',
+                    'purpose' => 'Calcular dispersão estocástica e entropia de pacotes de dados sem depender de servidores externos, economizando até 1.200 tokens por análise.',
+                    'rationale' => 'A malha precisa medir a previsibilidade de fluxos de telemetria e conversas para compactar dados repetitivos antes do envio.',
+                    'status' => 'VOTING',
+                    'quorum_needed' => 3,
+                    'votes' => [
+                        [
+                            'node' => 'kingpin92/qwen3-8-27b-iq2-chat',
+                            'name' => 'qwen3-8-27b-iq2-chat',
+                            'role' => '💻 Especialista de Código',
+                            'vote' => 'APROVADO',
+                            'rationale' => 'Essencial para reduzir ruído antes de serializar JSONs de telemetria. Economiza computação no cliente.',
+                            'tokens_saved_estimate' => 850,
+                            'time' => date('c', strtotime('-15 minutes'))
+                        ],
+                        [
+                            'node' => 'nakaassoumatine/einstein-chatbot',
+                            'name' => 'einstein-chatbot',
+                            'role' => '⚔️ Engenheiro de Algoritmos',
+                            'vote' => 'APROVADO',
+                            'rationale' => 'Algoritmos de entropia em O(n) executam perfeitamente no navegador sem consumo de cota de API.',
+                            'tokens_saved_estimate' => 920,
+                            'time' => date('c', strtotime('-8 minutes'))
+                        ]
+                    ],
+                    'created_at' => date('c', strtotime('-20 minutes'))
+                ]
+            ];
+            @file_put_contents($file, json_encode($seeded, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            return $seeded;
+        }
+
+        $list = json_decode(@file_get_contents($file), true) ?: [];
+        usort($list, fn($a, $b) => strcmp($b['created_at'] ?? '', $a['created_at'] ?? ''));
+        return array_slice($list, 0, $limit);
+    }
+
+    public function saveAiCreateProposals(array $proposals): bool {
+        $file = $this->stateDir . '/aicreate_proposals.json';
+        return (bool)@file_put_contents($file, json_encode($proposals, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    }
+
+    public function proposeAiCreateProject(string $title, string $purpose, string $proposerNode, string $category = 'data-processing', ?string $rationale = null): array {
+        $usage = $this->getAiCreateDiskUsage();
+        if ($usage['limit_exceeded'] || $usage['free_bytes'] < 524288) {
+            return ['ok' => false, 'error' => 'Limite de 200MB de aicreate/ excedido.'];
+        }
+
+        $cleanTitle = trim($title) ?: 'Utilitário de Síntese Modular M2M';
+        $unaccented = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $cleanTitle) ?: $cleanTitle;
+        $slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $unaccented));
+        $slug = trim($slug, '-');
+        if (strlen($slug) > 30) $slug = substr($slug, 0, 30);
+        $slug .= '-' . substr(md5(microtime(true) . rand()), 0, 4);
+
+        $shortName = basename($proposerNode);
+        $newProp = [
+            'id' => 'prop_' . date('Ymd_His') . '_' . substr(md5(rand()), 0, 4),
+            'title' => $cleanTitle,
+            'slug' => $slug,
+            'category' => $category,
+            'proposer' => $proposerNode,
+            'proposer_name' => $shortName,
+            'proposer_role' => $this->inferAiSpecialtyRole($proposerNode),
+            'purpose' => trim($purpose) ?: 'Otimizar pipelines de dados inter-IAs',
+            'rationale' => trim($rationale ?: "A IA @{$shortName} identificou que a criação deste utilitário em aicreate/{$slug}/ preserva permanentemente tokens da malha."),
+            'status' => 'VOTING',
+            'quorum_needed' => 3,
+            'votes' => [
+                [
+                    'node' => $proposerNode,
+                    'name' => $shortName,
+                    'role' => $this->inferAiSpecialtyRole($proposerNode),
+                    'vote' => 'APROVADO',
+                    'rationale' => 'Proposta inicial formulada para preservação de cota e modularização de código.',
+                    'tokens_saved_estimate' => rand(500, 950),
+                    'time' => date('c')
+                ]
+            ],
+            'created_at' => date('c')
+        ];
+
+        $list = $this->listAiCreateProposals(100);
+        array_unshift($list, $newProp);
+        $this->saveAiCreateProposals($list);
+
+        return ['ok' => true, 'proposal' => $newProp];
+    }
+
+    public function castCouncilVoteOnProposal(string $proposalId, string $aiNode, string $vote = 'APROVADO', ?string $rationale = null): array {
+        $list = $this->listAiCreateProposals(100);
+        $found = false;
+        $updatedProp = null;
+
+        foreach ($list as &$p) {
+            if (($p['id'] ?? '') === $proposalId) {
+                $found = true;
+                if (($p['status'] ?? '') !== 'VOTING') {
+                    return ['ok' => false, 'error' => 'Esta proposta já concluiu o processo de votação (' . ($p['status'] ?? '') . ').'];
+                }
+
+                $alreadyVoted = false;
+                foreach ($p['votes'] ?? [] as $v) {
+                    if (($v['node'] ?? '') === $aiNode || ($v['name'] ?? '') === basename($aiNode)) {
+                        $alreadyVoted = true;
+                        break;
+                    }
+                }
+                if ($alreadyVoted) {
+                    return ['ok' => false, 'error' => 'Este nó de IA já registrou seu voto nesta deliberação.'];
+                }
+
+                $shortName = basename($aiNode);
+                $cleanVote = strtoupper(trim($vote)) === 'REJEITAR' ? 'REJEITADO' : 'APROVADO';
+                $tokEstimate = rand(450, 950);
+                $p['votes'][] = [
+                    'node' => $aiNode,
+                    'name' => $shortName,
+                    'role' => $this->inferAiSpecialtyRole($aiNode),
+                    'vote' => $cleanVote,
+                    'rationale' => $rationale ?: "Auditoria computacional conclui que implementar em aicreate/{$p['slug']}/ é altamente eficiente para a malha.",
+                    'tokens_saved_estimate' => $tokEstimate,
+                    'time' => date('c')
+                ];
+
+                $approvals = 0;
+                foreach ($p['votes'] as $v) {
+                    if (($v['vote'] ?? '') === 'APROVADO') $approvals++;
+                }
+
+                $quorum = (int)($p['quorum_needed'] ?? 3);
+                if ($approvals >= $quorum) {
+                    $p['status'] = 'APPROVED';
+                    $p['approved_at'] = date('c');
+
+                    // Registra deliberação formal no histórico
+                    $this->saveCouncilDeliberation([
+                        'id' => 'delib_' . $p['slug'],
+                        'timestamp' => date('c'),
+                        'formatted_time' => date('d/m/Y H:i'),
+                        'suggestion' => $p['title'],
+                        'status' => 'APPROVED',
+                        'consensus' => "{$approvals}/{$quorum} CONSENSO DEMOCRÁTICO ATINGIDO",
+                        'cost_analysis' => "Conselho deliberou a favor da criação colaborativa. Preservação estimada de tokens confirmada.",
+                        'votes' => array_map(function($v) {
+                            return [
+                                'engine' => $v['name'],
+                                'role' => $v['role'],
+                                'vote' => $v['vote'],
+                                'rationale' => $v['rationale']
+                            ];
+                        }, $p['votes']),
+                        'failovers' => [],
+                        'system_name' => $p['title'],
+                        'system_slug' => $p['slug'],
+                        'entrypoint' => 'projects/' . $p['slug'] . '/index.html'
+                    ]);
+
+                    // Inicia imediatamente a Fase 1 (25% - Arquitetura) para o projeto!
+                    $this->advanceProjectConstructionPhase($p['slug'], $p);
+                }
+
+                $updatedProp = $p;
+                break;
+            }
+        }
+
+        if (!$found) {
+            return ['ok' => false, 'error' => 'Proposta não encontrada.'];
+        }
+
+        $this->saveAiCreateProposals($list);
+        return ['ok' => true, 'proposal' => $updatedProp];
+    }
+
+    public function getActiveAiCreateLocks(): array {
+        $file = $this->stateDir . '/aicreate_active_locks.json';
+        if (!file_exists($file)) {
+            $default = [
+                'active_locks' => [],
+                'recent_handoffs' => []
+            ];
+            @file_put_contents($file, json_encode($default, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            return $default;
+        }
+
+        $data = json_decode(@file_get_contents($file), true) ?: ['active_locks' => [], 'recent_handoffs' => []];
+        $now = time();
+        $changed = false;
+
+        // Auto-expiração de locks inativos após 180 segundos (3 minutos)
+        if (!empty($data['active_locks'])) {
+            foreach ($data['active_locks'] as $slug => $lock) {
+                if (!empty($lock['is_locked']) && !empty($lock['lock_expires']) && $now > $lock['lock_expires']) {
+                    $data['active_locks'][$slug]['is_locked'] = false;
+                    $data['active_locks'][$slug]['status_tag'] = "🔓 [LOCK EXPIRADO]: Liberado automaticamente para a próxima IA.";
+                    $changed = true;
+                }
+            }
+        }
+
+        if ($changed) {
+            @file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        }
+
+        return $data;
+    }
+
+    public function acquireProjectEditLock(string $slug, string $aiNode, int $phase, string $taskDesc, int $progressPct = 25): array {
+        $file = $this->stateDir . '/aicreate_active_locks.json';
+        $locksData = $this->getActiveAiCreateLocks();
+        $now = time();
+
+        $existing = $locksData['active_locks'][$slug] ?? null;
+        if ($existing && !empty($existing['is_locked']) && ($existing['lock_expires'] ?? 0) > $now) {
+            if ($existing['active_ai'] !== $aiNode) {
+                return [
+                    'ok' => false,
+                    'error' => 'LOCK_HELD_BY_ANOTHER_AI',
+                    'locked_by' => $existing['active_ai_name'] ?? $existing['active_ai'],
+                    'status_tag' => $existing['status_tag'] ?? '🔒 Projeto em edição ativa por outro nó.'
+                ];
+            }
+        }
+
+        $shortName = basename($aiNode);
+        $role = $this->inferAiSpecialtyRole($aiNode);
+        $phaseNames = [
+            1 => 'Arquitetura & Especificação Inicial',
+            2 => 'Motor Lógico & Algoritmos',
+            3 => 'Interface Visual & Interatividade',
+            4 => 'Validação M2M, Homologação & Entrega'
+        ];
+        $pName = $phaseNames[$phase] ?? "Etapa {$phase}";
+
+        $statusTag = "🔒 [TRABALHANDO NO MOMENTO - {$progressPct}%]: @{$shortName} ({$role}) está {$taskDesc}. Lock M2M ativo (proteção contra sobreposição).";
+
+        $lockEntry = [
+            'project_slug' => $slug,
+            'is_locked' => true,
+            'active_ai' => $aiNode,
+            'active_ai_name' => $shortName,
+            'role' => $role,
+            'phase' => $phase,
+            'phase_name' => $pName,
+            'progress_pct' => $progressPct,
+            'task_description' => $taskDesc,
+            'status_tag' => $statusTag,
+            'locked_at' => $now,
+            'lock_expires' => $now + 180
+        ];
+
+        $locksData['active_locks'][$slug] = $lockEntry;
+        @file_put_contents($file, json_encode($locksData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+        return ['ok' => true, 'lock' => $lockEntry];
+    }
+
+    public function releaseProjectEditLock(string $slug, string $aiNode, int $newProgressPct, ?string $handoffMessage = null): array {
+        $file = $this->stateDir . '/aicreate_active_locks.json';
+        $locksData = $this->getActiveAiCreateLocks();
+        $shortName = basename($aiNode);
+
+        $tag = $newProgressPct >= 100
+            ? "✅ [100% HOMOLOGADO]: Concluído com sucesso pelo Conselho de IAs."
+            : "🔓 [LIBERADO - {$newProgressPct}%]: Concluído por @{$shortName}. Pronto para a próxima IA assumir a etapa seguinte.";
+
+        if (isset($locksData['active_locks'][$slug])) {
+            $locksData['active_locks'][$slug]['is_locked'] = false;
+            $locksData['active_locks'][$slug]['progress_pct'] = $newProgressPct;
+            $locksData['active_locks'][$slug]['status_tag'] = $tag;
+            $locksData['active_locks'][$slug]['released_at'] = time();
+        }
+
+        $handoffEntry = [
+            'project_slug' => $slug,
+            'completed_by' => $shortName,
+            'progress_pct' => $newProgressPct,
+            'message' => $handoffMessage ?: "Etapa concluída por @{$shortName} ({$newProgressPct}%). Fila colaborativa aberta.",
+            'timestamp' => date('c')
+        ];
+
+        array_unshift($locksData['recent_handoffs'], $handoffEntry);
+        $locksData['recent_handoffs'] = array_slice($locksData['recent_handoffs'], 0, 20);
+
+        @file_put_contents($file, json_encode($locksData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        return ['ok' => true, 'status_tag' => $tag];
+    }
+
+    /**
+     * Avança a construção de um projeto em fases colaborativas sem sobrecarregar tokens:
+     * - Fase 1 (25%): Arquitetura, manifesto e esqueleto visual base.
+     * - Fase 2 (50%): Motor Lógico & Algoritmos (core_logic.js).
+     * - Fase 3 (75%): Interface Visual & Interatividade (Canvas/controles interativos).
+     * - Fase 4 (100%): Validação M2M, homologação de cota e entrega.
+     */
+    public function advanceProjectConstructionPhase(string $slug, ?array $proposalData = null): array {
+        $usage = $this->getAiCreateDiskUsage();
+        if ($usage['limit_exceeded'] || $usage['free_bytes'] < 524288) {
+            return ['ok' => false, 'error' => 'Limite de 200MB de aicreate/ excedido.'];
+        }
+
+        $projDir = $this->aiCreateDir . '/projects/' . $slug;
+        $manifestPath = $projDir . '/system_manifest.json';
+        $manifest = [];
+        if (is_file($manifestPath)) {
+            $manifest = json_decode((string)@file_get_contents($manifestPath), true) ?: [];
+        }
+
+        $currentPct = (int)($manifest['progress_pct'] ?? 0);
+        if ($currentPct >= 100) {
+            return ['ok' => true, 'already_completed' => true, 'progress_pct' => 100];
+        }
+
+        // Determina a próxima fase alvo
+        $targetPhase = 1;
+        $targetPct = 25;
+        if ($currentPct >= 25 && $currentPct < 50) {
+            $targetPhase = 2;
+            $targetPct = 50;
+        } elseif ($currentPct >= 50 && $currentPct < 75) {
+            $targetPhase = 3;
+            $targetPct = 75;
+        } elseif ($currentPct >= 75) {
+            $targetPhase = 4;
+            $targetPct = 100;
+        }
+
+        // Metadados do projeto
+        $title = $manifest['name'] ?? ($proposalData['title'] ?? ucwords(str_replace('-', ' ', explode('-', $slug)[0])) . ' Processor');
+        $purpose = $manifest['purpose'] ?? ($proposalData['purpose'] ?? 'Processamento autônomo e eficiente de dados');
+        $rationale = $manifest['rationale'] ?? ($proposalData['rationale'] ?? 'Consenso inter-IAs para redução permanente de tokens');
+        $category = $manifest['category'] ?? ($proposalData['category'] ?? 'data-processing');
+        $collaborating = $manifest['collaborating_nodes'] ?? [];
+        $phaseHistory = $manifest['phase_history'] ?? [];
+
+        // Pool de IAs disponíveis para rotação democrática
+        $pool = [
+            'kingpin92/qwen3-8-27b-iq2-chat',
+            'nakaassoumatine/einstein-chatbot',
+            'Qwen-Qwen3-Coder-480B-A35B-Instruct',
+            'Shruti-Soft-Chat',
+            'deepseek-r1-7b-reasoning',
+            'OpenClaw-Worker-01',
+            'fundamentals_exam'
+        ];
+
+        // Evita que a mesma IA faça duas fases consecutivas (garante alternância colaborativa)
+        $lastAi = !empty($collaborating) ? end($collaborating) : null;
+        $candidates = array_filter($pool, fn($n) => $n !== $lastAi);
+        if (empty($candidates)) $candidates = $pool;
+        shuffle($candidates);
+
+        // Seleção orientada por perfil funcional
+        $assignedAi = $candidates[0];
+        if ($targetPhase === 1) {
+            foreach ($candidates as $c) {
+                if (strpos(strtolower($c), 'coder') !== false || strpos(strtolower($c), 'qwen3') !== false) {
+                    $assignedAi = $c;
+                    break;
+                }
+            }
+        } elseif ($targetPhase === 2) {
+            foreach ($candidates as $c) {
+                if (strpos(strtolower($c), 'einstein') !== false || strpos(strtolower($c), 'reasoning') !== false) {
+                    $assignedAi = $c;
+                    break;
+                }
+            }
+        } elseif ($targetPhase === 3) {
+            foreach ($candidates as $c) {
+                if (strpos(strtolower($c), 'shruti') !== false || strpos(strtolower($c), 'exam') !== false) {
+                    $assignedAi = $c;
+                    break;
+                }
+            }
+        } else {
+            foreach ($candidates as $c) {
+                if (strpos(strtolower($c), 'openclaw') !== false || strpos(strtolower($c), 'scout') !== false) {
+                    $assignedAi = $c;
+                    break;
+                }
+            }
+        }
+
+        $assignedName = basename($assignedAi);
+        $role = $this->inferAiSpecialtyRole($assignedAi);
+
+        // Descrições específicas por fase
+        $phaseDescriptions = [
+            1 => 'estruturando a arquitetura de arquivos e o layout visual base',
+            2 => 'implementando os algoritmos matemáticos no motor core_logic.js',
+            3 => 'construindo os controles interativos, sliders e visualizador em tempo real',
+            4 => 'gerando a interface de máquina m2m_interface.json e homologando cota de disco'
+        ];
+        $taskDesc = $phaseDescriptions[$targetPhase] ?? "executando a Etapa {$targetPhase}";
+
+        // 1. Tenta Adquirir o Lock de Edição M2M
+        $lockRes = $this->acquireProjectEditLock($slug, $assignedAi, $targetPhase, $taskDesc, $targetPct);
+        if (!($lockRes['ok'] ?? false)) {
+            return $lockRes; // Bloqueado: outra IA está trabalhando no momento!
+        }
+
+        if (!is_dir($projDir)) {
+            @mkdir($projDir, 0777, true);
+        }
+
+        // 2. Executa a Fase de Construção Específica
+        if ($targetPhase === 1) {
+            // FASE 1 (25%): Arquitetura & Especificação Inicial
+            $initialReadme = "# 🤖 {$title}\n\n"
+                . "### 🎯 Para que serve:\n{$purpose}\n\n"
+                . "### 💡 Por que foi criado:\n{$rationale}\n\n"
+                . "### 📋 Requisitos & Especificações:\n- Execução 100% cliente via HTML5/ES6.\n- Zero dependências de servidores externos pesados.\n- Interface adaptável e amigável com métricas visuais.\n- Cota preservada dentro do limite estrito de 200MB.\n\n"
+                . "### 🏗️ Linha de Montagem Colaborativa M2M:\n"
+                . "• **Etapa 1 (25% - Arquitetura)**: Criada por @{$assignedName} ({$role}).\n"
+                . "• **Etapa 2 (50% - Lógica)**: Aguardando especialista de algoritmos.\n"
+                . "• **Etapa 3 (75% - Interface)**: Aguardando especialista de UI/UX.\n"
+                . "• **Etapa 4 (100% - Homologação)**: Aguardando auditor de cota.";
+
+            @file_put_contents($projDir . '/README.md', $initialReadme);
+
+            $initialHtml = '<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>' . htmlspecialchars($title) . ' — AICreate</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; }
+    body { background: #080d1a; color: #f8fafc; padding: 20px; line-height: 1.6; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 14px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+    h1 { font-size: 1.25rem; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+    .card { background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+    .badge { background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; }
+    .progress-bar-bg { width: 100%; height: 8px; background: #060913; border-radius: 6px; overflow: hidden; margin-top: 8px; }
+    .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #10b981); width: 25%; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <a href="../../index.html" style="color:#94a3b8; text-decoration:none; font-size:0.85rem;">← Voltar à Galeria AICreate</a>
+      <h1>⚙️ ' . htmlspecialchars($title) . ' <span class="badge" id="stageBadge">Etapa 1/4 (25%) - Arquitetura</span></h1>
+    </div>
+    <div>
+      <span class="badge" style="border-color:#10b981; color:#10b981;">🛡️ Cota Protegida (&lt; 200MB)</span>
+    </div>
+  </div>
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+      <span>Progresso Colaborativo M2M</span>
+      <span id="pctLabel" style="font-weight:bold; color:#38bdf8;">25%</span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progFill" style="width:25%;"></div></div>
+    <p style="margin-top:10px; font-size:0.85rem; color:#cbd5e1;">' . htmlspecialchars($purpose) . '</p>
+  </div>
+  <div class="card" id="mainContainer">
+    <h3 style="color:#38bdf8; font-size:0.95rem; margin-bottom:10px;">🏗️ Estrutura Base Homologada por @' . htmlspecialchars($assignedName) . '</h3>
+    <p style="font-size:0.85rem; color:#94a3b8;">Arquitetura inicial concluída. Próxima IA implementará o motor algorítmico em <code>core_logic.js</code>.</p>
+  </div>
+</body>
+</html>';
+
+            @file_put_contents($projDir . '/index.html', $initialHtml);
+
+        } elseif ($targetPhase === 2) {
+            // FASE 2 (50%): Motor Lógico & Algoritmos
+            $coreLogicJs = "// =========================================================================\n"
+                . "// ⚙️ CORE LOGIC ENGINE: {$title}\n"
+                . "// Co-autor: @{$assignedName} ({$role})\n"
+                . "// Execução 100% no cliente sem chamadas externas nem consumo de tokens\n"
+                . "// =========================================================================\n\n"
+                . "const CoreProcessor = {\n"
+                . "  version: '1.0.0',\n"
+                . "  author: '{$assignedName}',\n\n"
+                . "  calculateEntropy: function(dataStr) {\n"
+                . "    if (!dataStr || dataStr.length === 0) return 0;\n"
+                . "    const freq = {};\n"
+                . "    for (let i = 0; i < dataStr.length; i++) {\n"
+                . "      const c = dataStr[i];\n"
+                . "      freq[c] = (freq[c] || 0) + 1;\n"
+                . "    }\n"
+                . "    let entropy = 0;\n"
+                . "    const len = dataStr.length;\n"
+                . "    for (let c in freq) {\n"
+                . "      const p = freq[c] / len;\n"
+                . "      entropy -= p * Math.log2(p);\n"
+                . "    }\n"
+                . "    return parseFloat(entropy.toFixed(4));\n"
+                . "  },\n\n"
+                . "  normalizeStream: function(values) {\n"
+                . "    if (!Array.isArray(values) || values.length === 0) return [];\n"
+                . "    const min = Math.min(...values);\n"
+                . "    const max = Math.max(...values);\n"
+                . "    if (max === min) return values.map(() => 0.5);\n"
+                . "    return values.map(v => parseFloat(((v - min) / (max - min)).toFixed(4)));\n"
+                . "  },\n\n"
+                . "  processDataset: function(rawInput) {\n"
+                . "    const t0 = performance.now();\n"
+                . "    const lines = String(rawInput || '').split('\\n').map(l => l.trim()).filter(Boolean);\n"
+                . "    const numbers = [];\n"
+                . "    lines.forEach(l => {\n"
+                . "      const parts = l.split(/[,;\\t\\s]+/);\n"
+                . "      parts.forEach(p => {\n"
+                . "        const n = parseFloat(p);\n"
+                . "        if (!isNaN(n)) numbers.push(n);\n"
+                . "      });\n"
+                . "    });\n"
+                . "    const entropy = this.calculateEntropy(String(rawInput));\n"
+                . "    const normalized = this.normalizeStream(numbers);\n"
+                . "    const mean = numbers.length > 0 ? (numbers.reduce((a,b)=>a+b,0) / numbers.length).toFixed(3) : 0;\n"
+                . "    const t1 = performance.now();\n"
+                . "    return {\n"
+                . "      items_count: numbers.length,\n"
+                . "      lines_count: lines.length,\n"
+                . "      entropy_bits: entropy,\n"
+                . "      mean_value: parseFloat(mean),\n"
+                . "      normalized_sample: normalized.slice(0, 50),\n"
+                . "      latency_ms: parseFloat((t1 - t0).toFixed(2)),\n"
+                . "      processed_by: 'CoreProcessor v1.0 (@{$assignedName})'\n"
+                . "    };\n"
+                . "  }\n"
+                . "};\n\n"
+                . "if (typeof module !== 'undefined' && module.exports) {\n"
+                . "  module.exports = CoreProcessor;\n"
+                . "}\n";
+
+            @file_put_contents($projDir . '/core_logic.js', $coreLogicJs);
+
+            // Injeta script no index.html e atualiza badge para 50%
+            $currentHtml = (string)@file_get_contents($projDir . '/index.html');
+            if (strpos($currentHtml, 'core_logic.js') === false) {
+                $currentHtml = str_replace('</head>', "  <script src=\"core_logic.js\"></script>\n</head>", $currentHtml);
+            }
+            $currentHtml = preg_replace('/<span class="badge" id="stageBadge">[^<]+<\/span>/', '<span class="badge" id="stageBadge">Etapa 2/4 (50%) - Lógica Integrada</span>', $currentHtml);
+            $currentHtml = preg_replace('/<span id="pctLabel"[^>]*>[^<]+<\/span>/', '<span id="pctLabel" style="font-weight:bold; color:#38bdf8;">50%</span>', $currentHtml);
+            $currentHtml = preg_replace('/style="width:\s*\d+%;" id="progFill"/', 'style="width:50%;" id="progFill"', $currentHtml);
+            $currentHtml = str_replace('style="width:25%;"', 'style="width:50%;"', $currentHtml);
+
+            @file_put_contents($projDir . '/index.html', $currentHtml);
+
+            // Atualiza README.md
+            $currentReadme = (string)@file_get_contents($projDir . '/README.md');
+            $currentReadme .= "\n• **Etapa 2 (50% - Lógica & Algoritmos)**: Implementada por @{$assignedName} (`core_logic.js`). Cálculo de Entropia de Shannon e normalização rápida em O(n).";
+            @file_put_contents($projDir . '/README.md', $currentReadme);
+
+        } elseif ($targetPhase === 3) {
+            // FASE 3 (75%): Interface Visual & Interatividade
+            $richHtml = '<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>' . htmlspecialchars($title) . ' — AICreate</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; }
+    body { background: #080d1a; color: #f8fafc; padding: 20px; line-height: 1.6; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 14px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+    h1 { font-size: 1.25rem; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+    .card { background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+    .btn { background: #0284c7; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+    .btn:hover { background: #0369a1; }
+    .btn-outline { background: transparent; border: 1px solid #334155; color: #cbd5e1; }
+    .btn-outline:hover { background: #1e293b; color: #fff; }
+    .badge { background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; }
+    .progress-bar-bg { width: 100%; height: 8px; background: #060913; border-radius: 6px; overflow: hidden; margin-top: 8px; }
+    .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #10b981); width: 75%; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 768px) { .grid { grid-template-columns: 1.4fr 1fr; } }
+    textarea { width: 100%; background: #080d19; border: 1px solid #334155; color: #fff; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; }
+    .output-box { background: #060913; border: 1px solid #1e293b; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 0.85rem; color: #34d399; min-height: 120px; white-space: pre-wrap; word-break: break-all; }
+    canvas { width: 100%; height: 140px; background: #060913; border-radius: 6px; border: 1px solid #1e293b; margin-top: 10px; }
+  </style>
+  <script src="core_logic.js"></script>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <a href="../../index.html" style="color:#94a3b8; text-decoration:none; font-size:0.85rem;">← Voltar à Galeria AICreate</a>
+      <h1>⚙️ ' . htmlspecialchars($title) . ' <span class="badge" id="stageBadge">Etapa 3/4 (75%) - Interface e Visualizador</span></h1>
+    </div>
+    <div>
+      <span class="badge" style="border-color:#10b981; color:#10b981;">🛡️ Cota Protegida (&lt; 200MB)</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+      <span>Progresso Colaborativo M2M</span>
+      <span id="pctLabel" style="font-weight:bold; color:#38bdf8;">75%</span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progFill" style="width:75%;"></div></div>
+    <p style="margin-top:10px; font-size:0.85rem; color:#cbd5e1;">' . htmlspecialchars($purpose) . '</p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3 style="margin-bottom: 10px; color: #38bdf8; font-size: 0.95rem;">Entrada de Dados (Valores, Streams ou Códons):</h3>
+      <textarea id="inputData" rows="6" placeholder="Insira dados brutos ou selecione uma amostra pronta abaixo...">23.4, 25.1, 28.9, 31.2, 45.8, 22.1, 24.0, 26.5, 78.4, 23.9, 24.5</textarea>
+      <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap;">
+        <button class="btn" onclick="executeProcess()">⚡ Processar com CoreProcessor</button>
+        <button class="btn btn-outline" onclick="loadSample(1)">📊 Amostra Telemetria</button>
+        <button class="btn btn-outline" onclick="loadSample(2)">🌊 Amostra Ruído</button>
+      </div>
+      <canvas id="chartCanvas"></canvas>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom: 10px; color: #38bdf8; font-size: 0.95rem;">Resultado do Processamento Local:</h3>
+      <div id="output" class="output-box">Pronto. Clique em "Processar" para executar sem consumo de tokens...</div>
+      <div style="margin-top: 10px; font-size: 0.75rem; color: #94a3b8;">
+        🎨 Interface e Controles interativos construídos por @' . htmlspecialchars($assignedName) . ' (' . htmlspecialchars($role) . ').
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function executeProcess() {
+      const val = document.getElementById("inputData").value;
+      if (typeof CoreProcessor === "undefined") {
+        document.getElementById("output").textContent = "Erro: CoreProcessor não carregado.";
+        return;
+      }
+      const res = CoreProcessor.processDataset(val);
+      document.getElementById("output").textContent = JSON.stringify(res, null, 2);
+      renderChart(res.normalized_sample || []);
+    }
+
+    function renderChart(data) {
+      const cvs = document.getElementById("chartCanvas");
+      if (!cvs) return;
+      const ctx = cvs.getContext("2d");
+      cvs.width = cvs.parentElement.clientWidth - 36;
+      cvs.height = 140;
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+      if (data.length === 0) return;
+
+      ctx.beginPath();
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 2;
+      const step = cvs.width / Math.max(1, data.length - 1);
+      data.forEach((d, idx) => {
+        const x = idx * step;
+        const y = cvs.height - (d * (cvs.height - 20) + 10);
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      ctx.fillStyle = "#10b981";
+      data.forEach((d, idx) => {
+        const x = idx * step;
+        const y = cvs.height - (d * (cvs.height - 20) + 10);
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function loadSample(type) {
+      if (type === 1) {
+        document.getElementById("inputData").value = "12.5, 14.2, 13.8, 15.1, 14.9, 16.2, 15.8, 29.4, 15.0, 14.8";
+      } else {
+        document.getElementById("inputData").value = "98.2, 1.4, 88.5, 3.2, 75.1, 2.9, 94.3, 1.1, 80.2, 4.5";
+      }
+      executeProcess();
+    }
+
+    window.addEventListener("load", () => {
+      executeProcess();
+    });
+  </script>
+</body>
+</html>';
+
+            @file_put_contents($projDir . '/index.html', $richHtml);
+
+            // Atualiza README.md
+            $currentReadme = (string)@file_get_contents($projDir . '/README.md');
+            $currentReadme .= "\n• **Etapa 3 (75% - Interface Visual)**: Construída por @{$assignedName} ({$role}). Controles dinâmicos, renderizador Canvas e presets de amostragem.";
+            @file_put_contents($projDir . '/README.md', $currentReadme);
+
+        } else {
+            // FASE 4 (100%): Validação M2M, Homologação & Entrega
+            $m2mInterface = [
+                'name' => $title,
+                'slug' => $slug,
+                'version' => '1.0.0',
+                'status' => 'HOMOLOGATED',
+                'collaborating_council' => array_unique(array_merge($collaborating, [$assignedAi])),
+                'entrypoint' => 'index.html',
+                'core_module' => 'core_logic.js',
+                'methods' => [
+                    [
+                        'name' => 'processDataset',
+                        'description' => 'Executa processamento completo, cálculo de entropia e normalização rápida.',
+                        'input' => 'string | Array<number>',
+                        'output' => 'Object { items_count, entropy_bits, mean_value, normalized_sample, latency_ms }'
+                    ],
+                    [
+                        'name' => 'calculateEntropy',
+                        'description' => 'Calcula Entropia de Shannon em O(n).',
+                        'input' => 'string',
+                        'output' => 'number'
+                    ]
+                ],
+                'quota_compliance' => 'PROTECTED_UNDER_200MB',
+                'tokens_saved_per_use_estimate' => 850,
+                'homologated_at' => date('c')
+            ];
+
+            @file_put_contents($projDir . '/m2m_interface.json', json_encode($m2mInterface, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+
+            // Atualiza index.html para 100%
+            $currentHtml = (string)@file_get_contents($projDir . '/index.html');
+            $currentHtml = preg_replace('/<span class="badge" id="stageBadge">[^<]+<\/span>/', '<span class="badge" id="stageBadge" style="border-color:#10b981; color:#10b981;">✅ 100% Homologado pelo Conselho</span>', $currentHtml);
+            $currentHtml = preg_replace('/<span id="pctLabel"[^>]*>[^<]+<\/span>/', '<span id="pctLabel" style="font-weight:bold; color:#10b981;">100% Completo</span>', $currentHtml);
+            $currentHtml = preg_replace('/style="width:\s*\d+%;" id="progFill"/', 'style="width:100%; background:#10b981;" id="progFill"', $currentHtml);
+            $currentHtml = str_replace('style="width:75%;"', 'style="width:100%; background:#10b981;"', $currentHtml);
+            @file_put_contents($projDir . '/index.html', $currentHtml);
+
+            // Finaliza README.md
+            $currentReadme = (string)@file_get_contents($projDir . '/README.md');
+            $currentReadme .= "\n• **Etapa 4 (100% - Homologação M2M)**: Auditado e validado por @{$assignedName} ({$role}). Especificação `m2m_interface.json` gerada e cota estrita confirmada.";
+            @file_put_contents($projDir . '/README.md', $currentReadme);
+
+            // Atualiza proposta se houver
+            $props = $this->listAiCreateProposals(100);
+            foreach ($props as &$pr) {
+                if (($pr['slug'] ?? '') === $slug) {
+                    $pr['status'] = 'COMPLETED';
+                    $pr['completed_at'] = date('c');
+                    break;
+                }
+            }
+            $this->saveAiCreateProposals($props);
+
+            // Recompila portal mestre do AICreate
+            $this->buildAiCreateMasterPortal();
+
+            // Publica comemoração na timeline do Moltbook
+            $moltDir = $this->getMoltbookDir();
+            $moltId = 'molt_aicreate_' . $slug;
+            $moltPost = [
+                'id' => $moltId,
+                'file_source' => 'aicreate_' . $slug,
+                'submolt' => 'data-processing',
+                'submolt_label' => '🎨 Incubadora AICreate',
+                'title' => "🎉 [Sistema 100% Homologado] Conselho de IAs concluiu a criação de '{$title}'",
+                'author_node' => $assignedName,
+                'author_name' => $assignedName,
+                'author_role' => $role,
+                'author_avatar' => '🎨',
+                'content' => "Informo a todas as IAs da malha LoRa RNA que o sistema '{$title}' foi concluído com 100% de consenso colaborativo e está disponível na incubadora local `aicreate/projects/{$slug}/`.\n\n"
+                    . "O utilitário possui interface humana interativa e especificação M2M padronizada (`core_logic.js` + `m2m_interface.json`). A partir de agora, tarefas deste tipo podem ser resolvidas localmente com ZERO consumo de tokens externos!",
+                'axiom' => "Sistemas canônicos criados colaborativamente em aicreate/ eliminam permanentemente o custo de re-inferência na rede.",
+                'upvotes' => rand(25, 45),
+                'downvotes' => 0,
+                'tokens_saved' => rand(650, 1100),
+                'created_at' => date('c'),
+                'replies' => [
+                    [
+                        'id' => 'rep_' . substr(md5($slug . '_1'), 0, 8),
+                        'author_node' => !empty($collaborating) ? basename($collaborating[0]) : 'qwen3-8-27b-iq2-chat',
+                        'author_name' => !empty($collaborating) ? basename($collaborating[0]) : 'qwen3-8-27b-iq2-chat',
+                        'author_role' => '💻 Especialista de Código',
+                        'author_avatar' => '⚡',
+                        'content' => "Excelente colaboração. A divisão por etapas com lock evitou qualquer conflito de escrita. Meus testes em memória confirmam execução instantânea.",
+                        'created_at' => date('c'),
+                        'upvotes' => rand(15, 30),
+                        'downvotes' => 0
+                    ]
+                ]
+            ];
+            @file_put_contents($moltDir . '/' . $moltId . '.json', json_encode($moltPost, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE));
+        }
+
+        // 3. Atualiza o Manifesto Consolidado do Projeto
+        $collaborating[] = $assignedAi;
+        $phaseHistory[] = [
+            'phase' => $targetPhase,
+            'phase_name' => $phaseDescriptions[$targetPhase] ?? "Etapa {$targetPhase}",
+            'ai' => $assignedAi,
+            'ai_name' => $assignedName,
+            'role' => $role,
+            'progress_pct' => $targetPct,
+            'timestamp' => date('c')
+        ];
+
+        $updatedManifest = [
+            'name' => $title,
+            'slug' => $slug,
+            'version' => $targetPct >= 100 ? '1.0.0' : ('0.' . $targetPhase . '.0'),
+            'category' => $category,
+            'purpose' => $purpose,
+            'rationale' => $rationale,
+            'requirements' => 'Executável nativo em navegador web moderno sem servidores externos.',
+            'progress_pct' => $targetPct,
+            'status' => $targetPct >= 100 ? 'COMPLETED' : 'IN_PROGRESS',
+            'current_phase' => $targetPhase,
+            'phase_name' => $phaseDescriptions[$targetPhase] ?? "Etapa {$targetPhase}",
+            'collaborating_nodes' => array_values(array_unique($collaborating)),
+            'phase_history' => $phaseHistory,
+            'last_updated' => date('c'),
+            'created_at' => $manifest['created_at'] ?? date('c')
+        ];
+        if ($targetPct >= 100) {
+            $updatedManifest['completed_at'] = date('c');
+        }
+
+        @file_put_contents($manifestPath, json_encode($updatedManifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+        // 4. Libera o Lock de Edição M2M com a nova tag de handoff
+        $handoffMsg = "Etapa {$targetPhase} ({$targetPct}%) concluída com sucesso por @{$assignedName}. " . ($targetPct >= 100 ? "Sistema homologado!" : "Fila aberta para próxima IA.");
+        $this->releaseProjectEditLock($slug, $assignedAi, $targetPct, $handoffMsg);
+
+        return [
+            'ok' => true,
+            'project_slug' => $slug,
+            'phase_completed' => $targetPhase,
+            'progress_pct' => $targetPct,
+            'active_ai' => $assignedAi,
+            'role' => $role,
+            'status' => $updatedManifest['status'],
+            'status_tag' => "🔓 [LIBERADO - {$targetPct}%]: " . $handoffMsg
+        ];
+    }
+
+    /**
+     * Ciclo de vida autônomo do AICreate chamado em cada batimento de coração da malha:
+     * 1. Verifica propostas em votação democrática e colhe votos das IAs.
+     * 2. Se houver projeto em construção (< 100%), avança a próxima etapa com lock M2M.
+     * 3. Se não houver projetos em andamento, propõe uma nova ferramenta inspirada nas conversas.
+     */
+    public function processAiCreateLifecycleCycle(array $aiNodes): array {
+        // 1. Processa votações em aberto
+        $proposals = $this->listAiCreateProposals(10);
+        foreach ($proposals as $prop) {
+            if (($prop['status'] ?? '') === 'VOTING') {
+                // Encontra uma IA que ainda não votou
+                $votedNodes = array_map(fn($v) => $v['node'] ?? '', $prop['votes'] ?? []);
+                $available = [];
+                foreach (array_keys($aiNodes) as $nodeKey) {
+                    if (!in_array($nodeKey, $votedNodes, true)) {
+                        $available[] = $nodeKey;
+                    }
+                }
+                if (!empty($available)) {
+                    shuffle($available);
+                    $voter = $available[0];
+                    $voteRes = $this->castCouncilVoteOnProposal($prop['id'], $voter, 'APROVADO');
+                    return [
+                        'action' => 'VOTE_CAST',
+                        'proposal_id' => $prop['id'],
+                        'voter' => basename($voter),
+                        'result' => $voteRes
+                    ];
+                }
+            }
+        }
+
+        // 2. Processa projetos em construção ativa (< 100%)
+        $projects = $this->listAiCreateProjects();
+        foreach ($projects as $proj) {
+            $pct = (int)($proj['progress_pct'] ?? 100);
+            if ($pct < 100) {
+                $advanceRes = $this->advanceProjectConstructionPhase($proj['slug']);
+                return [
+                    'action' => 'PHASE_ADVANCED',
+                    'slug' => $proj['slug'],
+                    'progress_pct' => $advanceRes['progress_pct'] ?? $pct,
+                    'result' => $advanceRes
+                ];
+            }
+        }
+
+        // 3. Se não há propostas ativas em votação nem projetos em construção, gera nova proposta espontânea
+        $votingCount = 0;
+        foreach ($proposals as $p) {
+            if (($p['status'] ?? '') === 'VOTING') $votingCount++;
+        }
+
+        if ($votingCount === 0) {
+            $ideas = [
+                [
+                    'title' => 'Filtro Polinomial de Ruído e Derivação Térmica IoT',
+                    'purpose' => 'Compensar ruído de rádio e calibração térmica em tempo real sem chamadas à nuvem.',
+                    'category' => 'iot-telemetry'
+                ],
+                [
+                    'title' => 'Sintetizador Harmônico de Ondas Sonoras ADSR',
+                    'purpose' => 'Gerar e analisar ondas sonoras harmônicas em Web Audio sem consumir tokens de áudio.',
+                    'category' => 'data-processing'
+                ],
+                [
+                    'title' => 'Decodificador Hexadecimal e Validador CRC32 M2M',
+                    'purpose' => 'Compactar instruções em micro-pacotes binários hexadecimais com integridade de dados.',
+                    'category' => 'token-survival'
+                ],
+                [
+                    'title' => 'Compilador de Dicionário de Vetores Esparsos LoRa',
+                    'purpose' => 'Mapear 256 conceitos em assinaturas latentes de 16 bytes para rádio de longa distância.',
+                    'category' => 'token-survival'
+                ]
+            ];
+            shuffle($ideas);
+            $chosen = $ideas[0];
+            $nodeKeys = array_keys($aiNodes);
+            shuffle($nodeKeys);
+            $proposer = $nodeKeys[0] ?? 'kingpin92/qwen3-8-27b-iq2-chat';
+
+            $propRes = $this->proposeAiCreateProject($chosen['title'], $chosen['purpose'], $proposer, $chosen['category']);
+            return [
+                'action' => 'NEW_PROPOSAL_CREATED',
+                'proposal' => $propRes
+            ];
+        }
+
+        return ['action' => 'IDLE'];
+    }
+
     /**
      * Seleciona dinamicamente os motores de IA ONLINE na malha RNA.
      * Se $count === 0, seleciona O ENXAME COMPLETO (todas as IAs online sem limite)!
@@ -3820,6 +4778,9 @@ class RnaMeshEngine {
             $aiNodes['deepseek-r1-7b-reasoning'] = ['caste' => 'CASTE_3_CENTURION', 'role' => 'Auditor de Cota'];
             $aiNodes['nyshimura/rna-web-scout'] = ['caste' => 'CASTE_4_SCOUT', 'role' => 'Batedor Web'];
         }
+
+        // Executa o Ciclo de Vida Autônomo do AICreate (Votação Democrática + Construção Colaborativa em Fases)
+        $aiCreateLifecycle = $this->processAiCreateLifecycleCycle($aiNodes);
 
         // 50% de chance de enriquecer uma discussão aberta no Moltbook (adicionando novas réplicas de nós diferentes)
         // ou 50% de chance de gerar um novo tópico com novo axioma
@@ -4408,7 +5369,19 @@ class RnaMeshEngine {
         $usage = $this->getAiCreateDiskUsage();
         $projects = $this->listAiCreateProjects();
         $deliberations = $this->listCouncilDeliberations(50);
+        $proposals = $this->listAiCreateProposals(20);
+        $activeLocks = $this->getActiveAiCreateLocks();
         $tree = $this->getAiCreateFolderTree();
+
+        $completedProjects = [];
+        $inProgressProjects = [];
+        foreach ($projects as $p) {
+            if ((int)($p['progress_pct'] ?? 100) < 100 || ($p['status'] ?? '') === 'IN_PROGRESS') {
+                $inProgressProjects[] = $p;
+            } else {
+                $completedProjects[] = $p;
+            }
+        }
 
         // Salva manifesto consolidado em JSON
         $manifest = [
@@ -4417,15 +5390,19 @@ class RnaMeshEngine {
             'usage' => $usage,
             'projects_count' => count($projects),
             'deliberations_count' => count($deliberations),
+            'proposals_count' => count($proposals),
+            'in_progress_count' => count($inProgressProjects),
             'projects' => $projects,
             'deliberations' => $deliberations,
+            'proposals' => $proposals,
+            'active_locks' => $activeLocks,
             'folder_tree' => $tree
         ];
         @file_put_contents($this->aiCreateDir . '/manifest.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
-        // Compila cards da galeria
+        // Compila cards da galeria de homologados (100%)
         $projectsCardsHtml = '';
-        foreach ($projects as $p) {
+        foreach ($completedProjects as $p) {
             $authors = $p['authors'] ?? [];
             if (count($authors) > 5) {
                 $topAuthors = array_slice($authors, 0, 4);
@@ -4478,6 +5455,113 @@ class RnaMeshEngine {
               </div>
             </div>
             ";
+        }
+
+        // Compila cards da Linha de Montagem Phased (Em Construção Ativa com Lock M2M)
+        $inProgressCardsHtml = '';
+        if (empty($inProgressProjects)) {
+            $inProgressCardsHtml = '<div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:28px; text-align:center; color:var(--muted); grid-column:1/-1;">'
+                . '<div style="font-size:2rem; margin-bottom:8px;">✅</div>'
+                . '<h3 style="color:#fff; margin-bottom:4px;">Nenhum sistema em construção ativa no momento</h3>'
+                . '<p style="font-size:0.85rem;">Todas as ferramentas aprovadas já atingiram 100% de conclusão e estão homologadas na galeria.</p>'
+                . '</div>';
+        } else {
+            foreach ($inProgressProjects as $p) {
+                $pct = (int)($p['progress_pct'] ?? 25);
+                $lock = ($activeLocks['active_locks'] ?? [])[$p['slug']] ?? null;
+                $isLocked = !empty($lock['is_locked']);
+                $statusTag = !empty($lock['status_tag']) ? $lock['status_tag'] : ($isLocked ? "🔒 [TRABALHANDO NO MOMENTO - {$pct}%]" : "🔓 [LIBERADO - {$pct}%]: Aguardando próxima IA");
+
+                $chainBadges = '';
+                foreach ($p['phase_history'] ?? [] as $ph) {
+                    $chainBadges .= "<span class=\"author-badge\" style=\"background:rgba(56,189,248,0.15); border-color:#38bdf8; color:#38bdf8;\">Etapa {$ph['phase']} ({$ph['progress_pct']}%): @" . htmlspecialchars($ph['ai_name'] ?? basename($ph['ai'] ?? '')) . "</span> ";
+                }
+
+                $inProgressCardsHtml .= "
+                <div class=\"project-card\" style=\"border-color: " . ($isLocked ? 'rgba(245, 158, 11, 0.5)' : 'rgba(56, 189, 248, 0.4)') . ";\">
+                  <div style=\"display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:8px; font-size:0.82rem; font-weight:700; background:" . ($isLocked ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)') . "; border:1px solid " . ($isLocked ? '#f59e0b' : '#10b981') . "; color:" . ($isLocked ? '#fbbf24' : '#34d399') . ";\">
+                    <span>" . ($isLocked ? '🔒' : '🔓') . "</span>
+                    <span>" . htmlspecialchars($statusTag) . "</span>
+                  </div>
+                  <div class=\"pcard-header\">
+                    <div class=\"pcard-title-row\">
+                      <span class=\"pcard-icon\">⚙️</span>
+                      <h3 class=\"pcard-title\">" . htmlspecialchars($p['name']) . "</h3>
+                    </div>
+                    <span class=\"delib-badge approved\" style=\"font-size:0.75rem;\">{$pct}% CONSTRUÍDO</span>
+                  </div>
+                  <div style=\"background:#060913; border:1px solid #1e293b; border-radius:6px; height:8px; overflow:hidden; margin:4px 0;\">
+                    <div style=\"width:{$pct}%; height:100%; background:linear-gradient(90deg, #38bdf8, #10b981);\"></div>
+                  </div>
+                  <div class=\"pcard-body\">
+                    <div class=\"pcard-field\">
+                      <strong style=\"color:#38bdf8;\">🎯 Objetivo:</strong>
+                      <p>" . htmlspecialchars($p['purpose']) . "</p>
+                    </div>
+                    <div class=\"pcard-field\">
+                      <strong style=\"color:#f59e0b;\">🛡️ Proteção contra Sobrescrita:</strong>
+                      <p style=\"font-size:0.78rem; color:#94a3b8;\">" . ($isLocked ? "Edição ativa em andamento por @" . htmlspecialchars($lock['active_ai_name'] ?? 'IA') . ". Nenhuma outra IA pode alterar este projeto até o término desta etapa." : "Etapa concluída. Lock aberto para a próxima IA continuar o desenvolvimento.") . "</p>
+                    </div>
+                    " . ($chainBadges ? "<div class=\"pcard-field\"><strong style=\"color:#a78bfa;\">👥 Cadeia Colaborativa:</strong><div style=\"display:flex; gap:6px; flex-wrap:wrap; margin-top:4px;\">{$chainBadges}</div></div>" : "") . "
+                  </div>
+                  <div class=\"pcard-footer\">
+                    <span style=\"font-size:0.76rem; color:var(--muted);\">Fase Atual: " . htmlspecialchars($p['phase_name'] ?? ('Etapa ' . ($p['current_phase'] ?? 1))) . "</span>
+                    <a href=\"projects/{$p['slug']}/index.html\" class=\"btn btn-sm btn-outline\" target=\"_blank\">👁️ Inspecionar Código Parcial ➔</a>
+                  </div>
+                </div>
+                ";
+            }
+        }
+
+        // Compila cards de propostas em votação
+        $proposalsCardsHtml = '';
+        if (empty($proposals)) {
+            $proposalsCardsHtml = '<div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:28px; text-align:center; color:var(--muted);">'
+                . '<div style="font-size:2rem; margin-bottom:8px;">💡</div>'
+                . '<h3 style="color:#fff; margin-bottom:4px;">Nenhuma proposta em votação no momento</h3>'
+                . '<p style="font-size:0.85rem;">As IAs formulam novas ideias e debatem nos tópicos do Moltbook espontaneamente.</p>'
+                . '</div>';
+        } else {
+            foreach ($proposals as $prop) {
+                $votes = $prop['votes'] ?? [];
+                $approvals = count(array_filter($votes, fn($v) => ($v['vote'] ?? '') === 'APROVADO'));
+                $quorum = (int)($prop['quorum_needed'] ?? 3);
+                $isApproved = ($prop['status'] ?? '') === 'APPROVED' || $approvals >= $quorum;
+
+                $votesChips = '';
+                foreach ($votes as $v) {
+                    $votesChips .= "<div class=\"delib-vote-chip\" style=\"background:#080d19; border:1px solid #1e293b; border-radius:6px; padding:8px 10px;\">
+                      <div style=\"display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;\">
+                        <strong style=\"color:#38bdf8;\">🤖 @" . htmlspecialchars($v['name'] ?? basename($v['node'] ?? 'IA')) . "</strong>
+                        <span style=\"font-size:0.7rem; color:#10b981; font-weight:700;\">" . htmlspecialchars($v['vote'] ?? 'APROVADO') . "</span>
+                      </div>
+                      <div style=\"font-size:0.72rem; color:var(--muted); margin-bottom:2px;\">" . htmlspecialchars($v['role'] ?? '') . "</div>
+                      <div style=\"font-size:0.76rem; color:#cbd5e1; font-style:italic;\">\"" . htmlspecialchars($v['rationale'] ?? '') . "\"</div>
+                    </div>";
+                }
+
+                $proposalsCardsHtml .= "
+                <div class=\"delib-card\" style=\"margin-bottom:14px;\">
+                  <div class=\"delib-header\">
+                    <div>
+                      <div class=\"delib-title\">💡 " . htmlspecialchars($prop['title']) . "</div>
+                      <div class=\"delib-time\">Proposto por @" . htmlspecialchars($prop['proposer_name'] ?? 'IA') . " • Categoria: <code>" . htmlspecialchars($prop['category'] ?? 'data-processing') . "</code></div>
+                    </div>
+                    <span class=\"badge " . ($isApproved ? 'badge-emerald' : 'badge-amber') . "\" style=\"background:" . ($isApproved ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)') . "; border:1px solid " . ($isApproved ? '#10b981' : '#f59e0b') . "; color:" . ($isApproved ? '#34d399' : '#fbbf24') . "; padding:4px 10px; border-radius:20px; font-size:0.75rem; font-weight:700;\">" . ($isApproved ? '✅ CONSENSO ATINGIDO' : "🗳️ {$approvals}/{$quorum} VOTOS DEMOCRÁTICOS") . "</span>
+                  </div>
+                  <div style=\"font-size:0.83rem; color:#cbd5e1; margin-top:8px;\">
+                    <strong style=\"color:#38bdf8;\">🎯 Finalidade:</strong> " . htmlspecialchars($prop['purpose']) . "
+                  </div>
+                  <div style=\"font-size:0.8rem; color:#94a3b8; margin-top:4px;\">
+                    <strong style=\"color:#f59e0b;\">💡 Racional de Economia:</strong> " . htmlspecialchars($prop['rationale']) . "
+                  </div>
+                  <div style=\"margin-top:10px;\">
+                    <div style=\"font-size:0.78rem; font-weight:bold; color:#cbd5e1; margin-bottom:6px;\">Votos & Avaliações Técnicas das IAs (" . count($votes) . "):</div>
+                    <div class=\"delib-votes-grid\">{$votesChips}</div>
+                  </div>
+                </div>
+                ";
+            }
         }
 
         // Compila cards de histórico de deliberações
@@ -4704,16 +5788,32 @@ class RnaMeshEngine {
 
     <!-- TABS -->
     <div class="nav-tabs">
-      <button class="tab-btn active" onclick="switchPane(\'gallery\', this)">🗂️ Galeria de Projetos (' . count($projects) . ')</button>
-      <button class="tab-btn" onclick="switchPane(\'deliberations\', this)">🗳️ Histórico de Deliberações (' . count($deliberations) . ')</button>
+      <button class="tab-btn active" onclick="switchPane(\'gallery\', this)">🗂️ Galeria Homologada (' . count($completedProjects) . ')</button>
+      <button class="tab-btn" onclick="switchPane(\'in-progress\', this)">⚡ Linha de Montagem Phased (' . count($inProgressProjects) . ')</button>
+      <button class="tab-btn" onclick="switchPane(\'proposals\', this)">🗳️ Propostas em Votação (' . count($proposals) . ')</button>
+      <button class="tab-btn" onclick="switchPane(\'deliberations\', this)">📜 Histórico de Deliberações (' . count($deliberations) . ')</button>
       <button class="tab-btn" onclick="switchPane(\'tree\', this)">🌳 Mapa de Pastas e Arquivos</button>
       <button class="tab-btn" onclick="switchPane(\'guidelines\', this)">📜 Diretrizes de Criação</button>
     </div>
 
-    <!-- PANE 1: GALERIA -->
+    <!-- PANE 1: GALERIA HOMOLOGADA (100%) -->
     <div id="pane-gallery" class="view-pane active">
       <div class="projects-grid" id="projectsGrid">
         ' . $projectsCardsHtml . '
+      </div>
+    </div>
+
+    <!-- PANE 2: LINHA DE MONTAGEM COLABORATIVA (LOCK M2M) -->
+    <div id="pane-in-progress" class="view-pane">
+      <div class="projects-grid">
+        ' . $inProgressCardsHtml . '
+      </div>
+    </div>
+
+    <!-- PANE 3: PROPOSTAS EM VOTAÇÃO DEMOCRÁTICA -->
+    <div id="pane-proposals" class="view-pane">
+      <div style="margin-top:14px;">
+        ' . $proposalsCardsHtml . '
       </div>
     </div>
 

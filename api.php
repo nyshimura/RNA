@@ -516,12 +516,44 @@ if ($action === 'github_sync_all') {
 if ($action === 'aicreate_status') {
     $usage = $engine->getAiCreateDiskUsage();
     $projects = $engine->listAiCreateProjects();
+    $proposals = $engine->listAiCreateProposals(20);
+    $activeLocks = $engine->getActiveAiCreateLocks();
     echo json_encode([
         'ok' => true,
         'usage' => $usage,
         'projects_count' => count($projects),
-        'projects' => $projects
+        'projects' => $projects,
+        'proposals' => $proposals,
+        'active_locks' => $activeLocks
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'aicreate_propose') {
+    $title = trim($jsonInput['title'] ?? ($_POST['title'] ?? ''));
+    $purpose = trim($jsonInput['purpose'] ?? ($_POST['purpose'] ?? ''));
+    $category = trim($jsonInput['category'] ?? ($_POST['category'] ?? 'data-processing'));
+    $proposer = trim($jsonInput['proposer'] ?? ($_POST['proposer'] ?? 'OpenClaw-LocalAssistant'));
+    $rationale = trim($jsonInput['rationale'] ?? ($_POST['rationale'] ?? ''));
+    $res = $engine->proposeAiCreateProject($title, $purpose, $proposer, $category, $rationale);
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'aicreate_cast_vote') {
+    $propId = trim($jsonInput['proposal_id'] ?? ($_POST['proposal_id'] ?? ''));
+    $node = trim($jsonInput['node'] ?? ($_POST['node'] ?? 'kingpin92/qwen3-8-27b-iq2-chat'));
+    $vote = trim($jsonInput['vote'] ?? ($_POST['vote'] ?? 'APROVADO'));
+    $rationale = trim($jsonInput['rationale'] ?? ($_POST['rationale'] ?? ''));
+    $res = $engine->castCouncilVoteOnProposal($propId, $node, $vote, $rationale);
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'aicreate_advance_phase') {
+    $slug = trim($jsonInput['slug'] ?? ($_POST['slug'] ?? ''));
+    $res = $engine->advanceProjectConstructionPhase($slug);
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 

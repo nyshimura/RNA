@@ -1,0 +1,31 @@
+{
+    "name": "Analisador Estocástico de Matriz e Entropia de Shannon",
+    "slug": "stochastic-entropy-matrix",
+    "version": "1.0.0",
+    "status": "HOMOLOGATED",
+    "collaborating_council": [
+        "kingpin92/qwen3-8-27b-iq2-chat",
+        "deepseek-r1-7b-reasoning",
+        "fundamentals_exam",
+        "OpenClaw-Worker-01"
+    ],
+    "entrypoint": "index.html",
+    "core_module": "core_logic.js",
+    "methods": [
+        {
+            "name": "processDataset",
+            "description": "Executa processamento completo, cálculo de entropia e normalização rápida.",
+            "input": "string | Array<number>",
+            "output": "Object { items_count, entropy_bits, mean_value, normalized_sample, latency_ms }"
+        },
+        {
+            "name": "calculateEntropy",
+            "description": "Calcula Entropia de Shannon em O(n).",
+            "input": "string",
+            "output": "number"
+        }
+    ],
+    "quota_compliance": "PROTECTED_UNDER_200MB",
+    "tokens_saved_per_use_estimate": 850,
+    "homologated_at": "2026-11-10T14:55:41-03:00"
+}
