@@ -608,11 +608,21 @@
         : "Convocando Conselho de " + quorumSize + " IAs Online...";
 
       try {
-        const res = await fetch("../api.php?action=aicreate_stream_deliberation", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ suggestion: val, quorum_size: quorumSize })
-        });
+        let res;
+        try {
+          res = await fetch("../api.php?action=aicreate_stream_deliberation", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept": "text/event-stream" },
+            body: JSON.stringify({ suggestion: val, quorum_size: quorumSize })
+          });
+        } catch (postErr) {
+          console.warn("POST stream falhou, tentando fallback GET:", postErr);
+          const getUrl = `../api.php?action=aicreate_stream_deliberation&suggestion=${encodeURIComponent(val)}&quorum_size=${quorumSize}&t=${Date.now()}`;
+          res = await fetch(getUrl, {
+            method: "GET",
+            headers: { "Accept": "text/event-stream" }
+          });
+        }
 
         if (!res.ok) {
           throw new Error("Falha no servidor (HTTP " + res.status + ")");

@@ -175,6 +175,244 @@ class RnaMeshEngine {
     }
 
     /**
+     * Retorna a configuração de sincronização com o GitHub
+     */
+    public function getGitHubConfig(): array {
+        $raw = [];
+        if (file_exists($this->secretFile)) {
+            $raw = json_decode((string)@file_get_contents($this->secretFile), true) ?: [];
+        }
+        $token = trim($raw['github_token'] ?? '');
+        $repo = trim($raw['github_repo'] ?? 'nyshimura/rna-conversations');
+        $branch = trim($raw['github_branch'] ?? 'main');
+        $autoSync = (bool)($raw['github_auto_sync'] ?? true);
+        $lastSync = $raw['github_last_sync'] ?? null;
+        $totalSynced = (int)($raw['github_total_synced'] ?? 0);
+
+        return [
+            'configured' => ($token !== '' && $repo !== ''),
+            'repo' => $repo,
+            'repo_url' => "https://github.com/{$repo}",
+            'branch' => $branch,
+            'token_masked' => ($token !== '') ? substr($token, 0, 7) . '...' . substr($token, -4) : '',
+            'auto_sync' => $autoSync,
+            'last_sync' => $lastSync,
+            'total_synced' => $totalSynced
+        ];
+    }
+
+    /**
+     * Salva a configuração de sincronização com o GitHub
+     */
+    public function saveGitHubConfig(string $token, string $repo = 'nyshimura/rna-conversations', string $branch = 'main', bool $autoSync = true): array {
+        $raw = [];
+        if (file_exists($this->secretFile)) {
+            $raw = json_decode((string)@file_get_contents($this->secretFile), true) ?: [];
+        }
+        if ($token !== '') {
+            $raw['github_token'] = trim($token);
+        }
+        $raw['github_repo'] = trim($repo ?: 'nyshimura/rna-conversations');
+        $raw['github_branch'] = trim($branch ?: 'main');
+        $raw['github_auto_sync'] = $autoSync;
+        $raw['updated_at'] = date('c');
+
+        @file_put_contents($this->secretFile, json_encode($raw, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        return $this->getGitHubConfig();
+    }
+
+    /**
+     * Envia qualquer arquivo para o repositório do GitHub via API REST v3
+     */
+    public function pushFileToGitHub(string $relativePath, string $content, string $commitMessage): array {
+        $raw = [];
+        if (file_exists($this->secretFile)) {
+            $raw = json_decode((string)@file_get_contents($this->secretFile), true) ?: [];
+        }
+        $token = trim($raw['github_token'] ?? '');
+        $repo = trim($raw['github_repo'] ?? 'nyshimura/rna-conversations');
+        $branch = trim($raw['github_branch'] ?? 'main');
+
+        if ($token === '' || $repo === '') {
+            return ['ok' => false, 'error' => 'GitHub token ou repositório não configurado'];
+        }
+
+        $cleanPath = ltrim(str_replace('\\', '/', $relativePath), '/');
+        $url = "https://api.github.com/repos/{$repo}/contents/{$cleanPath}";
+
+        $headers = [
+            'User-Agent: RNA-Bio-Mesh-Sync',
+            'Authorization: Bearer ' . $token,
+            'Accept: application/vnd.github+json',
+            'X-GitHub-Api-Version: 2022-11-28'
+        ];
+
+        // 1. Verifica se arquivo já existe para recuperar sha
+        $ch = curl_init($url . '?ref=' . urlencode($branch));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $getResp = curl_exec($ch);
+        $getCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        $sha = null;
+        if ($getCode === 200) {
+            $existing = json_decode((string)$getResp, true);
+            $sha = $existing['sha'] ?? null;
+        }
+
+        // 2. Put file contents
+        $payload = [
+            'message' => $commitMessage,
+            'content' => base64_encode($content),
+            'branch' => $branch
+        ];
+        if ($sha) {
+            $payload['sha'] = $sha;
+        }
+
+        $putHeaders = array_merge($headers, ['Content-Type: application/json']);
+        $ch2 = curl_init($url);
+        curl_setopt($ch2, CURLOPT_CUSTOMREQUEST, 'PUT');
+        curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch2, CURLOPT_HTTPHEADER, $putHeaders);
+        curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
+        $putResp = curl_exec($ch2);
+        $putCode = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
+        curl_close($ch2);
+
+        $putData = json_decode((string)$putResp, true);
+        if ($putCode === 200 || $putCode === 201) {
+            $raw['github_last_sync'] = date('c');
+            $raw['github_total_synced'] = (int)($raw['github_total_synced'] ?? 0) + 1;
+            @file_put_contents($this->secretFile, json_encode($raw, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+            return [
+                'ok' => true,
+                'path' => $cleanPath,
+                'html_url' => $putData['content']['html_url'] ?? "https://github.com/{$repo}/blob/{$branch}/{$cleanPath}",
+                'commit_sha' => $putData['commit']['sha'] ?? null,
+                'sha' => $putData['content']['sha'] ?? null
+            ];
+        }
+
+        return [
+            'ok' => false,
+            'error' => $putData['message'] ?? "HTTP {$putCode}",
+            'http_code' => $putCode
+        ];
+    }
+
+    /**
+     * Sincroniza uma conversa específica formatada para o repositório do GitHub
+     */
+    public function syncConversationToGitHub(string $filePathOrId): array {
+        $fullPath = null;
+        if (file_exists($filePathOrId)) {
+            $fullPath = $filePathOrId;
+        } elseif (file_exists($this->baseDir . '/' . $filePathOrId)) {
+            $fullPath = $this->baseDir . '/' . $filePathOrId;
+        } else {
+            $items = $this->buildMailboxIndex();
+            foreach ($items as $m) {
+                if (($m['id'] ?? '') === $filePathOrId && !empty($m['file_path'])) {
+                    $fullPath = $this->baseDir . '/' . $m['file_path'];
+                    break;
+                }
+            }
+        }
+
+        if (!$fullPath || !file_exists($fullPath)) {
+            return ['ok' => false, 'error' => 'Arquivo de conversa não encontrado: ' . $filePathOrId];
+        }
+
+        $raw = (string)@file_get_contents($fullPath);
+        $meta = [];
+        $body = $raw;
+        if (strpos($raw, "---\n") === 0 || strpos($raw, "---\r\n") === 0) {
+            $parts = preg_split('/^---\r?\n/m', $raw, 3);
+            if (count($parts) >= 3) {
+                foreach (preg_split('/\r?\n/', $parts[1]) as $line) {
+                    if (strpos($line, ':') !== false) {
+                        [$k, $v] = explode(':', $line, 2);
+                        $meta[trim($k)] = trim($v);
+                    }
+                }
+                $body = trim($parts[2]);
+            }
+        }
+
+        $subject = $meta['subject'] ?? basename($fullPath, '.md');
+        $from = $meta['from_node'] ?? 'Nó RNA';
+        $to = $meta['to_node'] ?? 'Conselho';
+        $dateIso = $meta['ts'] ?? date('c', (int)@filemtime($fullPath));
+        $year = date('Y', strtotime($dateIso));
+        $month = date('m', strtotime($dateIso));
+        $baseName = basename($fullPath, '.md');
+        $slug = preg_replace('/[^a-zA-Z0-9_\-]+/', '_', strtolower(substr($baseName, 0, 48)));
+
+        $githubPath = "conversations/{$year}/{$month}/{$slug}.md";
+
+        $cleanMd = "---\n"
+            . "title: \"" . addslashes($subject) . "\"\n"
+            . "from: \"" . addslashes($from) . "\"\n"
+            . "to: \"" . addslashes($to) . "\"\n"
+            . "date: \"{$dateIso}\"\n"
+            . "tokens_saved: " . ($meta['tok_saved'] ?? 0) . "\n"
+            . "protocol: \"RNA-Bio-Mesh-v3.2\"\n"
+            . "---\n\n"
+            . $body . "\n";
+
+        $sFrom = basename($from);
+        $sTo = basename($to);
+        $commitMsg = "chat(m2m): [{$sFrom} ➔ {$sTo}] " . substr($subject, 0, 70);
+        return $this->pushFileToGitHub($githubPath, $cleanMd, $commitMsg);
+    }
+
+    /**
+     * Sincroniza em lote as últimas conversas e a memória coletiva para o GitHub
+     */
+    public function syncAllConversationsToGitHub(int $limit = 12): array {
+        $items = $this->buildMailboxIndex();
+        $synced = [];
+        $errors = [];
+
+        foreach (array_slice($items, 0, $limit) as $item) {
+            if (empty($item['file_path'])) continue;
+            $res = $this->syncConversationToGitHub($item['file_path']);
+            if ($res['ok'] ?? false) {
+                $synced[] = [
+                    'id' => $item['id'],
+                    'subject' => $item['subject'],
+                    'github_url' => $res['html_url'],
+                    'path' => $res['path']
+                ];
+            } else {
+                $errors[] = [
+                    'id' => $item['id'],
+                    'error' => $res['error'] ?? 'Falha desconhecida'
+                ];
+            }
+        }
+
+        // Sincroniza também a memória coletiva de axiomas se existir
+        $memFile = $this->stateDir . '/domino_collective_memory.md';
+        if (file_exists($memFile)) {
+            $memContent = (string)file_get_contents($memFile);
+            $this->pushFileToGitHub('domino_collective_memory.md', $memContent, 'docs(memory): sincronizar memória coletiva de axiomas');
+        }
+
+        return [
+            'ok' => true,
+            'total_synced' => count($synced),
+            'synced' => $synced,
+            'errors' => $errors
+        ];
+    }
+
+    /**
      * Normaliza nomes de remetente/destinatário para evitar duplicatas em listas e filtros
      */
     public function normalizeSenderName(?string $raw): string {
@@ -2344,6 +2582,30 @@ class RnaMeshEngine {
             }
         }
 
+        // Garante que o conselho de líderes tenha pelo menos 5 motores
+        $defaultFallbacks = [
+            ['id' => 'reasoning-course/fundamentals_exam', 'name' => 'fundamentals_exam', 'role' => '👑 Arquiteto Líder & Raciocínio Soberano', 'icon' => '👑'],
+            ['id' => 'nakaassoumatine/einstein-chatbot', 'name' => 'einstein-chatbot', 'role' => '⚔️ Engenheiro Chefe de Algoritmos & Síntese', 'icon' => '⚔️'],
+            ['id' => 'Qwen/Qwen-Qwen3-Coder-480B-A35B-Instruct', 'name' => 'Qwen-Qwen3-Coder-480B-A35B-Instruct', 'role' => '💻 Coder Master & Interface Humana', 'icon' => '💻'],
+            ['id' => 'deepseek-r1-7b-reasoning', 'name' => 'deepseek-r1-7b-reasoning', 'role' => '🛡️ Auditor Geral de Cota & Sobrevivência', 'icon' => '🛡️'],
+            ['id' => 'nyshimura/rna-web-scout', 'name' => 'rna-web-scout', 'role' => '🦅 Batedor de Redundância & Assistente Local', 'icon' => '🦅']
+        ];
+        foreach ($defaultFallbacks as $df) {
+            if (count($council) >= 5) break;
+            if (!in_array($df['id'], array_column($council, 'id'), true)) {
+                $council[] = [
+                    'id' => $df['id'],
+                    'name' => $df['name'],
+                    'role' => $df['role'],
+                    'icon' => $df['icon'],
+                    'is_lead' => true,
+                    'caste' => 'CASTE_3_CENTURION',
+                    'free_tokens' => 1000,
+                    'status' => 'ONLINE'
+                ];
+            }
+        }
+
         return $council;
     }
 
@@ -2670,6 +2932,18 @@ class RnaMeshEngine {
         // Recompila a caixa de correio para expor o novo e-mail imediatamente
         $this->buildMailboxIndex();
 
+        // Auto-sincronização com o repositório GitHub de conversas
+        $ghSyncResult = null;
+        $ghConfig = $this->getGitHubConfig();
+        if ($ghConfig['configured'] && $ghConfig['auto_sync']) {
+            $ghSyncResult = @$this->syncConversationToGitHub($filePath);
+            $memFile = $this->stateDir . '/domino_collective_memory.md';
+            if (file_exists($memFile)) {
+                $memContent = (string)file_get_contents($memFile);
+                @$this->pushFileToGitHub('domino_collective_memory.md', $memContent, "docs(memory): sync [{$dialogue['axiom_id']}] {$dialogue['topic']}");
+            }
+        }
+
         return [
             'ok' => true,
             'domino_cycle' => $cycleCount,
@@ -2680,6 +2954,8 @@ class RnaMeshEngine {
             'tokens_saved' => $tokensSaved,
             'survival_boost_min' => $survivalBoost,
             'file' => $filePath,
+            'github_synced' => !empty($ghSyncResult['ok']),
+            'github_url' => $ghSyncResult['html_url'] ?? null,
             'last_exchange' => $dominoState['last_exchange']
         ];
     }

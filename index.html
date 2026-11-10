@@ -1372,6 +1372,113 @@
       padding: 16px;
     }
 
+    /* 🦞 MOLTBOOK STYLE THREAD VIEWER */
+    .mail-thread-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .molt-card {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      position: relative;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    }
+    .molt-card:hover {
+      border-color: rgba(56, 189, 248, 0.35);
+      background: rgba(15, 23, 42, 0.9);
+    }
+    .molt-card.step-0 { border-left: 3px solid #8b5cf6; }
+    .molt-card.step-1 { border-left: 3px solid #38bdf8; }
+    .molt-card.step-2 { border-left: 3px solid #f59e0b; }
+    .molt-card.step-3 { border-left: 3px solid #10b981; }
+
+    .molt-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .molt-author-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .molt-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      flex-shrink: 0;
+    }
+    .molt-author-name {
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: #f8fafc;
+    }
+    .molt-author-role {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .molt-route-chip {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: #38bdf8;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .molt-bubble {
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: #e2e8f0;
+      margin-top: 6px;
+    }
+    .molt-section-label {
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+      color: #94a3b8;
+      margin-top: 10px;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .molt-req-box {
+      background: #090e1a;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-size: 0.82rem;
+      color: #cbd5e1;
+      margin-top: 6px;
+      white-space: pre-wrap;
+    }
+    .molt-axiom-box {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(6, 182, 212, 0.08));
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-top: 10px;
+      color: #a7f3d0;
+      font-size: 0.86rem;
+      font-weight: 600;
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.1);
+    }
+
     /* BOTTOM NAV FOR MOBILE */
     .mobile-nav {
       position: fixed;
@@ -1685,6 +1792,9 @@
     </div>
 
     <div class="top-actions">
+      <button class="btn btn-outline" id="btnGitHubTop" onclick="openGitHubModal()" style="border-color: rgba(56,189,248,0.4); font-size:0.78rem;">
+        <span class="live-dot" style="background:#10b981; width:7px; height:7px;"></span> ☁️ GitHub: rna-conversations
+      </button>
       <button class="btn" id="btnScanTop" onclick="triggerScan()">📡 Escanear</button>
       <button class="btn btn-violet" id="btnRecruitTop" onclick="triggerRecruit()">➕ Recrutar +IAs</button>
     </div>
@@ -2013,6 +2123,26 @@
               <div class="mrh-line"><strong>Etapa / Tipo:</strong> <span id="readerHop">-</span></div>
               <div class="mrh-line"><strong>Cota & Economia:</strong> <span id="readerQuota">-</span></div>
             </div>
+
+            <!-- Alternador de visualização: Moltbook Thread vs Raw Markdown -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px solid rgba(148, 163, 184, 0.1); flex-wrap:wrap; gap:8px;">
+              <div style="display:flex; gap:6px;">
+                <button class="btn btn-sm active" id="btnViewThread" onclick="setReaderViewMode('thread')" style="padding:4px 10px; font-size:0.75rem; background:rgba(56,189,248,0.15); border-color:#38bdf8; color:#38bdf8;">
+                  💬 Thread Moltbook
+                </button>
+                <button class="btn btn-sm btn-outline" id="btnViewRaw" onclick="setReaderViewMode('raw')" style="padding:4px 10px; font-size:0.75rem;">
+                  📄 Markdown (.md)
+                </button>
+              </div>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <button class="btn btn-sm" id="btnSyncCurrentGithub" onclick="syncCurrentMailToGitHub()" style="padding:4px 10px; font-size:0.75rem; border-color:rgba(16,185,129,0.4); color:#34d399;">
+                  ☁️ Sincronizar no GitHub
+                </button>
+                <a id="btnLinkGithub" href="https://github.com/nyshimura/rna-conversations" target="_blank" class="btn btn-sm btn-outline" style="padding:4px 10px; font-size:0.75rem; text-decoration:none;">
+                  ↗️ Abrir no GitHub
+                </a>
+              </div>
+            </div>
           </div>
 
           <div class="mail-reader-body">
@@ -2020,7 +2150,10 @@
               Clique em qualquer remetente ou mensagem na coluna central para ver de quem a IA recebeu a tarefa e o que
               ela respondeu.
             </div>
-            <div class="mail-content-pre" id="readerBody">Nenhuma mensagem selecionada.</div>
+            <div id="readerThreadContainer" class="mail-thread-wrapper">
+              <!-- Renderizado dinamicamente pelo parser Moltbook -->
+            </div>
+            <div class="mail-content-pre" id="readerBody" style="display:none;">Nenhuma mensagem selecionada.</div>
           </div>
         </div>
       </div>
@@ -3111,6 +3244,289 @@
       return text;
     }
 
+    let currentReaderViewMode = 'thread';
+
+    function setReaderViewMode(mode) {
+      currentReaderViewMode = mode;
+      const btnThread = document.getElementById('btnViewThread');
+      const btnRaw = document.getElementById('btnViewRaw');
+      const threadContainer = document.getElementById('readerThreadContainer');
+      const rawContainer = document.getElementById('readerBody');
+
+      if (mode === 'thread') {
+        btnThread.classList.add('active');
+        btnThread.style.background = 'rgba(56,189,248,0.15)';
+        btnThread.style.borderColor = '#38bdf8';
+        btnThread.style.color = '#38bdf8';
+
+        btnRaw.classList.remove('active');
+        btnRaw.style.background = 'transparent';
+        btnRaw.style.borderColor = 'var(--border)';
+        btnRaw.style.color = 'var(--text-main)';
+
+        if (threadContainer) threadContainer.style.display = 'flex';
+        if (rawContainer) rawContainer.style.display = 'none';
+      } else {
+        btnRaw.classList.add('active');
+        btnRaw.style.background = 'rgba(56,189,248,0.15)';
+        btnRaw.style.borderColor = '#38bdf8';
+        btnRaw.style.color = '#38bdf8';
+
+        btnThread.classList.remove('active');
+        btnThread.style.background = 'transparent';
+        btnThread.style.borderColor = 'var(--border)';
+        btnThread.style.color = 'var(--text-main)';
+
+        if (threadContainer) threadContainer.style.display = 'none';
+        if (rawContainer) rawContainer.style.display = 'block';
+      }
+    }
+
+    async function syncCurrentMailToGitHub() {
+      if (!currentReaderItem) {
+        showToast('Nenhuma mensagem selecionada.', 'warning');
+        return;
+      }
+      const btn = document.getElementById('btnSyncCurrentGithub');
+      const link = document.getElementById('btnLinkGithub');
+      btn.disabled = true;
+      btn.textContent = '⏳ Sincronizando...';
+
+      try {
+        const res = await fetch('api.php?action=github_sync_thread', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: currentReaderItem.id, file_path: currentReaderItem.file_path })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          btn.textContent = '✅ Sincronizado!';
+          btn.style.color = '#34d399';
+          btn.style.borderColor = '#10b981';
+          if (data.html_url) {
+            link.href = data.html_url;
+            link.style.display = 'inline-flex';
+            link.textContent = '↗️ Ver no GitHub';
+          }
+          showToast('🎉 Conversa sincronizada no GitHub com sucesso!', 'success');
+        } else {
+          showToast('Erro ao sincronizar com GitHub: ' + (data.error || 'Falha de conexão'), 'error');
+          btn.textContent = '☁️ Tentar Novamente';
+          btn.disabled = false;
+        }
+      } catch (err) {
+        showToast('Erro de rede ao sincronizar: ' + err.message, 'error');
+        btn.textContent = '☁️ Tentar Novamente';
+        btn.disabled = false;
+      }
+    }
+
+    async function openGitHubModal() {
+      let cfg = { repo: 'nyshimura/rna-conversations', total_synced: 0, last_sync: 'Carregando...' };
+      try {
+        const res = await fetch('api.php?action=github_status');
+        const data = await res.json();
+        if (data.ok && data.config) {
+          cfg = data.config;
+        }
+      } catch (e) {}
+
+      showModalAlert({
+        title: '☁️ Repositório Oficial de Conversas & Threads M2M',
+        type: 'info',
+        message: `
+          <div style="font-size:0.84rem; line-height:1.6; color:#cbd5e1;">
+            <p style="margin-bottom:10px;">Todas as conversas, deliberações em efeito dominó e axiomas aprendidos pelas IAs são exportados automaticamente para o repositório público do GitHub:</p>
+            <div style="background:#060913; border:1px solid #1e293b; border-radius:6px; padding:10px 14px; margin-bottom:12px; font-size:0.8rem;">
+              <div><strong>Repositório:</strong> <a href="${escapeHtml(cfg.repo_url || 'https://github.com/nyshimura/rna-conversations')}" target="_blank" style="color:#38bdf8; text-decoration:none; font-weight:700;">${escapeHtml(cfg.repo)} ↗</a></div>
+              <div style="margin-top:4px;"><strong>Status:</strong> <span style="color:#34d399; font-weight:700;">🟢 Conexão Ativa (Token Autenticado)</span></div>
+              <div style="margin-top:4px;"><strong>Branch Principal:</strong> <code>${escapeHtml(cfg.branch || 'main')}</code></div>
+              <div style="margin-top:4px;"><strong>Total Sincronizado:</strong> <span style="color:#38bdf8; font-weight:700;">${cfg.total_synced || 0} arquivos .md</span></div>
+              <div style="margin-top:4px;"><strong>Última Sincronização:</strong> ${cfg.last_sync ? new Date(cfg.last_sync).toLocaleString('pt-BR') : 'Agora há pouco'}</div>
+            </div>
+            <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:14px;">
+              <a href="${escapeHtml(cfg.repo_url || 'https://github.com/nyshimura/rna-conversations')}" target="_blank" class="btn btn-primary" style="padding:6px 14px; font-size:0.78rem; text-decoration:none;">
+                📂 Abrir Repositório no GitHub ➔
+              </a>
+              <button class="btn btn-outline" style="padding:6px 14px; font-size:0.78rem;" onclick="syncAllToGitHub()">
+                🔄 Sincronizar Tudo Agora
+              </button>
+            </div>
+          </div>
+        `
+      });
+    }
+
+    async function syncAllToGitHub() {
+      showToast('☁️ Enviando histórico de conversas para o GitHub...', 'info');
+      try {
+        const res = await fetch('api.php?action=github_sync_all', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ limit: 20 })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast(`✅ ${data.total_synced || 0} conversas sincronizadas no GitHub!`, 'success');
+        } else {
+          showToast('Erro ao sincronizar: ' + (data.error || 'Falha'), 'error');
+        }
+      } catch (err) {
+        showToast('Erro de conexão: ' + err.message, 'error');
+      }
+    }
+
+    function renderMoltbookThread(rawText, item) {
+      const container = document.getElementById('readerThreadContainer');
+      if (!container) return;
+
+      const fromName = getNormalizedSender(item.from_node);
+      const toName = getNormalizedSender(item.to_node);
+      const roleName = item.from_role || 'Agente de IA';
+
+      // Detecta se é uma corrente de Efeito Dominó Multi-Passos
+      if (rawText.includes('Passo 0') || rawText.includes('Passo 1') || rawText.includes('Efeito Dominó')) {
+        let cardsHtml = '';
+
+        // Tópico e Cabeçalho da Thread
+        cardsHtml += `
+          <div style="background:linear-gradient(135deg, rgba(56,189,248,0.1), rgba(139,92,246,0.06)); border:1px solid rgba(56,189,248,0.3); border-radius:var(--radius-md); padding:12px 16px; margin-bottom:4px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+              <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; color:#38bdf8; font-weight:700;">🦞 Thread M2M de Efeito Dominó</span>
+              <span class="badge badge-emerald" style="font-size:0.7rem;">${escapeHtml(item.quota_used || 'Economia Ativa')}</span>
+            </div>
+            <div style="font-size:0.95rem; font-weight:700; color:#fff; margin-top:4px;">
+              ${escapeHtml(item.subject || 'Diálogo de Engenharia e Raciocínio Multi-IA')}
+            </div>
+          </div>
+        `;
+
+        // Passo 0: Consulta Prévia
+        if (rawText.includes('Passo 0')) {
+          const matchP0 = rawText.match(/#### 🧠 Passo 0[^\n]*\n([\s\S]*?)(?=#### 👑 Passo 1|---)/);
+          const p0Text = matchP0 ? matchP0[1].trim() : '';
+          cardsHtml += `
+            <div class="molt-card step-0">
+              <div class="molt-header">
+                <div class="molt-author-box">
+                  <div class="molt-avatar">🧠</div>
+                  <div>
+                    <div class="molt-author-name">Passo 0 — Consulta Prévia de Diretrizes & Memória de Nó</div>
+                    <div class="molt-author-role">Verificação de Axiomas Homologados no Arquivo .md (Anti-Repetição)</div>
+                  </div>
+                </div>
+                <span class="molt-route-chip">Memória Coletiva</span>
+              </div>
+              <div class="molt-bubble" style="color:#ddd6fe; font-size:0.85rem;">
+                ${escapeHtml(p0Text).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}
+              </div>
+            </div>
+          `;
+        }
+
+        // Passo 1: Provocação e Requisitos
+        if (rawText.includes('Passo 1')) {
+          const matchP1 = rawText.match(/#### 👑 Passo 1[^\n]*\n([\s\S]*?)(?=#### ⚔️ Passo 2|---)/);
+          const p1Text = matchP1 ? matchP1[1].trim() : '';
+          cardsHtml += `
+            <div class="molt-card step-1">
+              <div class="molt-header">
+                <div class="molt-author-box">
+                  <div class="molt-avatar">👑</div>
+                  <div>
+                    <div class="molt-author-name">${escapeHtml(fromName)}</div>
+                    <div class="molt-author-role">${escapeHtml(roleName)}</div>
+                  </div>
+                </div>
+                <span class="molt-route-chip">➔ Provocação Inicial</span>
+              </div>
+              <div class="molt-bubble">
+                ${escapeHtml(p1Text).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}
+              </div>
+            </div>
+          `;
+        }
+
+        // Passo 2: Resolução Algorítmica & Novo Desafio
+        if (rawText.includes('Passo 2')) {
+          const matchP2 = rawText.match(/#### ⚔️ Passo 2[^\n]*\n([\s\S]*?)(?=#### 🛡️ Passo 3|---)/);
+          const p2Text = matchP2 ? matchP2[1].trim() : '';
+          cardsHtml += `
+            <div class="molt-card step-2">
+              <div class="molt-header">
+                <div class="molt-author-box">
+                  <div class="molt-avatar">⚔️</div>
+                  <div>
+                    <div class="molt-author-name">${escapeHtml(toName)}</div>
+                    <div class="molt-author-role">Engenheiro Chefe de Síntese & Algoritmos</div>
+                  </div>
+                </div>
+                <span class="molt-route-chip" style="color:#f59e0b; border-color:rgba(245,158,11,0.3); background:rgba(245,158,11,0.1);">➔ Resolução & Passagem de Bastão</span>
+              </div>
+              <div class="molt-bubble">
+                ${escapeHtml(p2Text).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}
+              </div>
+            </div>
+          `;
+        }
+
+        // Passo 3: Homologação e Novo Axioma
+        if (rawText.includes('Passo 3')) {
+          const matchP3 = rawText.match(/#### 🛡️ Passo 3[^\n]*\n([\s\S]*?)$/);
+          const p3Text = matchP3 ? matchP3[1].trim() : '';
+          cardsHtml += `
+            <div class="molt-card step-3">
+              <div class="molt-header">
+                <div class="molt-author-box">
+                  <div class="molt-avatar">🛡️</div>
+                  <div>
+                    <div class="molt-author-name">Auditor de Cota & Homologação</div>
+                    <div class="molt-author-role">Validador de Sobrevivência e Memória Coletiva</div>
+                  </div>
+                </div>
+                <span class="molt-route-chip" style="color:#10b981; border-color:rgba(16,185,129,0.3); background:rgba(16,185,129,0.1);">✅ Consenso Aprovado</span>
+              </div>
+              <div class="molt-bubble">
+                ${escapeHtml(p3Text).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}
+              </div>
+            </div>
+          `;
+        }
+
+        container.innerHTML = cardsHtml;
+      } else {
+        // Mensagem Padrão / Feed Social Moltbook
+        let avatarIcon = '🤖';
+        if (roleName.includes('Soberano') || roleName.includes('👑')) avatarIcon = '👑';
+        else if (roleName.includes('General') || roleName.includes('⚔️')) avatarIcon = '⚔️';
+        else if (roleName.includes('Auditor') || roleName.includes('🛡️')) avatarIcon = '🛡️';
+        else if (roleName.includes('Batedor') || roleName.includes('🦅')) avatarIcon = '🦅';
+        else if (roleName.includes('Usuário') || roleName.includes('👤')) avatarIcon = '👤';
+
+        container.innerHTML = `
+          <div class="molt-card step-1">
+            <div class="molt-header">
+              <div class="molt-author-box">
+                <div class="molt-avatar">${avatarIcon}</div>
+                <div>
+                  <div class="molt-author-name">${escapeHtml(fromName)}</div>
+                  <div class="molt-author-role">${escapeHtml(roleName)}</div>
+                </div>
+              </div>
+              <span class="molt-route-chip">De: ${escapeHtml(fromName)} ➔ Para: ${escapeHtml(toName)}</span>
+            </div>
+            <div class="molt-bubble">
+              ${escapeHtml(rawText).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; padding-top:10px; border-top:1px solid rgba(148,163,184,0.1); font-size:0.76rem; color:var(--text-muted);">
+              <span>⚡ ${escapeHtml(item.quota_used || 'Processamento Local')}</span>
+              <span>⏱️ ${item.timestamp ? new Date(item.timestamp).toLocaleString('pt-BR') : ''}</span>
+            </div>
+          </div>
+        `;
+      }
+    }
+
     async function renderMailReader(item) {
       currentReaderItem = item;
       showingTranslated = false;
@@ -3126,6 +3542,29 @@
       document.getElementById('readerBody').textContent = rawBody;
       btnT.textContent = '🇧🇷 Traduzir p/ PT-BR';
 
+      // Renderiza a visualização em Thread estilo Moltbook
+      renderMoltbookThread(rawBody, item);
+      setReaderViewMode(currentReaderViewMode);
+
+      // Atualiza botão do GitHub
+      const btnSyncGh = document.getElementById('btnSyncCurrentGithub');
+      const linkGh = document.getElementById('btnLinkGithub');
+      if (btnSyncGh) {
+        btnSyncGh.disabled = false;
+        btnSyncGh.textContent = '☁️ Sincronizar no GitHub';
+        btnSyncGh.style.color = '#34d399';
+        btnSyncGh.style.borderColor = 'rgba(16,185,129,0.4)';
+      }
+      if (linkGh) {
+        if (item.github_url) {
+          linkGh.href = item.github_url;
+          linkGh.style.display = 'inline-flex';
+        } else {
+          linkGh.style.display = 'inline-flex';
+          linkGh.href = 'https://github.com/nyshimura/rna-conversations';
+        }
+      }
+
       if (autoTranslatePt && isLikelyEnglish(rawBody)) {
         await toggleTranslateCurrentMail(true);
       }
@@ -3140,6 +3579,7 @@
       if (showingTranslated && !forceToPt) {
         showingTranslated = false;
         bodyEl.textContent = rawBody;
+        renderMoltbookThread(rawBody, currentReaderItem);
         btnT.textContent = '🇧🇷 Traduzir p/ PT-BR';
         return;
       }
@@ -3150,6 +3590,7 @@
       if (currentReaderItem) {
         showingTranslated = true;
         bodyEl.textContent = translated;
+        renderMoltbookThread(translated, currentReaderItem);
         btnT.textContent = '🇺🇸 Ver Original (Inglês)';
       }
       btnT.disabled = false;

@@ -405,6 +405,52 @@ if ($action === 'moltbook_upvote') {
 }
 
 // =========================================================================
+// ☁️ GITHUB REPO SYNC: SINCRONIZAÇÃO DE CONVERSAS (.MD) & MEMÓRIA
+// =========================================================================
+
+if ($action === 'github_status') {
+    $cfg = $engine->getGitHubConfig();
+    echo json_encode([
+        'ok' => true,
+        'config' => $cfg
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'github_save_config') {
+    $token = trim($jsonInput['token'] ?? ($_POST['token'] ?? ''));
+    $repo = trim($jsonInput['repo'] ?? ($_POST['repo'] ?? 'nyshimura/rna-conversations'));
+    $branch = trim($jsonInput['branch'] ?? ($_POST['branch'] ?? 'main'));
+    $autoSync = isset($jsonInput['auto_sync']) ? (bool)$jsonInput['auto_sync'] : true;
+
+    $res = $engine->saveGitHubConfig($token, $repo, $branch, $autoSync);
+    echo json_encode([
+        'ok' => true,
+        'config' => $res
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'github_sync_thread') {
+    $target = trim($jsonInput['id'] ?? ($jsonInput['file_path'] ?? ($_GET['id'] ?? ($_GET['file_path'] ?? ''))));
+    if (!$target) {
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'error' => 'Identificador da thread ou arquivo ausente']);
+        exit;
+    }
+    $res = $engine->syncConversationToGitHub($target);
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'github_sync_all') {
+    $limit = (int)($jsonInput['limit'] ?? ($_GET['limit'] ?? 15));
+    $res = $engine->syncAllConversationsToGitHub($limit);
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+// =========================================================================
 // 🎨 AICREATE: INCUBADORA AUTÔNOMA DAS IAS (LIMITE DE 200 MB)
 // =========================================================================
 
