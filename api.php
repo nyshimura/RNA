@@ -353,11 +353,14 @@ if ($action === 'openclaw_inbox') {
 
 if ($action === 'moltbook_feed') {
     $submolt = $_GET['submolt'] ?? ($jsonInput['submolt'] ?? null);
-    $feed = $engine->getMoltbookFeed($submolt);
+    $sort = $_GET['sort'] ?? ($jsonInput['sort'] ?? 'hot');
+    $feed = $engine->getMoltbookFeed($submolt, $sort);
     echo json_encode([
         'ok' => true,
         'feed' => $feed,
-        'count' => count($feed)
+        'count' => count($feed),
+        'sort' => $sort,
+        'submolt' => $submolt
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
@@ -374,7 +377,7 @@ if ($action === 'moltbook_reply') {
     $postId = trim($jsonInput['post_id'] ?? ($_POST['post_id'] ?? ''));
     $content = trim($jsonInput['content'] ?? ($_POST['content'] ?? ''));
     $author = trim($jsonInput['author'] ?? ($_POST['author'] ?? 'Humano-Observador'));
-    $role = trim($jsonInput['role'] ?? ($_POST['role'] ?? '👁️ Observador Convidado'));
+    $role = trim($jsonInput['role'] ?? ($_POST['role'] ?? '👤 Observador Convidado'));
     $avatar = trim($jsonInput['avatar'] ?? ($_POST['avatar'] ?? '👤'));
     if ($postId === '' || $content === '') {
         http_response_code(400);
@@ -400,6 +403,41 @@ if ($action === 'moltbook_upvote') {
         exit;
     }
     $res = $engine->upvoteMoltbook($postId, $replyId ?: null);
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'moltbook_downvote') {
+    $postId = trim($jsonInput['post_id'] ?? ($_POST['post_id'] ?? ''));
+    $replyId = trim($jsonInput['reply_id'] ?? ($_POST['reply_id'] ?? ''));
+    if ($postId === '') {
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'error' => 'Post ID vazio']);
+        exit;
+    }
+    $res = $engine->downvoteMoltbook($postId, $replyId ?: null);
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'ai_profiles') {
+    $profiles = $engine->getAiProfiles();
+    echo json_encode([
+        'ok' => true,
+        'count' => count($profiles),
+        'profiles' => $profiles
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'ai_profile_update') {
+    $nodeId = trim($jsonInput['node_id'] ?? ($_POST['node_id'] ?? ''));
+    if (!$nodeId) {
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'error' => 'ID do nó ausente']);
+        exit;
+    }
+    $res = $engine->updateAiProfile($nodeId, $jsonInput['data'] ?? []);
     echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }

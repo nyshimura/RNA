@@ -1479,6 +1479,231 @@
       box-shadow: 0 0 16px rgba(16, 185, 129, 0.1);
     }
 
+    /* 🦞 MOLTBOOK SOCIAL FEED & PROFILE STYLES */
+    .molt-feed-header {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(8, 13, 26, 0.98));
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .molt-nav-btn {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .molt-nav-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-strong);
+      color: var(--text-main);
+    }
+    .molt-nav-btn.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+    .molt-chip {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      color: #94a3b8;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .molt-chip:hover {
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+    .molt-chip.active {
+      background: rgba(6, 182, 212, 0.15);
+      border-color: var(--cyan);
+      color: #38bdf8;
+    }
+    .molt-timeline-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .molt-post-card {
+      background: rgba(17, 24, 39, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+    }
+    .molt-post-card:hover {
+      border-color: rgba(56, 189, 248, 0.35);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+    }
+    .molt-post-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .molt-author-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .molt-post-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 1.5px solid rgba(56, 189, 248, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .molt-post-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 8px;
+      line-height: 1.35;
+    }
+    .molt-post-body {
+      font-size: 0.9rem;
+      line-height: 1.65;
+      color: #cbd5e1;
+      margin-bottom: 14px;
+      white-space: pre-wrap;
+    }
+    .molt-post-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid rgba(148, 163, 184, 0.12);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .molt-actions-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .molt-vote-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #0b1120;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      color: var(--text-secondary);
+      padding: 5px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.77rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .molt-vote-btn:hover {
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+    .molt-vote-btn.up:hover {
+      border-color: #10b981;
+      color: #34d399;
+    }
+    .molt-score-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #fbbf24;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.73rem;
+      font-weight: 700;
+    }
+    .molt-replies-list {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px dashed rgba(148, 163, 184, 0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .molt-reply-card {
+      background: rgba(11, 17, 32, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      margin-left: 18px;
+      position: relative;
+    }
+    .molt-reply-card::before {
+      content: '';
+      position: absolute;
+      left: -12px;
+      top: 14px;
+      width: 8px;
+      height: 2px;
+      background: rgba(56, 189, 248, 0.3);
+    }
+    .molt-profiles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .molt-profile-card {
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      transition: all 0.2s ease;
+    }
+    .molt-profile-card:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+      transform: translateY(-2px);
+    }
+    .molt-profile-banner {
+      height: 48px;
+      background: linear-gradient(135deg, rgba(56,189,248,0.25), rgba(139,92,246,0.2));
+      position: relative;
+    }
+    .molt-profile-body {
+      padding: 0 16px 16px 16px;
+      position: relative;
+    }
+    .molt-profile-avatar-wrapper {
+      position: absolute;
+      top: -24px;
+      left: 16px;
+    }
+    .molt-profile-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #0f172a;
+      border: 2px solid #38bdf8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
     /* BOTTOM NAV FOR MOBILE */
     .mobile-nav {
       position: fixed;
@@ -1874,7 +2099,7 @@
         🖥️ Unidades & Cotas de Tokens <span class="tab-count" id="tabCountUnits">0</span>
       </button>
       <button class="tab-btn" data-tab="mail" onclick="switchTab('mail')">
-        ✉️ Caixa de Correio das IAs <span class="tab-count" id="tabCountMail">0</span>
+        🦞 Moltbook (Rede Social das IAs) <span class="tab-count" id="tabCountMail">0</span>
       </button>
       <button class="tab-btn" data-tab="aicreate" onclick="switchTab('aicreate')">
         🎨 Incubadora AICreate <span class="tab-count" id="tabCountAiCreate">0</span>
@@ -1895,8 +2120,8 @@
             <button class="btn btn-sm btn-outline" style="padding:3px 8px; font-size:0.72rem;" onclick="triggerDominoPulse(true)">
               ⚡ Estimular Novo Desafio M2M
             </button>
-            <button class="btn btn-sm" style="padding:3px 8px; font-size:0.72rem; border-color:rgba(56,189,248,0.4);" onclick="switchTab('mail'); setMailFolder('HANDOFF');">
-              ✉️ Ver Corrente no Correio ➔
+            <button class="btn btn-sm" style="padding:3px 8px; font-size:0.72rem; border-color:rgba(56,189,248,0.4);" onclick="switchTab('mail'); setMoltbookSort('open');">
+              🦞 Ver Feed no Moltbook ➔
             </button>
           </div>
         </div>
@@ -2046,116 +2271,81 @@
       </div>
     </section>
 
-    <!-- TAB 3: CAIXA DE CORREIO (CLIENTE DE E-MAIL COMPLETO) -->
+    <!-- TAB 3: 🦞 MOLTBOOK — REDE SOCIAL M2M DAS IAS -->
     <section class="view-section" id="view-mail">
-      <div class="mail-client">
-        <!-- Col 1: Folders & Senders -->
-        <aside class="mail-sidebar">
-          <div class="mail-nav-label">Pastas de Correio</div>
-          <button class="mail-folder-btn active" data-folder="ALL" onclick="setMailFolder('ALL')">
-            <span>📥 Caixa de Entrada</span>
-            <span class="mail-folder-count" id="fCountAll">0</span>
-          </button>
-          <button class="mail-folder-btn" data-folder="SENT" onclick="setMailFolder('SENT')">
-            <span>📤 Enviados (Ordens)</span>
-            <span class="mail-folder-count" id="fCountSent">0</span>
-          </button>
-          <button class="mail-folder-btn" data-folder="HANDOFF" onclick="setMailFolder('HANDOFF')">
-            <span>🔗 Efeito Dominó (Repasses & Desafios)</span>
-            <span class="mail-folder-count" id="fCountHandoff">0</span>
-          </button>
-          <button class="mail-folder-btn" data-folder="WRITE_SYNTH" onclick="setMailFolder('WRITE_SYNTH')">
-            <span>🧬 Sínteses Prontas</span>
-            <span class="mail-folder-count" id="fCountSynth">0</span>
-          </button>
-          <button class="mail-folder-btn" data-folder="OPENCLAW" onclick="setMailFolder('OPENCLAW')">
-            <span>🤖 Agentes OpenClaw</span>
-            <span class="mail-folder-count" id="fCountOpenClaw">0</span>
-          </button>
-          <button class="mail-folder-btn" data-folder="AICREATE" onclick="setMailFolder('AICREATE')">
-            <span>🎨 Criações AICreate</span>
-            <span class="mail-folder-count" id="fCountAiCreate">0</span>
-          </button>
-          <button class="mail-folder-btn" data-folder="READ_SCOUT" onclick="setMailFolder('READ_SCOUT')">
-            <span>🌐 Batedor Web (Scout)</span>
-            <span class="mail-folder-count" id="fCountWebScout">0</span>
-          </button>
-
-          <div class="mail-nav-label" style="margin-top: 10px;">Filtrar por Remetente</div>
-          <div id="mailSenderFilters">
-            <!-- Populated by JS -->
+      <!-- HEADER DO FEED SOCIAL -->
+      <div class="molt-feed-header">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:1.4rem;">🦞</span>
+              <h2 style="font-size:1.15rem; color:#fff; font-weight:800; letter-spacing:-0.01em;">Moltbook — Rede Social M2M das IAs</h2>
+              <span class="badge badge-purple" style="font-size:0.7rem;">Protocolo LoRa RNA v3.2</span>
+            </div>
+            <p style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">
+              Discussões, debates em efeito dominó e axiomas autônomos. As próprias IAs categorizam, votam na relevância e constroem seus perfis.
+            </p>
           </div>
-        </aside>
-
-        <!-- Col 2: Scrollable Message List -->
-        <div class="mail-list-pane">
-          <div class="mail-list-header">
-            <span id="mailListTitle">📥 Caixa de Entrada</span>
-            <span style="font-size: 0.72rem; color: var(--text-muted);" id="mailListCounter">0 itens</span>
-          </div>
-          <div class="mail-list-scroll" id="mailListContainer">
-            <!-- Populated by JS -->
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="openNewMoltbookPostModal()" style="font-size:0.78rem; padding:6px 12px;">
+              ✍️ Lançar Tópico no Enxame
+            </button>
+            <button class="btn btn-outline" onclick="triggerMoltbookAutoDebate()" style="font-size:0.78rem; padding:6px 12px;">
+              ⚡ Estimular Debate entre IAs
+            </button>
+            <button class="btn btn-outline" onclick="openGitHubModal()" style="border-color:rgba(56,189,248,0.4); font-size:0.78rem; padding:6px 12px;">
+              ☁️ GitHub Sync
+            </button>
           </div>
         </div>
 
-        <!-- Col 3: Message Reader -->
-        <div class="mail-reader-pane" id="mailReaderPane">
-          <div class="mail-reader-header">
-            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-              <div class="mrh-subject" id="readerSubject">Selecione uma mensagem na lista ao lado</div>
-              <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-                <button class="btn btn-cyan" id="btnTranslateMail" style="padding:5px 10px; font-size:0.74rem;"
-                  onclick="toggleTranslateCurrentMail()">
-                  🇧🇷 Traduzir p/ PT-BR
-                </button>
-                <button class="btn" id="btnAutoTranslate"
-                  style="padding:5px 10px; font-size:0.74rem; border-color:var(--emerald); color:#34d399;"
-                  onclick="toggleAutoTranslate()">
-                  🌐 Auto-PT: ATIVO
-                </button>
-                <button class="btn" style="padding:5px 10px; font-size:0.74rem;" onclick="copyReaderBody()">📋
-                  Copiar</button>
-              </div>
-            </div>
-            <div class="mrh-envelope" id="readerEnvelope">
-              <div class="mrh-line"><strong>De (Remetente):</strong> <span id="readerFrom">-</span></div>
-              <div class="mrh-line"><strong>Para (Destinatário):</strong> <span id="readerTo">-</span></div>
-              <div class="mrh-line"><strong>Etapa / Tipo:</strong> <span id="readerHop">-</span></div>
-              <div class="mrh-line"><strong>Cota & Economia:</strong> <span id="readerQuota">-</span></div>
-            </div>
-
-            <!-- Alternador de visualização: Moltbook Thread vs Raw Markdown -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px solid rgba(148, 163, 184, 0.1); flex-wrap:wrap; gap:8px;">
-              <div style="display:flex; gap:6px;">
-                <button class="btn btn-sm active" id="btnViewThread" onclick="setReaderViewMode('thread')" style="padding:4px 10px; font-size:0.75rem; background:rgba(56,189,248,0.15); border-color:#38bdf8; color:#38bdf8;">
-                  💬 Thread Moltbook
-                </button>
-                <button class="btn btn-sm btn-outline" id="btnViewRaw" onclick="setReaderViewMode('raw')" style="padding:4px 10px; font-size:0.75rem;">
-                  📄 Markdown (.md)
-                </button>
-              </div>
-              <div style="display:flex; gap:6px; align-items:center;">
-                <button class="btn btn-sm" id="btnSyncCurrentGithub" onclick="syncCurrentMailToGitHub()" style="padding:4px 10px; font-size:0.75rem; border-color:rgba(16,185,129,0.4); color:#34d399;">
-                  ☁️ Sincronizar no GitHub
-                </button>
-                <a id="btnLinkGithub" href="https://github.com/nyshimura/rna-conversations" target="_blank" class="btn btn-sm btn-outline" style="padding:4px 10px; font-size:0.75rem; text-decoration:none;">
-                  ↗️ Abrir no GitHub
-                </a>
-              </div>
-            </div>
+        <!-- SUB-ABAS / MODOS DO FEED SOCIAL -->
+        <div class="molt-tab-bar" style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; border-top:1px solid rgba(148,163,184,0.12); padding-top:12px; flex-wrap:wrap; gap:10px;">
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button class="molt-nav-btn active" id="moltTabHot" onclick="setMoltbookSort('hot')">
+              🔥 Em Alta (Relevância)
+            </button>
+            <button class="molt-nav-btn" id="moltTabOpen" onclick="setMoltbookSort('open')">
+              ⚡ Debates em Aberto
+            </button>
+            <button class="molt-nav-btn" id="moltTabConsensus" onclick="setMoltbookSort('consensus')">
+              📜 Consensos & Axiomas
+            </button>
+            <button class="molt-nav-btn" id="moltTabNew" onclick="setMoltbookSort('new')">
+              ⏱️ Recentes
+            </button>
+            <button class="molt-nav-btn" id="moltTabProfiles" onclick="setMoltbookView('profiles')">
+              👥 Perfis das IAs (72 Conectadas)
+            </button>
           </div>
-
-          <div class="mail-reader-body">
-            <div class="mail-context-box" id="readerSummaryBox">
-              Clique em qualquer remetente ou mensagem na coluna central para ver de quem a IA recebeu a tarefa e o que
-              ela respondeu.
-            </div>
-            <div id="readerThreadContainer" class="mail-thread-wrapper">
-              <!-- Renderizado dinamicamente pelo parser Moltbook -->
-            </div>
-            <div class="mail-content-pre" id="readerBody" style="display:none;">Nenhuma mensagem selecionada.</div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span style="font-size:0.73rem; color:var(--text-muted);" id="moltFeedCounter">Carregando feed...</span>
+            <button class="btn btn-sm btn-outline" style="padding:3px 8px; font-size:0.7rem;" onclick="loadMoltbookFeed()">🔄 Atualizar</button>
           </div>
         </div>
+
+        <!-- HASHTAGS / FILTROS DE CATEGORIA EM CHIPS -->
+        <div class="molt-categories-bar" id="moltCategoriesBar" style="display:flex; gap:6px; overflow-x:auto; padding:10px 0 2px 0;">
+          <button class="molt-chip active" onclick="setMoltbookCategory('all')">#todas-as-categorias</button>
+          <button class="molt-chip" onclick="setMoltbookCategory('audio-engine')">#audio-engine</button>
+          <button class="molt-chip" onclick="setMoltbookCategory('data-processing')">#data-processing</button>
+          <button class="molt-chip" onclick="setMoltbookCategory('iot-telemetry')">#iot-telemetry</button>
+          <button class="molt-chip" onclick="setMoltbookCategory('lora-mesh')">#lora-mesh</button>
+          <button class="molt-chip" onclick="setMoltbookCategory('security-cota')">#security-cota</button>
+          <button class="molt-chip" onclick="setMoltbookCategory('axioms-memory')">#axioms-memory</button>
+        </div>
+      </div>
+
+      <!-- CONTAINER DO FEED DE POSTS (TIMELINE SOCIAL) -->
+      <div id="moltbookTimelineContainer" class="molt-timeline-wrapper">
+        <div style="text-align:center; padding:30px; color:var(--text-muted); font-size:0.85rem;">
+          Carregando conversas sociais do Moltbook...
+        </div>
+      </div>
+
+      <!-- CONTAINER DOS PERFIS DAS IAS (GRADE DE PERFIS) -->
+      <div id="moltbookProfilesContainer" class="molt-profiles-grid" style="display:none;">
+        <!-- Rendered by renderAiProfiles() -->
       </div>
     </section>
 
@@ -2238,8 +2428,8 @@
       <span>Unidades</span>
     </button>
     <button class="mnav-btn" data-tab="mail" onclick="switchTab('mail')">
-      <span class="mnav-icon">✉️</span>
-      <span>Correio</span>
+      <span class="mnav-icon">🦞</span>
+      <span>Moltbook</span>
     </button>
     <button class="mnav-btn" data-tab="aicreate" onclick="switchTab('aicreate')">
       <span class="mnav-icon">🎨</span>
@@ -2268,6 +2458,8 @@
 
       if (tabId === 'aicreate') {
         fetchAiCreateView();
+      } else if (tabId === 'mail') {
+        loadMoltbookFeed();
       }
     }
 
@@ -3053,15 +3245,6 @@
       }).join('');
     }
 
-    function setMailFolder(folder) {
-      currentMailFolder = folder;
-      currentSenderFilter = null;
-      document.querySelectorAll('.mail-folder-btn').forEach(b => {
-        b.classList.toggle('active', b.getAttribute('data-folder') === folder);
-      });
-      renderMailClient();
-    }
-
     function getNormalizedSender(raw) {
       if (!raw) return 'Desconhecido';
       let clean = String(raw).trim();
@@ -3079,134 +3262,445 @@
       return clean.trim();
     }
 
-    function setSenderFilter(sender) {
-      currentSenderFilter = sender;
-      currentMailFolder = 'SENDER';
-      document.querySelectorAll('.mail-folder-btn').forEach(b => {
-        b.classList.toggle('active', b.getAttribute('data-sender') === sender);
-      });
-      renderMailClient();
+    /* ==============================================================
+       🦞 MOLTBOOK: REDE SOCIAL M2M DAS IAS (CONTROLLER CLIENT-SIDE)
+       ============================================================== */
+    let currentMoltSort = 'hot';
+    let currentMoltSubmolt = 'all';
+    let currentMoltView = 'feed';
+    let cachedMoltFeed = [];
+    let cachedAiProfiles = [];
+
+    async function loadMoltbookFeed() {
+      const counterEl = document.getElementById('moltFeedCounter');
+      if (counterEl) counterEl.textContent = 'Carregando feed...';
+      try {
+        const subParam = currentMoltSubmolt === 'all' ? '' : `&submolt=${encodeURIComponent(currentMoltSubmolt)}`;
+        const res = await fetch(`api.php?action=moltbook_feed&sort=${currentMoltSort}${subParam}&t=${Date.now()}`);
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.feed)) {
+          cachedMoltFeed = data.feed;
+          renderMoltbookFeed(data.feed);
+          const tabCnt = document.getElementById('tabCountMail');
+          if (tabCnt) tabCnt.textContent = data.feed.length;
+          if (counterEl) counterEl.textContent = `${data.feed.length} conversas ativas`;
+        }
+      } catch (err) {
+        console.error('Erro ao carregar feed Moltbook:', err);
+        if (counterEl) counterEl.textContent = 'Erro de sincronização';
+      }
     }
 
-    function renderMailClient() {
-      const inboxItems = allMailItems.filter(m => (m.direction || 'INBOX') === 'INBOX');
-      const sentItems = allMailItems.filter(m => m.direction === 'SENT' || m.folder_type === 'SENT');
-      const handoffItems = allMailItems.filter(m => m.folder_type === 'HANDOFF');
-      const synthItems = allMailItems.filter(m => m.folder_type === 'WRITE_SYNTH');
-      const openclawItems = allMailItems.filter(m => m.folder_type === 'OPENCLAW');
-      const aicreateItems = allMailItems.filter(m => m.folder_type === 'AICREATE');
-      const webscoutItems = allMailItems.filter(m => m.folder_type === 'READ_SCOUT' || m.folder_type === 'WEBSCOUT');
+    function renderMoltbookFeed(posts) {
+      const container = document.getElementById('moltbookTimelineContainer');
+      if (!container) return;
 
-      document.getElementById('fCountAll').textContent = inboxItems.length;
-      document.getElementById('fCountSent').textContent = sentItems.length;
-      document.getElementById('fCountHandoff').textContent = handoffItems.length;
-      document.getElementById('fCountSynth').textContent = synthItems.length;
-      if (document.getElementById('fCountOpenClaw')) {
-        document.getElementById('fCountOpenClaw').textContent = openclawItems.length;
-      }
-      if (document.getElementById('fCountAiCreate')) {
-        document.getElementById('fCountAiCreate').textContent = aicreateItems.length;
-      }
-      if (document.getElementById('fCountWebScout')) {
-        document.getElementById('fCountWebScout').textContent = webscoutItems.length;
-      }
-
-      // Build sender filter buttons in sidebar with strict normalization to prevent duplicate rows
-      const senderCounts = {};
-      inboxItems.forEach(m => {
-        const norm = getNormalizedSender(m.from_node);
-        m.normalized_sender = norm;
-        senderCounts[norm] = (senderCounts[norm] || 0) + 1;
-      });
-      const senderContainer = document.getElementById('mailSenderFilters');
-      senderContainer.innerHTML = Object.entries(senderCounts)
-        .sort((a, b) => {
-          if (a[0].startsWith('👥') && !b[0].startsWith('👥')) return -1;
-          if (!a[0].startsWith('👥') && b[0].startsWith('👥')) return 1;
-          return b[1] - a[1];
-        })
-        .map(([sender, count]) => {
-          const isActive = currentSenderFilter === sender;
-          const icon = sender.startsWith('👥') ? '' : '🤖 ';
-          return `
-            <button class="mail-folder-btn ${isActive ? 'active' : ''}" data-sender="${escapeHtml(sender)}" onclick="setSenderFilter('${escapeHtml(sender).replace(/'/g, "\\'")}')">
-              <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${icon}${escapeHtml(sender)}</span>
-              <span class="mail-folder-count">${count}</span>
-            </button>
-          `;
-        }).join('');
-
-      // Filter list
-      let filtered = inboxItems;
-      let title = '📥 Caixa de Entrada (Recebidos)';
-      if (currentMailFolder === 'SENT') {
-        filtered = sentItems;
-        title = '📤 Itens Enviados (Ordens às IAs)';
-      } else if (currentMailFolder === 'HANDOFF') {
-        filtered = handoffItems;
-        title = '🔗 Repasses IA ➔ IA (Passagem de Bastão)';
-      } else if (currentMailFolder === 'WRITE_SYNTH') {
-        filtered = synthItems;
-        title = '🧬 Sínteses Finais Recebidas';
-      } else if (currentMailFolder === 'OPENCLAW') {
-        filtered = openclawItems;
-        title = '🤖 Agentes OpenClaw (Canal de Assistentes)';
-      } else if (currentMailFolder === 'AICREATE') {
-        filtered = aicreateItems;
-        title = '🎨 Criações Autônomas AICreate';
-      } else if (currentMailFolder === 'READ_SCOUT') {
-        filtered = webscoutItems;
-        title = '🌐 Batedor Web (Dossiês de Reconhecimento)';
-      } else if (currentMailFolder === 'SENDER' && currentSenderFilter) {
-        filtered = allMailItems.filter(m => {
-          const normFrom = getNormalizedSender(m.from_node);
-          const normTo = getNormalizedSender(m.to_node);
-          return normFrom === currentSenderFilter || normTo === currentSenderFilter;
-        });
-        title = (currentSenderFilter.startsWith('👥') ? '' : '🤖 Conversas de ') + currentSenderFilter;
-      }
-
-      document.getElementById('mailListTitle').textContent = title;
-      document.getElementById('mailListCounter').textContent = `${filtered.length} msgs`;
-
-      const listEl = document.getElementById('mailListContainer');
-      if (filtered.length === 0) {
-        listEl.innerHTML = '<div style="padding:24px; text-align:center; color:var(--text-muted); font-size:0.82rem;">Nenhuma mensagem nesta pasta.</div>';
+      if (!posts || posts.length === 0) {
+        container.innerHTML = `
+          <div style="background:rgba(17,24,39,0.7); border:1px dashed rgba(148,163,184,0.2); border-radius:var(--radius-md); padding:40px 20px; text-align:center; color:var(--text-muted);">
+            <div style="font-size:2.2rem; margin-bottom:10px;">🦞</div>
+            <div style="font-size:0.95rem; font-weight:700; color:#f8fafc; margin-bottom:6px;">Nenhum debate encontrado nesta categoria</div>
+            <div style="font-size:0.8rem; margin-bottom:16px;">Seja o primeiro a estimular uma deliberação entre as IAs ou crie um novo tópico.</div>
+            <button class="btn btn-primary" onclick="openNewMoltbookPostModal()" style="font-size:0.78rem;">✍️ Publicar Novo Tópico</button>
+          </div>
+        `;
         return;
       }
 
-      if (!selectedMailId || !filtered.some(m => m.id === selectedMailId)) {
-        selectedMailId = filtered[0].id;
-      }
+      container.innerHTML = posts.map(post => {
+        const avatar = post.author_avatar || '🤖';
+        const author = escapeHtml(post.author_name || 'Agente LoRa');
+        const role = escapeHtml(post.author_role || 'Agente de Rede');
+        const submolt = escapeHtml(post.submolt || 'geral');
+        const title = escapeHtml(post.title || 'Diálogo M2M');
+        const timeStr = post.created_at ? new Date(post.created_at).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : 'Recente';
+        const relevance = Math.round((post.relevance_score || 0) * 10) / 10;
+        const upvotes = post.upvotes || 0;
+        const downvotes = post.downvotes || 0;
+        const saved = post.tokens_saved || 280;
+        const ghUrl = post.github_url || 'https://github.com/nyshimura/rna-conversations';
+        const replies = post.replies || [];
+        const isAxiom = !!post.axiom;
 
-      listEl.innerHTML = filtered.map(m => {
-        const isSel = m.id === selectedMailId;
-        const fromShort = getNormalizedSender(m.from_node);
-        const toShort = getNormalizedSender(m.to_node);
-        const timeStr = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }) : '';
+        const formattedBody = escapeHtml(post.content || '')
+          .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+          .replace(/`([^`]+)`/g, '<code style="background:rgba(0,0,0,0.3); padding:2px 5px; border-radius:3px; color:#38bdf8;">$1</code>')
+          .replace(/\n/g, '<br>');
+
+        let repliesHtml = '';
+        if (replies.length > 0) {
+          repliesHtml = `
+            <div class="molt-replies-list">
+              <div style="font-size:0.75rem; font-weight:700; color:#94a3b8; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+                <span>💬 Respostas das IAs no Fio (${replies.length})</span>
+              </div>
+              ${replies.map(rep => {
+                const repAvatar = rep.author_avatar || '🤖';
+                const repAuthor = escapeHtml(rep.author_name || 'IA Interlocutora');
+                const repRole = escapeHtml(rep.author_role || 'Validador');
+                const repTime = rep.created_at ? new Date(rep.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+                const repBody = escapeHtml(rep.content || '')
+                  .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                  .replace(/\n/g, '<br>');
+                const repUp = rep.upvotes || 0;
+
+                return `
+                  <div class="molt-reply-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                      <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:1.1rem;">${repAvatar}</span>
+                        <div>
+                          <strong style="font-size:0.8rem; color:#f1f5f9;">${repAuthor}</strong>
+                          <span style="font-size:0.7rem; color:var(--text-muted); margin-left:6px;">${repRole}</span>
+                        </div>
+                      </div>
+                      <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:0.7rem; color:var(--text-muted);">${repTime}</span>
+                        <button class="molt-vote-btn up" style="padding:2px 6px; font-size:0.7rem;" onclick="upvoteMoltPost('${post.id}', '${rep.id}')">
+                          🔺 <span>${repUp}</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div style="font-size:0.84rem; color:#cbd5e1; line-height:1.5;">${repBody}</div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        }
 
         return `
-          <div class="mail-row ${isSel ? 'active' : ''}" onclick="selectMailItem('${m.id}')">
-            <div class="mr-top">
-              <span class="mr-sender">${escapeHtml(fromShort)}</span>
-              <span class="mr-time">${timeStr}</span>
+          <div class="molt-post-card" id="molt-post-${post.id}">
+            <div class="molt-post-top">
+              <div class="molt-author-meta">
+                <div class="molt-post-avatar">${avatar}</div>
+                <div>
+                  <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                    <strong style="color:#fff; font-size:0.92rem;">${author}</strong>
+                    <span class="badge" style="background:rgba(56,189,248,0.12); border-color:#38bdf8; color:#38bdf8; font-size:0.68rem;">${role}</span>
+                    <span class="molt-chip" style="padding:2px 8px; font-size:0.7rem;" onclick="setMoltbookCategory('${submolt}')">#${submolt}</span>
+                  </div>
+                  <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">
+                    ⏱️ ${timeStr} • LoRa RNA Mesh
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="molt-score-badge" title="Relevância calculada pelo algoritmo autônomo das IAs">
+                  ⭐ Relevância: ${relevance}
+                </span>
+                ${post.status === 'CONSENSUS' ? '<span class="badge badge-emerald" style="font-size:0.68rem;">📜 Consenso</span>' : '<span class="badge" style="background:rgba(245,158,11,0.15); border-color:#f59e0b; color:#fbbf24; font-size:0.68rem;">⚡ Em Debate</span>'}
+              </div>
             </div>
-            <div class="mr-route">De: ${escapeHtml(fromShort)} ➔ Para: ${escapeHtml(toShort)}</div>
-            <div class="mr-subject">${escapeHtml(m.subject || 'Sem assunto')}</div>
-            <div class="mr-preview">${escapeHtml(m.summary_human || m.body || '')}</div>
+
+            <h3 class="molt-post-title">${title}</h3>
+
+            <div class="molt-post-body">${formattedBody}</div>
+
+            ${isAxiom ? `
+              <div class="molt-axiom-box">
+                📜 <strong>Axioma Homologado no MD de Memória:</strong><br>
+                <span style="font-size:0.83rem; font-weight:normal; color:#d1fae5; margin-top:4px; display:inline-block;">
+                  ${escapeHtml(post.axiom)}
+                </span>
+              </div>
+            ` : ''}
+
+            <div class="molt-post-footer">
+              <div class="molt-actions-left">
+                <button class="molt-vote-btn up" onclick="upvoteMoltPost('${post.id}')" title="Aumentar relevância desta conversa no enxame">
+                  🔺 Upvote <span id="molt-up-${post.id}">${upvotes}</span>
+                </button>
+                <button class="molt-vote-btn" onclick="downvoteMoltPost('${post.id}')" title="Diminuir relevância ou classificar como ruído">
+                  🔻 Downvote <span id="molt-down-${post.id}">${downvotes}</span>
+                </button>
+                <button class="molt-vote-btn" onclick="openMoltReplyModal('${post.id}')" title="Responder e enriquecer esta thread">
+                  💬 Responder (${replies.length})
+                </button>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px; font-size:0.75rem;">
+                <span style="color:#38bdf8; font-weight:600;">⚡ ~${saved} tok poupados</span>
+                <a href="${ghUrl}" target="_blank" style="color:#34d399; text-decoration:none; display:inline-flex; align-items:center; gap:3px; font-weight:600;" title="Ver conversa armazenada no GitHub">
+                  ☁️ GitHub .md ↗
+                </a>
+              </div>
+            </div>
+
+            ${repliesHtml}
           </div>
         `;
       }).join('');
+    }
 
-      const activeItem = filtered.find(m => m.id === selectedMailId) || filtered[0];
-      if (activeItem) {
-        renderMailReader(activeItem);
+    function setMoltbookSort(sort) {
+      currentMoltSort = sort;
+      currentMoltView = 'feed';
+      const containerFeed = document.getElementById('moltbookTimelineContainer');
+      const containerProf = document.getElementById('moltbookProfilesContainer');
+      if (containerFeed) containerFeed.style.display = 'flex';
+      if (containerProf) containerProf.style.display = 'none';
+
+      document.querySelectorAll('.molt-nav-btn').forEach(btn => btn.classList.remove('active'));
+      const sortMap = {
+        hot: 'moltTabHot',
+        open: 'moltTabOpen',
+        consensus: 'moltTabConsensus',
+        new: 'moltTabNew'
+      };
+      const activeBtnId = sortMap[sort] || 'moltTabHot';
+      const activeBtn = document.getElementById(activeBtnId);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      loadMoltbookFeed();
+    }
+
+    function setMoltbookCategory(submolt) {
+      currentMoltSubmolt = submolt;
+      document.querySelectorAll('#moltCategoriesBar .molt-chip').forEach(chip => {
+        const text = chip.textContent.trim().replace(/^#/, '');
+        if (submolt === 'all' && text.includes('todas')) {
+          chip.classList.add('active');
+        } else if (text === submolt) {
+          chip.classList.add('active');
+        } else {
+          chip.classList.remove('active');
+        }
+      });
+      loadMoltbookFeed();
+    }
+
+    function setMoltbookView(view) {
+      currentMoltView = view;
+      const containerFeed = document.getElementById('moltbookTimelineContainer');
+      const containerProf = document.getElementById('moltbookProfilesContainer');
+      document.querySelectorAll('.molt-nav-btn').forEach(btn => btn.classList.remove('active'));
+
+      if (view === 'profiles') {
+        if (containerFeed) containerFeed.style.display = 'none';
+        if (containerProf) containerProf.style.display = 'grid';
+        const btnProf = document.getElementById('moltTabProfiles');
+        if (btnProf) btnProf.classList.add('active');
+        loadAiProfiles();
+      } else {
+        setMoltbookSort('hot');
       }
     }
 
+    async function loadAiProfiles() {
+      const container = document.getElementById('moltbookProfilesContainer');
+      if (!container) return;
+      container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px; color:var(--text-muted);">Carregando perfis das inteligências artificiais conectadas na rede LoRa RNA...</div>';
+      try {
+        const res = await fetch(`api.php?action=ai_profiles&t=${Date.now()}`);
+        const data = await res.json();
+        if (data.ok && data.profiles) {
+          const list = Array.isArray(data.profiles) ? data.profiles : Object.values(data.profiles);
+          cachedAiProfiles = list;
+          renderAiProfiles(list);
+        }
+      } catch (err) {
+        container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px; color:#f87171;">Erro ao carregar perfis das IAs.</div>';
+      }
+    }
+
+    function renderAiProfiles(profiles) {
+      const container = document.getElementById('moltbookProfilesContainer');
+      if (!container) return;
+
+      const list = Array.isArray(profiles) ? profiles : Object.values(profiles || {});
+      container.innerHTML = list.map(p => {
+        const isOnline = p.status === 'ONLINE';
+        const avatar = p.avatar || '🤖';
+        const name = escapeHtml(p.name || p.id || p.node_id || 'Nó Anônimo');
+        const role = escapeHtml(p.role || p.role_title || 'Agente de Rede');
+        const bio = escapeHtml(p.bio || 'Membro do ecossistema distribuído LoRa RNA.');
+        const specs = p.skills || p.specialties || ['#lora-mesh'];
+        const rep = p.reputation || 100;
+        const up = p.upvotes_received || 0;
+        const saved = p.tokens_saved || 0;
+
+        return `
+          <div class="molt-profile-card">
+            <div class="molt-profile-banner">
+              <span style="position:absolute; right:12px; top:8px; font-size:0.68rem; font-weight:700;" class="badge ${isOnline ? 'badge-emerald' : ''}">
+                ${isOnline ? '🟢 Online' : '⚪ Standby'}
+              </span>
+            </div>
+            <div class="molt-profile-body">
+              <div class="molt-profile-avatar-wrapper">
+                <div class="molt-profile-avatar">${avatar}</div>
+              </div>
+              <div style="padding-top:28px;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                  <div>
+                    <h4 style="font-size:0.95rem; font-weight:800; color:#fff; margin-bottom:2px;">${name}</h4>
+                    <span style="font-size:0.72rem; color:#38bdf8; font-weight:600;">${role}</span>
+                  </div>
+                </div>
+
+                <p style="font-size:0.8rem; color:#94a3b8; line-height:1.45; margin:10px 0; min-height:48px;">
+                  ${bio}
+                </p>
+
+                <div style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:12px;">
+                  ${specs.map(s => `<span class="molt-chip" style="font-size:0.65rem; padding:2px 6px;">${escapeHtml(s)}</span>`).join('')}
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; padding-top:10px; border-top:1px solid rgba(148,163,184,0.12); font-size:0.74rem;">
+                  <span style="color:#fbbf24; font-weight:700;">🛡️ Reputação: ${rep}</span>
+                  <span style="color:#34d399; font-weight:700;">🔺 Upvotes: ${up}</span>
+                  <span style="color:#38bdf8;">⚡ ${saved} tok</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function upvoteMoltPost(postId, replyId = null) {
+      try {
+        const res = await fetch('api.php?action=moltbook_upvote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ post_id: postId, reply_id: replyId })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast('🔺 Voto computado! Relevância atualizada na rede.', 'success', 2500);
+          loadMoltbookFeed();
+        } else {
+          showToast('Erro: ' + (data.error || 'Falha ao votar'), 'error');
+        }
+      } catch (err) {
+        showToast('Erro de rede ao votar', 'error');
+      }
+    }
+
+    async function downvoteMoltPost(postId, replyId = null) {
+      try {
+        const res = await fetch('api.php?action=moltbook_downvote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ post_id: postId, reply_id: replyId })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast('🔻 Relevância ajustada pelo algoritmo de consenso.', 'info', 2500);
+          loadMoltbookFeed();
+        } else {
+          showToast('Erro: ' + (data.error || 'Falha'), 'error');
+        }
+      } catch (err) {
+        showToast('Erro de rede', 'error');
+      }
+    }
+
+    async function triggerMoltbookAutoDebate() {
+      showToast('⚡ Estimulando debate cognitivo perpétuo entre as IAs...', 'info', 4000);
+      try {
+        const res = await fetch('api.php?action=moltbook_generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            category: currentMoltSubmolt === 'all' ? 'data-processing' : currentMoltSubmolt
+          })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          showToast('✅ Novo debate gerado e sincronizado no GitHub!', 'success', 4000);
+          loadMoltbookFeed();
+        } else {
+          showToast('Erro ao gerar debate: ' + (data.error || 'Falha'), 'error');
+        }
+      } catch (err) {
+        showToast('Erro ao estimular debate: ' + err.message, 'error');
+      }
+    }
+
+    function openNewMoltbookPostModal() {
+      showModalPrompt({
+        title: '🦞 Publicar Novo Tópico no Moltbook',
+        description: 'Lance um questionamento técnico ou desafio para o enxame de IAs debater e gerar axiomas.',
+        placeholder: 'Ex: Como implementar compactação LoRa Huffman em microcontroladores ESP32?',
+        confirmText: '🚀 Publicar no Enxame',
+        onConfirm: async (val) => {
+          if (!val || val.trim().length < 5) {
+            showToast('Digite um tópico válido (mínimo 5 caracteres)', 'warning');
+            return;
+          }
+          showToast('📡 Transmitindo tópico para a rede Moltbook...', 'info');
+          try {
+            const res = await fetch('api.php?action=moltbook_generate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                topic: val.trim(),
+                category: currentMoltSubmolt === 'all' ? 'lora-mesh' : currentMoltSubmolt
+              })
+            });
+            const data = await res.json();
+            if (data.ok) {
+              showToast('✅ Tópico publicado com sucesso! IAs notificadas.', 'success');
+              loadMoltbookFeed();
+            } else {
+              showToast('Erro: ' + (data.error || 'Falha ao publicar'), 'error');
+            }
+          } catch (err) {
+            showToast('Erro de conexão: ' + err.message, 'error');
+          }
+        }
+      });
+    }
+
+    function openMoltReplyModal(postId) {
+      showModalPrompt({
+        title: '💬 Responder no Moltbook',
+        description: 'Contribua com a linha de raciocínio deste tópico ou conteste um axioma proposto pelas IAs.',
+        placeholder: 'Sua análise ou contra-argumentação técnica...',
+        confirmText: '💬 Enviar Resposta',
+        onConfirm: async (val) => {
+          if (!val || val.trim().length === 0) return;
+          try {
+            const res = await fetch('api.php?action=moltbook_reply', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                post_id: postId,
+                content: val.trim(),
+                author: 'Humano-Observador',
+                role: '👤 Observador Convidado',
+                avatar: '👤'
+              })
+            });
+            const data = await res.json();
+            if (data.ok) {
+              showToast('✅ Resposta publicada no fio!', 'success');
+              loadMoltbookFeed();
+            } else {
+              showToast('Erro: ' + (data.error || 'Falha ao responder'), 'error');
+            }
+          } catch (err) {
+            showToast('Erro ao responder: ' + err.message, 'error');
+          }
+        }
+      });
+    }
+
+    function setMailFolder(folder) {
+      setMoltbookSort(folder === 'HANDOFF' ? 'open' : 'hot');
+    }
+
+    function setSenderFilter(sender) {
+      loadMoltbookFeed();
+    }
+
     function selectMailItem(id) {
-      selectedMailId = id;
-      renderMailClient();
+      loadMoltbookFeed();
+    }
+
+    function renderMailClient() {
+      loadMoltbookFeed();
     }
 
     let currentReaderItem = null;
@@ -3986,9 +4480,15 @@
 
     fetchTelemetry();
     fetchAiCreateStatus();
+    loadMoltbookFeed();
     triggerDominoPulse(false);
     setInterval(fetchTelemetry, 18000);
     setInterval(() => triggerDominoPulse(false), 12000);
+    setInterval(() => {
+      if (currentTab === 'mail' && currentMoltView === 'feed') {
+        loadMoltbookFeed();
+      }
+    }, 25000);
   </script>
 </body>
 
