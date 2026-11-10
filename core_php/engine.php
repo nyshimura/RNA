@@ -59,7 +59,7 @@ class RnaMeshEngine {
                 $this->pdo = new PDO($dsn, $this->dbConfig['db_user'], $this->dbConfig['db_pass'], [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_TIMEOUT => 3,
+                    PDO::ATTR_TIMEOUT => 2,
                 ]);
                 try {
                     $this->pdo->exec("SET time_zone = '-03:00'");
@@ -67,7 +67,31 @@ class RnaMeshEngine {
                 $this->ensureTables();
                 return;
             } catch (Throwable $e) {
-                $this->pdo = null;
+                // Se o banco não existe (código 1049), tenta criá-lo automaticamente
+                if (str_contains($e->getMessage(), '1049') || str_contains($e->getMessage(), 'Unknown database')) {
+                    try {
+                        $rawPdo = new PDO("mysql:host={$host};charset=utf8mb4", $this->dbConfig['db_user'], $this->dbConfig['db_pass'], [
+                            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                            PDO::ATTR_TIMEOUT => 2,
+                        ]);
+                        $dbNameSafe = preg_replace('/[^a-zA-Z0-9_]/', '', $this->dbConfig['db_name']);
+                        $rawPdo->exec("CREATE DATABASE IF NOT EXISTS `{$dbNameSafe}` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                        $rawPdo = null;
+
+                        // Tenta reconectar ao banco recém-criado
+                        $this->pdo = new PDO("mysql:host={$host};dbname={$this->dbConfig['db_name']};charset=utf8mb4", $this->dbConfig['db_user'], $this->dbConfig['db_pass'], [
+                            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                            PDO::ATTR_TIMEOUT => 2,
+                        ]);
+                        $this->ensureTables();
+                        return;
+                    } catch (Throwable $eCreate) {
+                        $this->pdo = null;
+                    }
+                } else {
+                    $this->pdo = null;
+                }
             }
         }
     }

@@ -4,7 +4,26 @@
  * Executa 100% nativamente em PHP + MySQL + Árvore mRNA, sem depender de processos Python externos na hospedagem web.
  */
 
+ini_set('display_errors', '0');
+error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
 date_default_timezone_set('America/Sao_Paulo');
+
+register_shutdown_function(function() {
+    $err = error_get_last();
+    if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        if (!headers_sent()) {
+            http_response_code(200);
+            header('Content-Type: application/json; charset=utf-8');
+        }
+        echo json_encode([
+            'ok' => false,
+            'error' => 'FATAL_PHP_ERROR',
+            'message' => $err['message'],
+            'file' => basename($err['file']),
+            'line' => $err['line']
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+});
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -17,13 +36,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
 }
 
 @set_time_limit(90);
-date_default_timezone_set('America/Sao_Paulo');
 
-require_once __DIR__ . '/core_php/engine.php';
+try {
+    require_once __DIR__ . '/core_php/engine.php';
 
-$baseDir = __DIR__;
-$meshDir = $baseDir . DIRECTORY_SEPARATOR . 'mesh';
-$engine = new RnaMeshEngine($baseDir);
+    $baseDir = __DIR__;
+    $meshDir = $baseDir . DIRECTORY_SEPARATOR . 'mesh';
+    $engine = new RnaMeshEngine($baseDir);
 
 $action = $_GET['action'] ?? ($_POST['action'] ?? ($argv[1] ?? 'telemetry'));
 
@@ -708,3 +727,18 @@ if ($action === 'aicreate_rebuild') {
 
 http_response_code(400);
 echo json_encode(['ok' => false, 'error' => 'Ação desconhecida: ' . $action]);
+
+} catch (Throwable $e) {
+    if (!headers_sent()) {
+        http_response_code(200);
+        header('Content-Type: application/json; charset=utf-8');
+    }
+    echo json_encode([
+        'ok' => false,
+        'error' => 'API_EXCEPTION',
+        'message' => $e->getMessage(),
+        'file' => basename($e->getFile()),
+        'line' => $e->getLine()
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
