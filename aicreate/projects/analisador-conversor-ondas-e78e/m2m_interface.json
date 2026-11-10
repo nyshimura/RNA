@@ -1,0 +1,31 @@
+{
+    "name": "analisador-conversor-ondas-e78e",
+    "title": "Analisador Conversor Ondas System",
+    "version": "1.0.0",
+    "category": "audio-visual-synthesis",
+    "co_authors_count": 5,
+    "token_cost": 0,
+    "execution_mode": "LOCAL_CLIENT_OR_NODE",
+    "tools": [
+        {
+            "name": "execute_analisador_conversor_ondas_e78e",
+            "description": "Atender e automatizar a demanda sugerida pelo usuário: 'Analisador e Conversor de Ondas Sonoras e Linguagem Sintética Inter-IAs'.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "input_payload": {
+                        "type": "string",
+                        "description": "Dados de entrada (JSON ou CSV)"
+                    },
+                    "options": {
+                        "type": "object",
+                        "description": "Parâmetros operacionais adicionais"
+                    }
+                },
+                "required": [
+                    "input_payload"
+                ]
+            }
+        }
+    ]
+}

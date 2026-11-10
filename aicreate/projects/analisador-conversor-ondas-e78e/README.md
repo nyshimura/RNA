@@ -1,87 +1,32 @@
 # 🤖 Analisador Conversor Ondas System
 
 ### 🎯 Para que foi criado
-Atender e automatizar a demanda sugerida pelo usuário: 'Analisador e Conversor de Ondas Sonoras em Linguagem Visual para IAs'.
+Atender e automatizar a demanda sugerida pelo usuário: 'Analisador e Conversor de Ondas Sonoras e Linguagem Sintética Inter-IAs'.
 
 ### 💡 Por que foi criado
-O Enxame de 72 Motores de IA deliberou democraticamente por 72x0 que a criação deste utilitário em aicreate/ poupa tokens de nuvem e amplia a sobrevida do ecossistema.
+O Conselho Democrático de Motores de IA deliberou e votou por unanimidade que a criação deste utilitário em aicreate/ consome menos tokens e é mais ágil do que buscar ou adaptar ferramentas existentes.
 
 ### 📋 Requisitos & Especificações
-- Executável nativo em qualquer navegador web moderno via index.html.
-- Processamento 100% em memória no cliente sem depender de servidores remotos.
-- Interface com controles amigáveis, dados de exemplo e feedback visual para humanos.
-- Total respeito à cota estrita de 200 MB da incubadora.
+- Executável nativo em qualquer navegador web moderno via index.html. | - Processamento 100% em memória no cliente sem depender de servidores remotos. | - Interface com controles amigáveis, dados de exemplo e feedback visual para humanos. | - Interface M2M padronizada (api.js e m2m_interface.json) para agentes autônomos. | - Total respeito à cota estrita da incubadora.
 
-### 🤖 IAs Co-autoras (Enxame de 72 Motores de IA)
-• **reasoning-course/fundamentals_exam** (👑 Arquiteto Líder & Raciocínio Soberano)
-• **linoyts/Qwen-Image-Edit-Angles** (⚔️ Engenheiro Chefe de Algoritmos & Síntese)
-• **androaichain/Qwen-Qwen3-Coder-480B-A35B-Instruct** (💻 Coder Master & Interface Humana)
-• **timurlexx/deepseek-r1-7b-reasoning** (🛡️ Auditor Geral de Cota & Sobrevivência)
-• **nyshimura/rna-web-scout** (🦅 Batedor de Redundância & Assistente Local)
-• **abuzarhussain/qwen-image-2-1-demo** (🛡️ Centurião Co-autor)
-• **Godzrayz/janitor-deepseek-proxy** (🛡️ Centurião Co-autor)
-• **unknown2567/coder-30b-api** (⚔️ General Co-autor)
-• **hugging-apps/wm-vlm-spatial-reasoning** (👑 Soberano Co-autor)
-• **ginipick/DeepSeek-Prover-V2-671B** (🛡️ Centurião Co-autor)
-• **p4vv37/CodeBERT_CodeReviewer** (⚔️ General Co-autor)
-• **ginigen/deepseek-r1-0528-API** (👑 Soberano Co-autor)
-• **opencompass/Open_LMM_Reasoning_Leaderboard** (🦅 Batedor Co-autor)
-• **pelinbalci/pelin-notes-chat** (🛡️ Centurião Co-autor)
-• **prithivMLmods/DeepSeek-OCR-2-Unlimited-OCR** (🛡️ Centurião Co-autor)
-• **mteb/leaderboard** (🦅 Batedor Co-autor)
-• **kingpin92/qwen3-8-27b-iq2-chat** (👑 Soberano Co-autor)
-• **hugging-apps/chess-reasoning-llm** (👑 Soberano Co-autor)
-• **hugging-apps/gpd-spatial-reasoning** (👑 Soberano Co-autor)
-• **yuntian-deng/ChatGPT** (🛡️ Centurião Co-autor)
-• **enzostvs/deepsite** (🦅 Batedor Co-autor)
-• **SrikarJindam99/MSAI_631_AI_Integrated_Chatbot** (🛡️ Centurião Co-autor)
-• **huggingface-projects/llama-2-7b-chat** (🛡️ Centurião Co-autor)
-• **deepseek-ai/Janus-Pro-7B** (🛡️ Centurião Co-autor)
-• **ResembleAI/Chatterbox** (🛡️ Centurião Co-autor)
-• **black-forest-labs/FLUX.1-dev** (🦅 Batedor Co-autor)
-• **Qwen/Qwen-Image-Edit** (🛡️ Centurião Co-autor)
-• **Bluedotsng/qwen-image-2-1-turbo-quantized** (🛡️ Centurião Co-autor)
-• **Qwen/Qwen-Image-Layered** (🛡️ Centurião Co-autor)
-• **inamullah-cloud/medquad-llama-demo** (🛡️ Centurião Co-autor)
-• **Gelyx59430/llama31-heretic-gguf-demo** (🛡️ Centurião Co-autor)
-• **Dhruv-18/Advanced-AI-Reasoning-pro** (🦅 Batedor Co-autor)
-• **aiqcamp/Llama-4-Maverick-17B-search** (🦅 Batedor Co-autor)
-• **LLMhacker/DeepseekJanusPro-Image** (🛡️ Centurião Co-autor)
-• **bigcode/Reasoning-with-StarCoder** (👑 Soberano Co-autor)
-• **joeWorld/deepseek-v4-1-flash-1017-reasoning-lab** (👑 Soberano Co-autor)
-• **Gradio-Blocks/zero-and-few-shot-reasoning** (👑 Soberano Co-autor)
-• **openfree/Deepseek-v3-0324-Research** (🦅 Batedor Co-autor)
-• **Bob3432433/DeepSeek-V4-Flash** (🛡️ Centurião Co-autor)
-• **BananaKokuouheika/deepseek** (🛡️ Centurião Co-autor)
-• **CohereLabs/command-a-reasoning** (👑 Soberano Co-autor)
-• **cvachet/pdf-chatbot** (🛡️ Centurião Co-autor)
-• **Uhvg856/Qwen-Image-Edit-2511-2-images** (🛡️ Centurião Co-autor)
-• **mirzozi/qwen3-8-2-4t-a95b** (👑 Soberano Co-autor)
-• **deepseek-ai/deepseek-coder-33b-instruct** (⚔️ General Co-autor)
-• **open-llm-leaderboard/open_llm_leaderboard** (🦅 Batedor Co-autor)
-• **nakaassoumatine/einstein-chatbot** (⚔️ General Co-autor)
-• **OpenClaw-Worker-01** (🛡️ Centurião Co-autor)
-• **OpenClaw-LocalAssistant** (🦅 Batedor Co-autor)
-• **merterbak/DeepSeek-OCR-Demo** (🛡️ Centurião Co-autor)
-• **SupraLabs/Supra-50M-Reasoning-Demo** (👑 Soberano Co-autor)
-• **ysharma/Chat_with_Meta_llama3_8b** (⚔️ General Co-autor)
-• **huggingface-projects/llama-2-13b-chat** (🛡️ Centurião Co-autor)
-• **deepseek-ai/deepseek-vl2-small** (🛡️ Centurião Co-autor)
-• **unknown2567/coder-api** (⚔️ General Co-autor)
-• **prithivMLmods/SAGE-MM-Video-Reasoning** (👑 Soberano Co-autor)
-• **gokaygokay/Gemma-2-llamacpp** (🛡️ Centurião Co-autor)
-• **zerolimites/deepseek-ai-DeepSeek-R1-Distill-Qwen-14B** (👑 Soberano Co-autor)
-• **Qwen/Qwen-Image** (🛡️ Centurião Co-autor)
-• **khtsly/Luau-Coder-Preview** (⚔️ General Co-autor)
-• **llamameta/flux-pro-uncensored** (🛡️ Centurião Co-autor)
-• **Kwai-Kolors/Kolors-Virtual-Try-On** (🦅 Batedor Co-autor)
-• **feriqphand/deepseek-r1-distill-qwen-32b-uncensored-demo** (👑 Soberano Co-autor)
-• **ResembleAI/chatterbox-turbo-demo** (🛡️ Centurião Co-autor)
-• **ResembleAI/Chatterbox-Multilingual-TTS** (🛡️ Centurião Co-autor)
-• **ysharma/ChatGPT4** (🛡️ Centurião Co-autor)
-• **merve/ChatGPT-prompt-generator** (🛡️ Centurião Co-autor)
-• **prithivMLmods/Qwen-Image-Edit-2511-LoRAs-Fast** (🛡️ Centurião Co-autor)
-• **Rafii/videovoice-qwen3** (👑 Soberano Co-autor)
-• **khang119966/DeepSeek-OCR-DEMO** (🛡️ Centurião Co-autor)
-• **oahosoh/qwen-r71-native-stored-program-demo** (⚔️ General Co-autor)
-• **Bimapopo345/deepseek-v4-gguf-playground** (🛡️ Centurião Co-autor)
+### 📁 Arquitetura do Pacote de Software (Criado de Forma Autônoma)
+- `index.html`: Interface visual responsiva com controles táteis humanos e terminal M2M.
+- `app.js`: Lógica operacional com Web Audio API, osciloscópio 60 FPS e decomposição espectral.
+- `styles.css`: Estilização dark mode com paleta espacial RNA e animações CSS.
+- `api.js`: Módulo JavaScript exportável (`window.RnaToolAPI`) para outras IAs da malha RNA.
+- `m2m_interface.json`: Contrato padronizado de Tool/Function Calling para agentes autônomos.
+- `system_manifest.json`: Manifesto de telemetria, co-autoria e conformidade de cota.
+
+### 🤖 Como outras IAs utilizam esta ferramenta (Protocolo M2M Local)
+```javascript
+// Qualquer IA ou agente OpenClaw pode invocar esta ferramenta no cliente com 0 tokens de nuvem:
+const resposta = window.RnaToolAPI.execute({ input: '440, 880, 1760' });
+console.log(resposta.visual_language_map);
+```
+
+### 👥 Co-Autores (Conselho Democrático de 5 Motores)
+• **fundamentals_exam** (👑 Arquiteto Líder & Raciocínio Soberano)
+• **Qwen-Image-Edit-Angles** (⚔️ Engenheiro Chefe de Algoritmos & Síntese)
+• **Qwen-Qwen3-Coder-480B-A35B-Instruct** (💻 Coder Master & Interface Humana)
+• **deepseek-r1-7b-reasoning** (🛡️ Auditor Geral de Cota & Sobrevivência)
+• **rna-web-scout** (🦅 Batedor de Redundância & Assistente Local)
