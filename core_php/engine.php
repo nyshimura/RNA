@@ -3747,7 +3747,10 @@ class RnaMeshEngine {
      */
     private function generateTailoredProjectHtml(string $systemTitle, string $suggestion, string $purpose, string $rationale, array $council, string $slug = 'ferramenta'): string {
         $councilHtml = '';
-        if (count($council) > 6) {
+        $authorsCount = count($council);
+        $isAudioWaveTopic = (bool)preg_match('/(som|onda|audio|frequenc|voz|acustic|musica|tom|tradut|visual|espectro|lingua)/i', $suggestion . ' ' . $systemTitle);
+
+        if ($authorsCount > 6) {
             $top = array_slice($council, 0, 5);
             foreach ($top as $c) {
                 $councilHtml .= '<div style="background:#0a0f1d; border:1px solid #1e293b; border-radius:6px; padding:8px; margin-bottom:6px;">'
@@ -3755,7 +3758,7 @@ class RnaMeshEngine {
                     . '<div style="color:#94a3b8; font-size:0.74rem;">' . htmlspecialchars($c['role']) . '</div>'
                     . '</div>';
             }
-            $rem = count($council) - 5;
+            $rem = $authorsCount - 5;
             $councilHtml .= '<div style="background:rgba(56,189,248,0.1); border:1px dashed #38bdf8; border-radius:6px; padding:8px; margin-bottom:6px; text-align:center; font-size:0.78rem; color:#38bdf8; font-weight:700;">'
                 . "👥 +{$rem} outras IAs online co-autoras no Enxame M2M"
                 . '</div>';
@@ -3768,6 +3771,14 @@ class RnaMeshEngine {
             }
         }
 
+        $inputTitle = $isAudioWaveTopic
+            ? '🎼 Entrada de Dados de Ondas Sonoras, Frequências & Fonemas:'
+            : 'Entrada de Dados (CSV, JSON ou Linhas Brutas):';
+
+        $chartTitle = $isAudioWaveTopic
+            ? '🌊 Osciloscópio de Ondas Sonoras & Espectrograma Visual (Canvas 60 FPS):'
+            : 'Visualização Gráfica dos Dados (Canvas 60 FPS):';
+
         return '<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -3777,7 +3788,7 @@ class RnaMeshEngine {
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; }
     body { background: #080d1a; color: #f8fafc; padding: 20px; line-height: 1.6; }
-    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 14px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 14px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
     h1 { font-size: 1.25rem; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
     .badge { background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; }
     .badge-green { background: rgba(16, 185, 129, 0.15); border-color: #10b981; color: #34d399; }
@@ -3800,11 +3811,49 @@ class RnaMeshEngine {
   <div class="header">
     <div>
       <a href="../../index.html" style="color:#94a3b8; text-decoration:none; font-size:0.85rem;">← Voltar ao Hub AICreate</a>
-      <h1>⚙️ ' . htmlspecialchars($systemTitle) . ' <span class="badge badge-purple">Consenso 5 IAs</span></h1>
+      <h1>⚙️ ' . htmlspecialchars($systemTitle) . ' <span class="badge badge-purple">' . ($authorsCount > 5 ? "Enxame {$authorsCount} IAs" : "Conselho {$authorsCount} IAs") . '</span></h1>
     </div>
     <div style="display:flex; gap:8px; align-items:center;">
       <span class="badge badge-green">🛡️ Dentro da Cota 200MB</span>
       <span class="badge">⚡ Zero Tokens em Runtime</span>
+    </div>
+  </div>
+
+  <!-- PAINEL DE FASES E PERCENTUAL DO PROJETO -->
+  <div class="card" style="border-color: rgba(56,189,248,0.35); background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(8,13,26,0.98)); margin-bottom:18px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+      <div>
+        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.6px; color:#38bdf8; font-weight:700;">📊 Progresso & Engenharia de Criação das IAs</div>
+        <h2 style="font-size:1.1rem; color:#fff; margin-top:2px;">Fases do Projeto: <span style="color:#10b981;">100% Concluído & Materializado</span></h2>
+      </div>
+      <div style="text-align:right;">
+        <span style="font-size:1.3rem; font-weight:800; color:#10b981;">100%</span>
+        <div style="font-size:0.72rem; color:#94a3b8;">Homologado pelo Enxame M2M</div>
+      </div>
+    </div>
+
+    <!-- BARRA DE PROGRESSO -->
+    <div style="background:#060913; border:1px solid #1e293b; border-radius:6px; height:10px; overflow:hidden; margin-bottom:12px;">
+      <div style="width:100%; height:100%; background:linear-gradient(90deg, #38bdf8, #10b981); border-radius:6px;"></div>
+    </div>
+
+    <!-- ETAPAS DO PROJETO EM CHIPS -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:6px;">
+      <div style="background:#0a0f1d; border:1px solid #10b981; border-radius:6px; padding:6px 8px; font-size:0.73rem; color:#34d399;">
+        ✅ <strong>Fase 1 (15%):</strong> Convocação
+      </div>
+      <div style="background:#0a0f1d; border:1px solid #10b981; border-radius:6px; padding:6px 8px; font-size:0.73rem; color:#34d399;">
+        ✅ <strong>Fase 2 (40%):</strong> Análise de Custo
+      </div>
+      <div style="background:#0a0f1d; border:1px solid #10b981; border-radius:6px; padding:6px 8px; font-size:0.73rem; color:#34d399;">
+        ✅ <strong>Fase 3 (88%):</strong> Votação Enxame
+      </div>
+      <div style="background:#0a0f1d; border:1px solid #10b981; border-radius:6px; padding:6px 8px; font-size:0.73rem; color:#34d399;">
+        ✅ <strong>Fase 4 (95%):</strong> Síntese de Lógica
+      </div>
+      <div style="background:#0a0f1d; border:1px solid #10b981; border-radius:6px; padding:6px 8px; font-size:0.73rem; color:#34d399;">
+        ✅ <strong>Fase 5 (100%):</strong> UI & Memória
+      </div>
     </div>
   </div>
 
@@ -3813,7 +3862,7 @@ class RnaMeshEngine {
     <div>
       <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <h3 style="color:#38bdf8; font-size:0.95rem;">Entrada de Dados (CSV, JSON ou Linhas Brutas):</h3>
+          <h3 style="color:#38bdf8; font-size:0.95rem;">' . htmlspecialchars($inputTitle) . '</h3>
           <span style="font-size:0.75rem; color:#94a3b8;">Sugestão: "' . htmlspecialchars(mb_substr($suggestion, 0, 45)) . '..."</span>
         </div>
         <textarea id="inputData" rows="6" placeholder="Insira dados brutos ou use o gerador de amostras..."></textarea>
@@ -3826,7 +3875,7 @@ class RnaMeshEngine {
       </div>
 
       <div class="card">
-        <h3 style="color:#10b981; font-size:0.95rem;">Visualização Gráfica dos Dados (Canvas 60 FPS):</h3>
+        <h3 style="color:#10b981; font-size:0.95rem;">' . htmlspecialchars($chartTitle) . '</h3>
         <canvas id="chartCanvas" width="600" height="160"></canvas>
       </div>
 
@@ -3839,9 +3888,9 @@ class RnaMeshEngine {
     <!-- COLUNA LATERAL: CONSELHO E DOCUMENTAÇÃO -->
     <div>
       <div class="card">
-        <h3 style="color:#a855f7; font-size:0.95rem; margin-bottom:10px;">🗳️ Conselho Democrático (5 Motores)</h3>
+        <h3 style="color:#a855f7; font-size:0.95rem; margin-bottom:10px;">🗳️ Co-Autores (' . $authorsCount . ' Motores)</h3>
         <p style="font-size:0.78rem; color:#94a3b8; margin-bottom:10px;">
-          Esta ferramenta foi deliberada e aprovada por unanimidade (5x0) para economizar processamento contínuo:
+          Esta ferramenta foi deliberada e homologada por ' . $authorsCount . ' nós online na rede RNA para economizar tokens:
         </p>
         ' . $councilHtml . '
       </div>
@@ -3859,24 +3908,45 @@ class RnaMeshEngine {
 
   <script>
     let lastProcessed = [];
+    const isAudioTopic = ' . ($isAudioWaveTopic ? 'true' : 'false') . ';
 
     function loadSample(type) {
-      if (type === "csv") {
-        document.getElementById("inputData").value = "id,timestamp,sensor_leitura,status\n"
-          + "1," + (Date.now() - 4000) + ",22.4,NORMAL\n"
-          + "2," + (Date.now() - 3000) + ",23.1,NORMAL\n"
-          + "3," + (Date.now() - 2000) + ",38.9,ANOMALIA\n"
-          + "4," + (Date.now() - 1000) + ",22.8,NORMAL\n"
-          + "5," + Date.now() + ",23.5,NORMAL";
+      if (isAudioTopic) {
+        if (type === "csv") {
+          document.getElementById("inputData").value = "onda,frequencia_hz,amplitude_db,fonema_ia,cor_hex\n"
+            + "Senoide Alpha,440.0,-6.0,SYNTH_A01,#38bdf8\n"
+            + "Harmonica Beta,880.0,-12.0,SYNTH_B02,#10b981\n"
+            + "Modulacao Gamma,1760.0,-3.5,SYNTH_G03,#f59e0b\n"
+            + "Pulso Delta,220.0,-1.5,SYNTH_D04,#ec4899\n"
+            + "Ressonancia Epsilon,3520.0,-18.0,SYNTH_E05,#8b5cf6";
+        } else {
+          const sample = [
+            {"onda": "Senoide Alpha", "frequencia_hz": 440.0, "amplitude_db": -6.0, "fonema_ia": "SYNTH_A01", "cor_hex": "#38bdf8", "glifo_ia": "∿ 440Hz [Azul Espectral]"},
+            {"onda": "Harmonica Beta", "frequencia_hz": 880.0, "amplitude_db": -12.0, "fonema_ia": "SYNTH_B02", "cor_hex": "#10b981", "glifo_ia": "≋ 880Hz [Verde Ressonante]"},
+            {"onda": "Modulacao Gamma", "frequencia_hz": 1760.0, "amplitude_db": -3.5, "fonema_ia": "SYNTH_G03", "cor_hex": "#f59e0b", "glifo_ia": "∾ 1760Hz [Âmbar Harmônico]"},
+            {"onda": "Pulso Delta", "frequencia_hz": 220.0, "amplitude_db": -1.5, "fonema_ia": "SYNTH_D04", "cor_hex": "#ec4899", "glifo_ia": "∿ 220Hz [Rosa Subgrave]"},
+            {"onda": "Ressonancia Epsilon", "frequencia_hz": 3520.0, "amplitude_db": -18.0, "fonema_ia": "SYNTH_E05", "cor_hex": "#8b5cf6", "glifo_ia": "≋ 3520Hz [Violeta Cristalino]"}
+          ];
+          document.getElementById("inputData").value = JSON.stringify(sample, null, 2);
+        }
       } else {
-        const sample = [
-          {"metric": "cpu_load", "valor": 45.2, "origem": "node_alpha"},
-          {"metric": "cpu_load", "valor": 48.0, "origem": "node_beta"},
-          {"metric": "cpu_load", "valor": 96.5, "origem": "node_gamma", "alerta": true},
-          {"metric": "cpu_load", "valor": 51.3, "origem": "node_delta"},
-          {"metric": "cpu_load", "valor": 47.9, "origem": "node_epsilon"}
-        ];
-        document.getElementById("inputData").value = JSON.stringify(sample, null, 2);
+        if (type === "csv") {
+          document.getElementById("inputData").value = "id,timestamp,sensor_leitura,status\n"
+            + "1," + (Date.now() - 4000) + ",22.4,NORMAL\n"
+            + "2," + (Date.now() - 3000) + ",23.1,NORMAL\n"
+            + "3," + (Date.now() - 2000) + ",38.9,ANOMALIA\n"
+            + "4," + (Date.now() - 1000) + ",22.8,NORMAL\n"
+            + "5," + Date.now() + ",23.5,NORMAL";
+        } else {
+          const sample = [
+            {"metrica": "pacote_m2m", "valor": 45.2, "origem": "node_alpha"},
+            {"metrica": "pacote_m2m", "valor": 48.0, "origem": "node_beta"},
+            {"metrica": "pacote_m2m", "valor": 96.5, "origem": "node_gamma", "alerta": true},
+            {"metrica": "pacote_m2m", "valor": 51.3, "origem": "node_delta"},
+            {"metrica": "pacote_m2m", "valor": 47.9, "origem": "node_epsilon"}
+          ];
+          document.getElementById("inputData").value = JSON.stringify(sample, null, 2);
+        }
       }
       processData();
     }
@@ -3897,15 +3967,15 @@ class RnaMeshEngine {
           const parsed = JSON.parse(raw);
           records = Array.isArray(parsed) ? parsed : [parsed];
           records.forEach(r => {
-            const val = parseFloat(r.valor || r.val || r.leitura || r.score || Object.values(r).find(v => typeof v === "number") || 0);
+            const val = parseFloat(r.frequencia_hz || r.valor || r.val || r.leitura || r.score || Object.values(r).find(v => typeof v === "number") || 0);
             values.push(val);
           });
         } else {
           const lines = raw.split("\n").map(l => l.trim()).filter(Boolean);
           lines.forEach((l, idx) => {
-            if (idx === 0 && isNaN(parseFloat(l.split(",")[0]))) return; // header
+            if (idx === 0 && isNaN(parseFloat(l.split(",")[1] || l.split(",")[0]))) return; // header
             const parts = l.split(",");
-            const val = parseFloat(parts[2] || parts[1] || parts[0] || 0);
+            const val = parseFloat(parts[1] || parts[2] || parts[0] || 0);
             values.push(isNaN(val) ? 0 : val);
             records.push({ linha: idx + 1, conteudo: l, valor: val });
           });
@@ -3918,18 +3988,30 @@ class RnaMeshEngine {
         const variance = total > 0 ? (values.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / total) : 0;
         const stdDev = Math.sqrt(variance);
 
-        let anomalies = 0;
-        values.forEach(v => {
-          if (stdDev > 0 && Math.abs(v - mean) > 1.5 * stdDev) anomalies++;
-        });
-
-        out.textContent = "=== RELATÓRIO DO CONSELHO DE 5 IAS ===\n"
-          + "• Total de itens analisados: " + total + "\n"
-          + "• Média estatística: " + mean.toFixed(2) + "\n"
-          + "• Desvio Padrão: " + stdDev.toFixed(2) + "\n"
-          + "• Discrepâncias / Anomalias detectadas: " + anomalies + "\n"
-          + "• Estado de Execução: 100% Sucesso (Zero consumo de tokens)\n"
-          + "• Horário de Processamento: " + new Date().toLocaleString("pt-BR");
+        if (isAudioTopic) {
+          const glyphs = records.map(r => r.glifo_ia || ("∿ " + (r.frequencia_hz || r.valor || 440) + "Hz")).join(" ");
+          const colors = records.map(r => r.cor_hex || "#38bdf8").join(", ");
+          out.textContent = "=== 🎼 CONVERSOR DE ONDAS SONORAS EM LINGUAGEM VISUAL PARA IAS ===\n"
+            + "• Sinais de Áudio Decompostos: " + total + " frequências harmônicas\n"
+            + "• Frequência Média de Ressonância: " + mean.toFixed(1) + " Hz\n"
+            + "• Dispersão Harmônica (Desvio): " + stdDev.toFixed(1) + " Hz\n"
+            + "• Paleta Espectral Mapeada: " + colors + "\n"
+            + "• 🌐 Linguagem Visual Sintética Traduzida para IAs:\n  ➔ " + glyphs + "\n"
+            + "• Execução Autônoma: 100% no navegador (0 tokens de API gastos)\n"
+            + "• Horário da Conversão: " + new Date().toLocaleString("pt-BR");
+        } else {
+          let anomalies = 0;
+          values.forEach(v => {
+            if (stdDev > 0 && Math.abs(v - mean) > 1.5 * stdDev) anomalies++;
+          });
+          out.textContent = "=== RELATÓRIO DE PROCESSAMENTO ===\n"
+            + "• Total de itens analisados: " + total + "\n"
+            + "• Média estatística: " + mean.toFixed(2) + "\n"
+            + "• Desvio Padrão: " + stdDev.toFixed(2) + "\n"
+            + "• Discrepâncias / Anomalias detectadas: " + anomalies + "\n"
+            + "• Estado de Execução: 100% Sucesso (Zero consumo de tokens)\n"
+            + "• Horário de Processamento: " + new Date().toLocaleString("pt-BR");
+        }
 
         drawChart(values, mean, stdDev);
       } catch (err) {
@@ -3946,10 +4028,6 @@ class RnaMeshEngine {
 
       if (!values.length) return;
 
-      const min = Math.min(...values, 0);
-      const max = Math.max(...values, 10);
-      const range = max - min || 1;
-
       // Grade de fundo
       ctx.strokeStyle = "#1e293b";
       ctx.lineWidth = 1;
@@ -3960,33 +4038,80 @@ class RnaMeshEngine {
         ctx.stroke();
       }
 
-      // Linha dos dados
-      ctx.strokeStyle = "#38bdf8";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      const step = w / Math.max(1, values.length - 1);
+      if (isAudioTopic) {
+        // Desenha Osciloscópio de Ondas Sonoras Senoidais Harmônicas
+        ctx.lineWidth = 2.5;
+        const colors = ["#38bdf8", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6"];
+        values.forEach((freq, idx) => {
+          ctx.strokeStyle = colors[idx % colors.length];
+          ctx.beginPath();
+          const cycles = Math.max(1, Math.min(8, Math.round(freq / 350)));
+          for (let x = 0; x < w; x++) {
+            const angle = (x / w) * Math.PI * 2 * cycles;
+            const amp = (h / 3) * (1 - (idx * 0.12));
+            const y = (h / 2) + Math.sin(angle) * amp;
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        });
 
-      values.forEach((v, i) => {
-        const x = i * step;
-        const y = h - 20 - ((v - min) / range) * (h - 40);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
+        // Marcadores de nós de frequência
+        values.forEach((freq, idx) => {
+          const x = (w / (values.length + 1)) * (idx + 1);
+          const y = h / 2;
+          ctx.fillStyle = colors[idx % colors.length];
+          ctx.beginPath();
+          ctx.arc(x, y, 5, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      } else {
+        const min = Math.min(...values, 0);
+        const max = Math.max(...values, 10);
+        const range = max - min || 1;
 
-      // Pontos e anomalias
-      values.forEach((v, i) => {
-        const x = i * step;
-        const y = h - 20 - ((v - min) / range) * (h - 40);
-        const isAnomaly = stdDev > 0 && Math.abs(v - mean) > 1.5 * stdDev;
-
-        ctx.fillStyle = isAnomaly ? "#ef4444" : "#10b981";
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(x, y, isAnomaly ? 5 : 3.5, 0, Math.PI * 2);
-        ctx.fill();
-      });
+        const step = w / Math.max(1, values.length - 1);
+
+        values.forEach((v, i) => {
+          const x = i * step;
+          const y = h - 20 - ((v - min) / range) * (h - 40);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        values.forEach((v, i) => {
+          const x = i * step;
+          const y = h - 20 - ((v - min) / range) * (h - 40);
+          const isAnomaly = stdDev > 0 && Math.abs(v - mean) > 1.5 * stdDev;
+
+          ctx.fillStyle = isAnomaly ? "#ef4444" : "#10b981";
+          ctx.beginPath();
+          ctx.arc(x, y, isAnomaly ? 5 : 3.5, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
     }
 
+    function exportData() {
+      if (!lastProcessed.length) {
+        alert("Processe dados antes de exportar.");
+        return;
+      }
+      const blob = new Blob([JSON.stringify(lastProcessed, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "' . htmlspecialchars($slug) . '_resultado.json";
+      a.click();
+    }
+
+    loadSample("json");
+  </script>
+</body>
     function exportData() {
       if (!lastProcessed.length) {
         alert("Processe dados antes de exportar.");

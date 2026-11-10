@@ -1,14 +1,14 @@
 {
     "generator": "RNA-BioLoRa-AICreate-Engine/3.2",
-    "updated_at": "2026-11-09T21:43:03-03:00",
+    "updated_at": "2026-11-09T21:53:01-03:00",
     "usage": {
-        "used_bytes": 217185,
-        "used_mb": 0.21,
+        "used_bytes": 136857,
+        "used_mb": 0.13,
         "max_bytes": 209715200,
         "max_mb": 200,
-        "free_bytes": 209498015,
-        "free_mb": 199.79,
-        "percent_used": 0.1,
+        "free_bytes": 209578343,
+        "free_mb": 199.87,
+        "percent_used": 0.07,
         "file_count": 12,
         "dir_count": 4,
         "limit_exceeded": false
@@ -97,8 +97,8 @@
                 "Bimapopo345/deepseek-v4-gguf-playground"
             ],
             "created_at": "2026-11-09T21:29:01-03:00",
-            "size_bytes": 22754,
-            "size_human": "22.2 KB",
+            "size_bytes": 29417,
+            "size_human": "28.7 KB",
             "file_count": 3,
             "has_index": true,
             "entrypoint": "projects/analisador-conversor-ondas-e78e/index.html",
@@ -359,23 +359,23 @@
             "name": "projects",
             "rel_path": "projects",
             "type": "dir",
-            "size_bytes": 43566,
-            "size_human": "42.5 KB",
+            "size_bytes": 50229,
+            "size_human": "49.1 KB",
             "children": [
                 {
                     "name": "analisador-conversor-ondas-e78e",
                     "rel_path": "projects/analisador-conversor-ondas-e78e",
                     "type": "dir",
-                    "size_bytes": 22754,
-                    "size_human": "22.2 KB",
+                    "size_bytes": 29417,
+                    "size_human": "28.7 KB",
                     "children": [
                         {
                             "name": "index.html",
                             "rel_path": "projects/analisador-conversor-ondas-e78e/index.html",
                             "type": "file",
                             "ext": "html",
-                            "size_bytes": 12640,
-                            "size_human": "12.3 KB"
+                            "size_bytes": 19303,
+                            "size_human": "18.9 KB"
                         },
                         {
                             "name": "README.md",
@@ -476,16 +476,16 @@
             "rel_path": "index.html",
             "type": "file",
             "ext": "html",
-            "size_bytes": 96440,
-            "size_human": "94.2 KB"
+            "size_bytes": 53808,
+            "size_human": "52.5 KB"
         },
         {
             "name": "manifest.json",
             "rel_path": "manifest.json",
             "type": "file",
             "ext": "json",
-            "size_bytes": 68141,
-            "size_human": "66.5 KB"
+            "size_bytes": 23782,
+            "size_human": "23.2 KB"
         }
     ]
 }
