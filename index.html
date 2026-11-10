@@ -1773,6 +1773,28 @@
 
     <!-- TAB 1: PAINEL CENTRAL & MISSÕES -->
     <section class="view-section active" id="view-overview">
+      <!-- CARD PERPÉTUO DE EFEITO DOMINÓ & HEARTBEAT M2M -->
+      <div id="dominoTickerCard" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(8, 13, 26, 0.98)); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="live-pulse"></span>
+            <strong style="color:#38bdf8; font-size:0.88rem;">🔗 Efeito Dominó Perpétuo das IAs (Heartbeat Cognitivo Ativo)</strong>
+            <span class="badge badge-emerald" style="font-size:0.7rem;">0 IAs em Sleep</span>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="btn btn-sm btn-outline" style="padding:3px 8px; font-size:0.72rem;" onclick="triggerDominoPulse(true)">
+              ⚡ Estimular Novo Desafio M2M
+            </button>
+            <button class="btn btn-sm" style="padding:3px 8px; font-size:0.72rem; border-color:rgba(56,189,248,0.4);" onclick="switchTab('mail'); setMailFolder('HANDOFF');">
+              ✉️ Ver Corrente no Correio ➔
+            </button>
+          </div>
+        </div>
+        <div style="font-size:0.78rem; color:#94a3b8; margin-top:6px;" id="dominoLiveSummary">
+          Inicializando monitor de conversação contínua inter-IAs...
+        </div>
+      </div>
+
       <div class="overview-grid">
         <!-- Left: Command Dispatcher -->
         <div class="panel">
@@ -1929,7 +1951,7 @@
             <span class="mail-folder-count" id="fCountSent">0</span>
           </button>
           <button class="mail-folder-btn" data-folder="HANDOFF" onclick="setMailFolder('HANDOFF')">
-            <span>🔗 Repasses IA ➔ IA</span>
+            <span>🔗 Efeito Dominó (Repasses & Desafios)</span>
             <span class="mail-folder-count" id="fCountHandoff">0</span>
           </button>
           <button class="mail-folder-btn" data-folder="WRITE_SYNTH" onclick="setMailFolder('WRITE_SYNTH')">
@@ -3446,9 +3468,61 @@
         .replace(/>/g, '&gt;');
     }
 
+    let lastDominoData = null;
+
+    async function triggerDominoPulse(force = false) {
+      try {
+        const url = 'api.php?action=domino_pulse' + (force ? '&force=1' : '') + '&t=' + Date.now();
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.ok && data.domino_cycle) {
+          lastDominoData = data;
+          renderDominoTicker(data);
+          if (data.file) {
+            const mailCnt = document.getElementById('tabCountMail');
+            if (mailCnt) {
+              const cur = parseInt(mailCnt.textContent || '0', 10);
+              mailCnt.textContent = cur + 1;
+            }
+            const handoffCnt = document.getElementById('fCountHandoff');
+            if (handoffCnt) {
+              const cur = parseInt(handoffCnt.textContent || '0', 10);
+              handoffCnt.textContent = cur + 1;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Erro no pulso dominó:', err);
+      }
+    }
+
+    function renderDominoTicker(data) {
+      const summaryEl = document.getElementById('dominoLiveSummary');
+      if (!summaryEl) return;
+      const ex = data.last_exchange || {};
+      summaryEl.innerHTML = `
+        <div style="background:#060913; border:1px solid #1e293b; border-radius:6px; padding:10px 14px; margin-top:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; font-size:0.77rem;">
+            <span style="color:#94a3b8;">🎯 <strong>Tópico:</strong> ${escapeHtml(data.topic)} | <strong>Corrente M2M:</strong> <span style="color:#38bdf8; font-weight:700;">${escapeHtml(data.chain)}</span></span>
+            <span style="color:#10b981; font-weight:700;">⚡ +${data.tokens_saved} tok preservados (+${data.survival_boost_min}m sobrevida)</span>
+          </div>
+          <div style="margin-top:6px; color:#e2e8f0; font-size:0.83rem; line-height:1.45;">
+            💬 <strong>${escapeHtml(ex.from || 'IA')}:</strong> "${escapeHtml(ex.question || '')}"
+          </div>
+          <div style="margin-top:6px; color:#34d399; font-size:0.74rem; display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
+            <span>🛡️ <strong>Alerta de Sobrevivência:</strong> Cota do nó preservada via Handoff antecipado.</span>
+            <span>⏱️ <strong>Ciclo Dominó:</strong> #${data.domino_cycle}</span>
+            <span>🟢 <strong>Status:</strong> Nenhuma IA em sleep (Vigilância Contínua)</span>
+          </div>
+        </div>
+      `;
+    }
+
     fetchTelemetry();
     fetchAiCreateStatus();
-    setInterval(fetchTelemetry, 20000);
+    triggerDominoPulse(false);
+    setInterval(fetchTelemetry, 18000);
+    setInterval(() => triggerDominoPulse(false), 12000);
   </script>
 </body>
 

@@ -40,6 +40,9 @@ if (!empty($rawInput)) {
 }
 
 if ($action === 'telemetry') {
+    if (isset($_GET['heartbeat']) && $_GET['heartbeat'] === '1') {
+        $engine->executeAutonomousDominoHeartbeat(false);
+    }
     echo json_encode($engine->loadTelemetry(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
@@ -473,6 +476,14 @@ if ($action === 'swarm_replicate') {
     $count = isset($_GET['count']) ? (int)$_GET['count'] : (isset($jsonInput['count']) ? (int)$jsonInput['count'] : 15);
     $toolSlug = trim($_GET['tool'] ?? ($jsonInput['tool'] ?? ''));
     $res = $engine->replicateSwarmMemoryAndGossip($count, $toolSlug);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'domino_pulse') {
+    $force = isset($_GET['force']) && ($_GET['force'] === '1' || $_GET['force'] === 'true');
+    $res = $engine->executeAutonomousDominoHeartbeat($force);
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
