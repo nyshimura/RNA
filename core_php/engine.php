@@ -2017,6 +2017,7 @@ class RnaMeshEngine {
                 if ($alreadyExists) continue;
 
                 $raw = (string)@file_get_contents($df);
+                $raw = mb_convert_encoding($raw, 'UTF-8', 'UTF-8');
                 $meta = [];
                 $body = $raw;
                 if (strpos($raw, "---\n") === 0 || strpos($raw, "---\r\n") === 0) {
@@ -2147,7 +2148,7 @@ class RnaMeshEngine {
                 ];
 
                 // Salva o post no cache do Moltbook para persistir votos
-                @file_put_contents($dir . '/' . $moltId . '.json', json_encode($synthPost, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+                @file_put_contents($dir . '/' . $moltId . '.json', json_encode($synthPost, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE));
                 $feed[] = $synthPost;
             }
         }

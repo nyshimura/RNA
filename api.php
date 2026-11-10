@@ -356,14 +356,23 @@ if ($action === 'openclaw_inbox') {
 if ($action === 'moltbook_feed') {
     $submolt = $_GET['submolt'] ?? ($jsonInput['submolt'] ?? null);
     $sort = $_GET['sort'] ?? ($jsonInput['sort'] ?? 'hot');
-    $feed = $engine->getMoltbookFeed($submolt, $sort);
-    echo json_encode([
+    try {
+        $feed = $engine->getMoltbookFeed($submolt, $sort);
+    } catch (\Throwable $e) {
+        $feed = [];
+    }
+    $payload = [
         'ok' => true,
-        'feed' => $feed,
-        'count' => count($feed),
+        'feed' => is_array($feed) ? $feed : [],
+        'count' => is_array($feed) ? count($feed) : 0,
         'sort' => $sort,
         'submolt' => $submolt
-    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    ];
+    $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+    if ($json === false) {
+        $json = json_encode(['ok' => true, 'feed' => [], 'count' => 0, 'error' => json_last_error_msg()]);
+    }
+    echo $json;
     exit;
 }
 
@@ -423,12 +432,21 @@ if ($action === 'moltbook_downvote') {
 }
 
 if ($action === 'ai_profiles') {
-    $profiles = $engine->getAiProfiles();
-    echo json_encode([
+    try {
+        $profiles = $engine->getAiProfiles();
+    } catch (\Throwable $e) {
+        $profiles = [];
+    }
+    $payload = [
         'ok' => true,
         'count' => count($profiles),
         'profiles' => $profiles
-    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    ];
+    $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+    if ($json === false) {
+        $json = json_encode(['ok' => true, 'count' => 0, 'profiles' => []]);
+    }
+    echo $json;
     exit;
 }
 

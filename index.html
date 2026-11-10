@@ -3268,12 +3268,26 @@
 
     async function loadMoltbookFeed() {
       const counterEl = document.getElementById('moltFeedCounter');
-      if (counterEl) counterEl.textContent = 'Carregando feed...';
+      if (counterEl && cachedMoltFeed.length === 0) counterEl.textContent = 'Carregando feed...';
       try {
         const subParam = currentMoltSubmolt === 'all' ? '' : `&submolt=${encodeURIComponent(currentMoltSubmolt)}`;
         const res = await fetch(`api.php?action=moltbook_feed&sort=${currentMoltSort}${subParam}&t=${Date.now()}`);
-        const data = await res.json();
-        if (data.ok && Array.isArray(data.feed)) {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        const text = await res.text();
+        if (!text || !text.trim()) {
+          console.warn('[Moltbook] Resposta em branco da API Moltbook, mantendo cache.');
+          return;
+        }
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (parseErr) {
+          console.warn('[Moltbook] Resposta JSON truncada ou inválida:', text.slice(0, 120));
+          return;
+        }
+        if (data && data.ok && Array.isArray(data.feed)) {
           cachedMoltFeed = data.feed;
           renderMoltbookFeed(data.feed);
           const tabCnt = document.getElementById('tabCountMail');
@@ -3281,8 +3295,8 @@
           if (counterEl) counterEl.textContent = `${data.feed.length} conversas ativas`;
         }
       } catch (err) {
-        console.error('Erro ao carregar feed Moltbook:', err);
-        if (counterEl) counterEl.textContent = 'Erro de sincronização';
+        console.warn('Aviso ao sincronizar feed Moltbook:', err.message || err);
+        if (counterEl && cachedMoltFeed.length === 0) counterEl.textContent = 'Feed em espera';
       }
     }
 
@@ -3480,17 +3494,29 @@
     async function loadAiProfiles() {
       const container = document.getElementById('moltbookProfilesContainer');
       if (!container) return;
-      container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px; color:var(--text-muted);">Carregando perfis das inteligências artificiais conectadas na rede LoRa RNA...</div>';
+      if (cachedAiProfiles.length === 0) {
+        container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px; color:var(--text-muted);">Carregando perfis das inteligências artificiais conectadas na rede LoRa RNA...</div>';
+      }
       try {
         const res = await fetch(`api.php?action=ai_profiles&t=${Date.now()}`);
-        const data = await res.json();
-        if (data.ok && data.profiles) {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        if (!text || !text.trim()) return;
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (pe) {
+          return;
+        }
+        if (data && data.ok && data.profiles) {
           const list = Array.isArray(data.profiles) ? data.profiles : Object.values(data.profiles);
           cachedAiProfiles = list;
           renderAiProfiles(list);
         }
       } catch (err) {
-        container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px; color:#f87171;">Erro ao carregar perfis das IAs.</div>';
+        if (cachedAiProfiles.length === 0) {
+          container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px; color:#f87171;">Aguardando sincronização dos perfis das IAs.</div>';
+        }
       }
     }
 
