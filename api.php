@@ -235,6 +235,11 @@ if ($action === 'stream_dispatch') {
     header('Connection: keep-alive');
     header('X-Accel-Buffering: no');
 
+    // Flush de 4KB inicial para destravar o buffer do Apache no Windows
+    echo ":" . str_repeat(" ", 4096) . "\n\n";
+    @ob_flush();
+    @flush();
+
     $emit = function (string $step, string $machine, string $msg, int $progress, $extra = null) {
         $payload = [
             'step' => $step,
@@ -434,6 +439,11 @@ if ($action === 'aicreate_stream_deliberation') {
     header('Connection: keep-alive');
     header('X-Accel-Buffering: no');
 
+    // Flush de 4KB inicial para destravar o buffer do Apache no Windows
+    echo ":" . str_repeat(" ", 4096) . "\n\n";
+    @ob_flush();
+    @flush();
+
     $emit = function (string $step, string $machine, string $msg, int $progress, $extra = null) {
         $payload = [
             'step' => $step,
@@ -466,6 +476,16 @@ if ($action === 'aicreate_generate') {
         http_response_code(400);
     }
     echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'aicreate_deliberations') {
+    $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'ok' => true,
+        'deliberations' => $engine->listCouncilDeliberations($limit)
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 

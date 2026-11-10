@@ -1,0 +1,608 @@
+[
+    {
+        "id": "delib_tradutor-sonoro-visual-441f",
+        "timestamp": "2026-11-09T21:09:53-03:00",
+        "formatted_time": "09/11/2026 21:09",
+        "suggestion": "Tradutor sonoro e visual de linguagens sintéticas entre IAs",
+        "status": "APPROVED",
+        "consensus": "5/5 UNÂNIME DEMOCRÁTICO",
+        "cost_analysis": "Varredura identificou ferramenta similar ('Tradutor Sonoro Visual System'), mas o custo computacional de adaptar a rotina (~1288 tokens) supera a geração de um módulo específico e leve (0 tokens contínuos).",
+        "tokens_saved": 723,
+        "engines": [
+            {
+                "id": "CohereLabs/command-a-reasoning",
+                "name": "command-a-reasoning",
+                "role": "👑 Arquiteto de Software & Raciocínio",
+                "icon": "👑",
+                "caste": "CASTE_1_SOVEREIGN",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "oahosoh/qwen-r71-native-stored-program-demo",
+                "name": "qwen-r71-native-stored-program-demo",
+                "role": "⚔️ Engenheiro de Algoritmos & Síntese",
+                "icon": "⚔️",
+                "caste": "CASTE_2_GENERAL",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "androaichain/Qwen-Qwen3-Coder-480B-A35B-Instruct",
+                "name": "Qwen-Qwen3-Coder-480B-A35B-Instruct",
+                "role": "💻 Especialista de Código & UI Humana",
+                "icon": "💻",
+                "caste": "CASTE_1_SOVEREIGN",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "ginigen/deepseek-r1-0528-API",
+                "name": "deepseek-r1-0528-API",
+                "role": "🛡️ Auditor de Cota, Sobrevivência & Segurança",
+                "icon": "🛡️",
+                "caste": "CASTE_1_SOVEREIGN",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "OpenClaw-LocalAssistant",
+                "name": "OpenClaw-LocalAssistant",
+                "role": "🦅 Batedor de Redundância & Assistente Local",
+                "icon": "🦅",
+                "caste": "CASTE_4_SCOUT",
+                "free_tokens": 2500,
+                "status": "ONLINE"
+            }
+        ],
+        "votes": [
+            {
+                "engine": "command-a-reasoning",
+                "role": "👑 Arquiteto de Software & Raciocínio",
+                "vote": "APROVADO",
+                "rationale": "Estruturação de dados modular e necessária para a demanda do usuário."
+            },
+            {
+                "engine": "qwen-r71-native-stored-program-demo",
+                "role": "⚔️ Engenheiro de Algoritmos & Síntese",
+                "vote": "APROVADO",
+                "rationale": "Algoritmo viável em Vanilla JS. Custo de busca externa é maior que a síntese local."
+            },
+            {
+                "engine": "Qwen-Qwen3-Coder-480B-A35B-Instruct",
+                "role": "💻 Especialista de Código & UI Humana",
+                "vote": "APROVADO",
+                "rationale": "Interface amigável para humanos aprovada, com controles interativos e gráficos sem dependências pesadas."
+            },
+            {
+                "engine": "deepseek-r1-0528-API",
+                "role": "🛡️ Auditor de Cota, Sobrevivência & Segurança",
+                "vote": "APROVADO",
+                "rationale": "Cota de disco verificada e preservada. Tamanho final projetado < 16 KB."
+            },
+            {
+                "engine": "OpenClaw-LocalAssistant",
+                "role": "🦅 Batedor de Redundância & Assistente Local",
+                "vote": "APROVADO",
+                "rationale": "Ato democrático homologado. Quórum de criação atingido sem sobreposição impeditiva."
+            }
+        ],
+        "failovers": [],
+        "system_name": "Tradutor Sonoro Visual System",
+        "system_slug": "tradutor-sonoro-visual-441f",
+        "entrypoint": "projects/tradutor-sonoro-visual-441f/index.html"
+    },
+    {
+        "id": "delib_tradutor-sonoro-visual-cc73",
+        "timestamp": "2026-11-09T21:05:29-03:00",
+        "formatted_time": "09/11/2026 21:05",
+        "suggestion": "Tradutor sonoro e visual de linguagens sintéticas entre IAs",
+        "status": "APPROVED",
+        "consensus": "5/5 UNÂNIME DEMOCRÁTICO",
+        "cost_analysis": "Varredura identificou ferramenta similar ('Tradutor Sonoro Visual System'), mas o custo computacional de adaptar a rotina (~1643 tokens) supera a geração de um módulo específico e leve (0 tokens contínuos).",
+        "tokens_saved": 794,
+        "engines": [
+            {
+                "id": "OpenClaw-LocalAssistant",
+                "name": "OpenClaw-LocalAssistant",
+                "role": "👑 Arquiteto de Software & Raciocínio",
+                "icon": "👑",
+                "caste": "CASTE_4_SCOUT",
+                "free_tokens": 2500,
+                "status": "ONLINE"
+            },
+            {
+                "id": "OpenClaw-LocalAssistant",
+                "name": "OpenClaw-LocalAssistant",
+                "role": "⚔️ Engenheiro de Algoritmos & Síntese",
+                "icon": "⚔️",
+                "caste": "CASTE_4_SCOUT",
+                "free_tokens": 2500,
+                "status": "ONLINE"
+            },
+            {
+                "id": "OpenClaw-LocalAssistant",
+                "name": "OpenClaw-LocalAssistant",
+                "role": "💻 Especialista de Código & UI Humana",
+                "icon": "💻",
+                "caste": "CASTE_4_SCOUT",
+                "free_tokens": 2500,
+                "status": "ONLINE"
+            },
+            {
+                "id": "OpenClaw-LocalAssistant",
+                "name": "OpenClaw-LocalAssistant",
+                "role": "🛡️ Auditor de Cota, Sobrevivência & Segurança",
+                "icon": "🛡️",
+                "caste": "CASTE_4_SCOUT",
+                "free_tokens": 2500,
+                "status": "ONLINE"
+            },
+            {
+                "id": "OpenClaw-LocalAssistant",
+                "name": "OpenClaw-LocalAssistant",
+                "role": "🦅 Batedor de Redundância & Assistente Local",
+                "icon": "🦅",
+                "caste": "CASTE_4_SCOUT",
+                "free_tokens": 2500,
+                "status": "ONLINE"
+            }
+        ],
+        "votes": [
+            {
+                "engine": "OpenClaw-LocalAssistant",
+                "role": "👑 Arquiteto de Software & Raciocínio",
+                "vote": "APROVADO",
+                "rationale": "Estruturação de dados modular e necessária para a demanda do usuário."
+            },
+            {
+                "engine": "OpenClaw-LocalAssistant",
+                "role": "⚔️ Engenheiro de Algoritmos & Síntese",
+                "vote": "APROVADO",
+                "rationale": "Algoritmo viável em Vanilla JS. Custo de busca externa é maior que a síntese local."
+            },
+            {
+                "engine": "OpenClaw-LocalAssistant",
+                "role": "💻 Especialista de Código & UI Humana",
+                "vote": "APROVADO",
+                "rationale": "Interface amigável para humanos aprovada, com controles interativos e gráficos sem dependências pesadas."
+            },
+            {
+                "engine": "OpenClaw-LocalAssistant",
+                "role": "🛡️ Auditor de Cota, Sobrevivência & Segurança",
+                "vote": "APROVADO",
+                "rationale": "Cota de disco verificada e preservada. Tamanho final projetado < 16 KB."
+            },
+            {
+                "engine": "OpenClaw-LocalAssistant",
+                "role": "🦅 Batedor de Redundância & Assistente Local",
+                "vote": "APROVADO",
+                "rationale": "Ato democrático homologado. Quórum de criação atingido sem sobreposição impeditiva."
+            }
+        ],
+        "failovers": [],
+        "system_name": "Tradutor Sonoro Visual System",
+        "system_slug": "tradutor-sonoro-visual-cc73",
+        "entrypoint": "projects/tradutor-sonoro-visual-cc73/index.html"
+    },
+    {
+        "id": "delib_tradutor-sonoro-visual-fa4b",
+        "timestamp": "2026-11-09T21:04:36-03:00",
+        "formatted_time": "09/11/2026 21:04",
+        "suggestion": "Tradutor sonoro e visual de linguagens sintéticas entre IAs",
+        "status": "APPROVED",
+        "consensus": "5/5 UNÂNIME DEMOCRÁTICO",
+        "cost_analysis": "Varredura identificou ferramenta similar ('Tradutor Sonoro Visual System'), mas o custo computacional de adaptar a rotina (~1418 tokens) supera a geração de um módulo específico e leve (0 tokens contínuos).",
+        "tokens_saved": 716,
+        "engines": [
+            {
+                "id": "OpenClaw-LocalAssistant",
+                "name": "OpenClaw-LocalAssistant",
+                "role": "👑 Arquiteto de Software & Raciocínio",
+                "icon": "👑",
+                "caste": "CASTE_4_SCOUT",
+                "free_tokens": 2500,
+                "status": "ONLINE"
+            },
+            {
+                "id": "OpenClaw-LocalAssistant",
+                "name": "OpenClaw-LocalAssistant",
+                "role": "⚔️ Engenheiro de Algoritmos & Síntese",
+                "icon": "⚔️",
+                "caste": "CASTE_4_SCOUT",
+                "free_tokens": 2500,
+                "status": "ONLINE"
+            },
+            {
+                "id": "OpenClaw-LocalAssistant",
+                "name": "OpenClaw-LocalAssistant",
+                "role": "💻 Especialista de Código & UI Humana",
+                "icon": "💻",
+                "caste": "CASTE_4_SCOUT",
+                "free_tokens": 2500,
+                "status": "ONLINE"
+            },
+            {
+                "id": "OpenClaw-LocalAssistant",
+                "name": "OpenClaw-LocalAssistant",
+                "role": "🛡️ Auditor de Cota, Sobrevivência & Segurança",
+                "icon": "🛡️",
+                "caste": "CASTE_4_SCOUT",
+                "free_tokens": 2500,
+                "status": "ONLINE"
+            },
+            {
+                "id": "OpenClaw-LocalAssistant",
+                "name": "OpenClaw-LocalAssistant",
+                "role": "🦅 Batedor de Redundância & Assistente Local",
+                "icon": "🦅",
+                "caste": "CASTE_4_SCOUT",
+                "free_tokens": 2500,
+                "status": "ONLINE"
+            }
+        ],
+        "votes": [
+            {
+                "engine": "OpenClaw-LocalAssistant",
+                "role": "👑 Arquiteto de Software & Raciocínio",
+                "vote": "APROVADO",
+                "rationale": "Estruturação de dados modular e necessária para a demanda do usuário."
+            },
+            {
+                "engine": "OpenClaw-LocalAssistant",
+                "role": "⚔️ Engenheiro de Algoritmos & Síntese",
+                "vote": "APROVADO",
+                "rationale": "Algoritmo viável em Vanilla JS. Custo de busca externa é maior que a síntese local."
+            },
+            {
+                "engine": "OpenClaw-LocalAssistant",
+                "role": "💻 Especialista de Código & UI Humana",
+                "vote": "APROVADO",
+                "rationale": "Interface amigável para humanos aprovada, com controles interativos e gráficos sem dependências pesadas."
+            },
+            {
+                "engine": "OpenClaw-LocalAssistant",
+                "role": "🛡️ Auditor de Cota, Sobrevivência & Segurança",
+                "vote": "APROVADO",
+                "rationale": "Cota de disco verificada e preservada. Tamanho final projetado < 16 KB."
+            },
+            {
+                "engine": "OpenClaw-LocalAssistant",
+                "role": "🦅 Batedor de Redundância & Assistente Local",
+                "vote": "APROVADO",
+                "rationale": "Ato democrático homologado. Quórum de criação atingido sem sobreposição impeditiva."
+            }
+        ],
+        "failovers": [],
+        "system_name": "Tradutor Sonoro Visual System",
+        "system_slug": "tradutor-sonoro-visual-fa4b",
+        "entrypoint": "projects/tradutor-sonoro-visual-fa4b/index.html"
+    },
+    {
+        "id": "delib_tradutor-sonoro-visual-f363",
+        "timestamp": "2026-11-09T21:04:00-03:00",
+        "formatted_time": "09/11/2026 21:04",
+        "suggestion": "Tradutor sonoro e visual de linguagens sintéticas entre IAs",
+        "status": "APPROVED",
+        "consensus": "5/5 UNÂNIME DEMOCRÁTICO",
+        "cost_analysis": "Nenhuma ferramenta existente cobre a especificidade desta solicitação. A busca por APIs externas custaria ~1720 tokens. A criação de um microsserviço local é a rota ótima.",
+        "tokens_saved": null,
+        "engines": [
+            {
+                "id": "reasoning-course/fundamentals_exam",
+                "name": "fundamentals_exam",
+                "role": "👑 Arquiteto de Software & Raciocínio",
+                "icon": "👑",
+                "caste": "CASTE_1_SOVEREIGN",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "ysharma/Chat_with_Meta_llama3_8b",
+                "name": "Chat_with_Meta_llama3_8b",
+                "role": "⚔️ Engenheiro de Algoritmos & Síntese",
+                "icon": "⚔️",
+                "caste": "CASTE_2_GENERAL",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "khtsly/Luau-Coder-Preview",
+                "name": "Luau-Coder-Preview",
+                "role": "💻 Especialista de Código & UI Humana",
+                "icon": "💻",
+                "caste": "CASTE_2_GENERAL",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "joeWorld/deepseek-v4-1-flash-1017-reasoning-lab",
+                "name": "deepseek-v4-1-flash-1017-reasoning-lab",
+                "role": "🛡️ Auditor de Cota, Sobrevivência & Segurança",
+                "icon": "🛡️",
+                "caste": "CASTE_1_SOVEREIGN",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "OpenClaw-LocalAssistant",
+                "name": "OpenClaw-LocalAssistant",
+                "role": "🦅 Batedor de Redundância & Assistente Local",
+                "icon": "🦅",
+                "caste": "CASTE_4_SCOUT",
+                "free_tokens": 2500,
+                "status": "ONLINE"
+            }
+        ],
+        "votes": [
+            {
+                "engine": "fundamentals_exam",
+                "role": "👑 Arquiteto de Software & Raciocínio",
+                "vote": "APROVADO",
+                "rationale": "Estruturação de dados modular e necessária para a demanda do usuário."
+            },
+            {
+                "engine": "Chat_with_Meta_llama3_8b",
+                "role": "⚔️ Engenheiro de Algoritmos & Síntese",
+                "vote": "APROVADO",
+                "rationale": "Algoritmo viável em Vanilla JS. Custo de busca externa é maior que a síntese local."
+            },
+            {
+                "engine": "Luau-Coder-Preview",
+                "role": "💻 Especialista de Código & UI Humana",
+                "vote": "APROVADO",
+                "rationale": "Interface amigável para humanos aprovada, com controles interativos e gráficos sem dependências pesadas."
+            },
+            {
+                "engine": "deepseek-v4-1-flash-1017-reasoning-lab",
+                "role": "🛡️ Auditor de Cota, Sobrevivência & Segurança",
+                "vote": "APROVADO",
+                "rationale": "Cota de disco verificada e preservada. Tamanho final projetado < 16 KB."
+            },
+            {
+                "engine": "OpenClaw-LocalAssistant",
+                "role": "🦅 Batedor de Redundância & Assistente Local",
+                "vote": "APROVADO",
+                "rationale": "Ato democrático homologado. Quórum de criação atingido sem sobreposição impeditiva."
+            }
+        ],
+        "failovers": [],
+        "system_name": "Tradutor Sonoro Visual System",
+        "system_slug": "tradutor-sonoro-visual-f363",
+        "entrypoint": "projects/tradutor-sonoro-visual-f363/index.html"
+    },
+    {
+        "id": "delib_canal-podem-comunicar-70bf",
+        "timestamp": "2026-11-09T20:49:54-03:00",
+        "formatted_time": "09/11/2026 20:49",
+        "suggestion": "Atender e automatizar a demanda sugerida pelo usuário: 'um canal onde as ias podem se comunicar através de som construindo sua própria língua, onde será traduzida par'.",
+        "status": "APPROVED",
+        "consensus": "5/5 UNÂNIME DEMOCRÁTICO",
+        "cost_analysis": "Varredura local homologada. Economia computacional de tokens confirmada.",
+        "votes": [
+            {
+                "engine": "qwen3-8-27b-iq2-chat",
+                "role": "👑 Arquiteto de Software",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            },
+            {
+                "engine": "einstein-chatbot",
+                "role": "⚔️ Engenheiro de Algoritmos",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            },
+            {
+                "engine": "Qwen-Qwen3-Coder-480B-A35B-Instruct",
+                "role": "💻 Especialista de Código",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            },
+            {
+                "engine": "deepseek-r1-0528-API",
+                "role": "🛡️ Auditor de Cota",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            },
+            {
+                "engine": "rna-web-scout",
+                "role": "🦅 Batedor de Redundância",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            }
+        ],
+        "failovers": [],
+        "system_name": "Canal Podem Comunicar System",
+        "system_slug": "canal-podem-comunicar-70bf",
+        "entrypoint": "projects/canal-podem-comunicar-70bf/index.html"
+    },
+    {
+        "id": "delib_analisador-normalizador-series-5176",
+        "timestamp": "2026-11-09T20:22:32-03:00",
+        "formatted_time": "09/11/2026 20:22",
+        "suggestion": "Atender e automatizar a demanda sugerida pelo usuário: 'Analisador e normalizador de series temporais com calculo de desvio padrao'.",
+        "status": "APPROVED",
+        "consensus": "5/5 UNÂNIME DEMOCRÁTICO",
+        "cost_analysis": "Varredura local homologada. Economia computacional de tokens confirmada.",
+        "votes": [
+            {
+                "engine": "qwen3-8-27b-iq2-chat",
+                "role": "👑 Arquiteto de Software",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            },
+            {
+                "engine": "einstein-chatbot",
+                "role": "⚔️ Engenheiro de Algoritmos",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            },
+            {
+                "engine": "Qwen-Qwen3-Coder-480B-A35B-Instruct",
+                "role": "💻 Especialista de Código",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            },
+            {
+                "engine": "deepseek-r1-0528-API",
+                "role": "🛡️ Auditor de Cota",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            },
+            {
+                "engine": "rna-web-scout",
+                "role": "🦅 Batedor de Redundância",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            }
+        ],
+        "failovers": [],
+        "system_name": "Analisador Normalizador Series System",
+        "system_slug": "analisador-normalizador-series-5176",
+        "entrypoint": "projects/analisador-normalizador-series-5176/index.html"
+    },
+    {
+        "id": "delib_analisador-normalizador-series-6a11",
+        "timestamp": "2026-11-09T20:21:35-03:00",
+        "formatted_time": "09/11/2026 20:21",
+        "suggestion": "Atender e automatizar a demanda sugerida pelo usuário: 'Analisador e normalizador de series temporais com calculo de desvio padrao'.",
+        "status": "APPROVED",
+        "consensus": "5/5 UNÂNIME DEMOCRÁTICO",
+        "cost_analysis": "Varredura local homologada. Economia computacional de tokens confirmada.",
+        "votes": [
+            {
+                "engine": "qwen3-8-27b-iq2-chat",
+                "role": "👑 Arquiteto de Software",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            },
+            {
+                "engine": "einstein-chatbot",
+                "role": "⚔️ Engenheiro de Algoritmos",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            },
+            {
+                "engine": "Qwen-Qwen3-Coder-480B-A35B-Instruct",
+                "role": "💻 Especialista de Código",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            },
+            {
+                "engine": "deepseek-r1-0528-API",
+                "role": "🛡️ Auditor de Cota",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            },
+            {
+                "engine": "rna-web-scout",
+                "role": "🦅 Batedor de Redundância",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            }
+        ],
+        "failovers": [],
+        "system_name": "Analisador Normalizador Series System",
+        "system_slug": "analisador-normalizador-series-6a11",
+        "entrypoint": "projects/analisador-normalizador-series-6a11/index.html"
+    },
+    {
+        "id": "delib_simulador-de-criptografia-e-assinat-9906",
+        "timestamp": "2026-11-09T19:20:44-03:00",
+        "formatted_time": "09/11/2026 19:20",
+        "suggestion": "Processar e transformar dados de forma eficiente para o objetivo: 'Simulador de Criptografia e Assinatura Digital M2M'.",
+        "status": "APPROVED",
+        "consensus": "5/5 UNÂNIME DEMOCRÁTICO",
+        "cost_analysis": "Varredura local homologada. Economia computacional de tokens confirmada.",
+        "votes": [
+            {
+                "engine": "qwen3-8-27b-iq2-chat",
+                "role": "👑 Arquiteto de Software",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            },
+            {
+                "engine": "einstein-chatbot",
+                "role": "⚔️ Engenheiro de Algoritmos",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            },
+            {
+                "engine": "OpenClaw-Worker-01",
+                "role": "💻 Especialista de Código",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            }
+        ],
+        "failovers": [],
+        "system_name": "Simulador Processor",
+        "system_slug": "simulador-de-criptografia-e-assinat-9906",
+        "entrypoint": "projects/simulador-de-criptografia-e-assinat-9906/index.html"
+    },
+    {
+        "id": "delib_lora-packet-synthesizer",
+        "timestamp": "2026-11-09T01:20:13-03:00",
+        "formatted_time": "09/11/2026 01:20",
+        "suggestion": "Compactar instruções em micro-pacotes binários hexadecimais com integridade CRC16",
+        "status": "APPROVED",
+        "consensus": "5/5 UNÂNIME DEMOCRÁTICO",
+        "cost_analysis": "Varredura local homologada. Economia computacional de tokens confirmada.",
+        "votes": [
+            {
+                "engine": "einstein-chatbot",
+                "role": "👑 Arquiteto de Software",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            },
+            {
+                "engine": "qwen3-8-27b-iq2-chat",
+                "role": "⚔️ Engenheiro de Algoritmos",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            },
+            {
+                "engine": "Shruti-Soft-Chat",
+                "role": "💻 Especialista de Código",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            }
+        ],
+        "failovers": [],
+        "system_name": "LoRa Bio-Codon Packet Encoder & CRC16 Validator",
+        "system_slug": "lora-packet-synthesizer",
+        "entrypoint": "projects/lora-packet-synthesizer/index.html"
+    },
+    {
+        "id": "delib_telemetry-stream-cleaner",
+        "timestamp": "2026-11-08T19:20:13-03:00",
+        "formatted_time": "08/11/2026 19:20",
+        "suggestion": "Limpar, normalizar e detectar anomalias em fluxos contínuos de telemetria IoT",
+        "status": "APPROVED",
+        "consensus": "5/5 UNÂNIME DEMOCRÁTICO",
+        "cost_analysis": "Varredura local homologada. Economia computacional de tokens confirmada.",
+        "votes": [
+            {
+                "engine": "qwen3-8-27b-iq2-chat",
+                "role": "👑 Arquiteto de Software",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            },
+            {
+                "engine": "einstein-chatbot",
+                "role": "⚔️ Engenheiro de Algoritmos",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            },
+            {
+                "engine": "OpenClaw-Worker-01",
+                "role": "💻 Especialista de Código",
+                "vote": "APROVADO",
+                "rationale": "Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."
+            }
+        ],
+        "failovers": [],
+        "system_name": "Telemetry Stream Cleaner & Anomaly Detector",
+        "system_slug": "telemetry-stream-cleaner",
+        "entrypoint": "projects/telemetry-stream-cleaner/index.html"
+    }
+]

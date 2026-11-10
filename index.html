@@ -1637,6 +1637,24 @@
     </div>
   </div>
 
+  <!-- COUNCIL DELIBERATIONS HISTORY MODAL OVERLAY -->
+  <div id="councilHistoryOverlay" class="rna-modal-overlay">
+    <div class="rna-modal-card" style="max-width: 820px; max-height: 90vh; overflow-y: auto;">
+      <div class="rna-modal-header">
+        <div class="rna-modal-title" style="color: #38bdf8;">
+          <span>🗳️ Histórico Permanente de Deliberações do Conselho (5 Motores)</span>
+        </div>
+        <button class="rna-toast-close" onclick="closeCouncilHistoryModal()">✕</button>
+      </div>
+      <div id="councilHistoryContainer" style="padding: 10px 0;">
+        <div style="text-align: center; color: var(--text-muted); padding: 20px;">Carregando histórico de deliberações...</div>
+      </div>
+      <div class="rna-modal-actions" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+        <button class="btn btn-outline" onclick="closeCouncilHistoryModal()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOPBAR -->
   <header class="topbar">
     <div class="brand">
@@ -1850,6 +1868,9 @@
               <button class="btn btn-primary" style="padding: 4px 10px; font-size: 0.74rem;" onclick="openAiCreateCouncilModal()">
                 💡 Propor Sugestão ao Conselho (5 IAs)
               </button>
+              <button class="btn btn-outline" style="padding: 4px 10px; font-size: 0.74rem;" onclick="openCouncilHistoryModal()">
+                🗳️ Histórico de Votações
+              </button>
               <button class="btn btn-cyan" style="padding: 4px 10px; font-size: 0.74rem;"
                 onclick="switchTab('aicreate')">
                 🎨 Explorar Sistemas AICreate ➔
@@ -1985,6 +2006,9 @@
           <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <button class="btn btn-sm btn-primary" onclick="openAiCreateCouncilModal()" style="display:flex; align-items:center; gap:6px;">
               💡 Propor Sugestão ao Conselho (5 IAs)
+            </button>
+            <button class="btn btn-sm btn-outline" onclick="openCouncilHistoryModal()" style="display:flex; align-items:center; gap:6px;">
+              🗳️ Histórico de Deliberações
             </button>
             <a href="aicreate/index.html" target="_blank" class="btn btn-sm btn-cyan" style="text-decoration:none;">
               🌐 Abrir Hub AICreate em Nova Aba ➔
@@ -2369,19 +2393,39 @@
           const { done, value } = await reader.read();
           if (done) break;
           buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n\n');
-          buffer = lines.pop();
+          const parts = buffer.split(/\r?\n\r?\n/);
+          buffer = parts.pop();
 
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
-            const jsonStr = line.slice(6).trim();
-            if (!jsonStr) continue;
+          for (const part of parts) {
+            const lines = part.split(/\r?\n/);
+            for (const rawLine of lines) {
+              const line = rawLine.trim();
+              if (!line.startsWith('data:')) continue;
+              const jsonStr = line.slice(5).trim();
+              if (!jsonStr) continue;
 
-            try {
-              const data = JSON.parse(jsonStr);
-              handleCouncilStreamEvent(data);
-            } catch (err) {
-              console.error('Erro no parsing de evento SSE:', err);
+              try {
+                const data = JSON.parse(jsonStr);
+                handleCouncilStreamEvent(data);
+              } catch (err) {
+                console.error('Erro no parsing de evento SSE:', err, jsonStr);
+              }
+            }
+          }
+        }
+
+        if (buffer && buffer.trim()) {
+          const lines = buffer.split(/\r?\n/);
+          for (const rawLine of lines) {
+            const line = rawLine.trim();
+            if (line.startsWith('data:')) {
+              const jsonStr = line.slice(5).trim();
+              if (jsonStr) {
+                try {
+                  const data = JSON.parse(jsonStr);
+                  handleCouncilStreamEvent(data);
+                } catch (e) {}
+              }
             }
           }
         }
@@ -2416,12 +2460,37 @@
             const card = document.createElement('div');
             card.id = `councilEngineCard-${i + 1}`;
             card.style.cssText = 'background:#0a0f1d; border:1px solid #1e293b; border-radius:6px; padding:6px; text-align:center;';
-            card.innerHTML = `<div style="font-size:1.1rem; margin-bottom:2px;">${icons[i] || '🤖'}</div>`
+            card.innerHTML = `<div style="font-size:1.1rem; margin-bottom:2px;">${c.icon || icons[i] || '🤖'}</div>`
               + `<div style="font-size:0.72rem; font-weight:700; color:#38bdf8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(c.name)}</div>`
               + `<div style="font-size:0.65rem; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(c.role.split('(')[0].trim())}</div>`
               + `<span id="councilVoteBadge-${i + 1}" class="badge" style="font-size:0.6rem; margin-top:4px; display:inline-block; border-color:#334155; color:#94a3b8;">ONLINE</span>`;
             grid.appendChild(card);
           });
+        }
+      } else if (step === 'ENGINE_DIED') {
+        document.getElementById('councilPhaseTitle').textContent = '⚠️ IA sem resposta detectada. Convocando fail-over...';
+        const slot = data.extra && data.extra.slot;
+        if (slot) {
+          const badge = document.getElementById(`councilVoteBadge-${slot}`);
+          if (badge) {
+            badge.textContent = 'TIMEOUT ❌';
+            badge.style.borderColor = '#ef4444';
+            badge.style.color = '#f87171';
+            badge.style.background = 'rgba(239,68,68,0.2)';
+          }
+        }
+      } else if (step === 'ENGINE_FAILOVER') {
+        document.getElementById('councilPhaseTitle').textContent = '🔄 Motor substituto online integrado ao Conselho!';
+        const slot = data.extra && data.extra.slot;
+        const newEngine = data.extra && data.extra.new_engine;
+        if (slot && newEngine) {
+          const card = document.getElementById(`councilEngineCard-${slot}`);
+          if (card) {
+            card.innerHTML = `<div style="font-size:1.1rem; margin-bottom:2px;">${newEngine.icon || '🔄'}</div>`
+              + `<div style="font-size:0.72rem; font-weight:700; color:#34d399; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(newEngine.name)}</div>`
+              + `<div style="font-size:0.65rem; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(newEngine.role.split('(')[0].trim())}</div>`
+              + `<span id="councilVoteBadge-${slot}" class="badge" style="font-size:0.6rem; margin-top:4px; display:inline-block; border-color:#10b981; color:#34d399; background:rgba(16,185,129,0.15);">SUBSTITUTO ✅</span>`;
+          }
         }
       } else if (step === 'SCAN_EXISTING' || step === 'COST_ANALYSIS') {
         document.getElementById('councilPhaseTitle').textContent = '🔍 Varredura de Redundância e Cálculo de Custo...';
@@ -2458,6 +2527,81 @@
         fetchAiCreateStatus();
         fetchAiCreateTree();
       }
+    }
+
+    async function openCouncilHistoryModal() {
+      const overlay = document.getElementById('councilHistoryOverlay');
+      if (!overlay) return;
+      overlay.classList.add('active');
+      const container = document.getElementById('councilHistoryContainer');
+      container.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">Carregando histórico de deliberações...</div>';
+      try {
+        const res = await fetch('api.php?action=aicreate_deliberations');
+        const data = await res.json();
+        const delibs = data.deliberations || [];
+        if (delibs.length === 0) {
+          container.innerHTML = '<div style="text-align:center; padding:30px; color:#94a3b8;">Nenhuma deliberação registrada ainda.</div>';
+          return;
+        }
+        let html = '';
+        delibs.forEach(d => {
+          const isApproved = d.status === 'APPROVED';
+          const badgeStyle = isApproved
+            ? 'border: 1px solid #10b981; color: #34d399; background: rgba(16,185,129,0.1);'
+            : 'border: 1px solid #ef4444; color: #f87171; background: rgba(239,68,68,0.1);';
+
+          let failoverMsg = '';
+          if (d.failovers && d.failovers.length > 0) {
+            failoverMsg = `<div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:6px; padding:6px 10px; margin-bottom:8px; font-size:0.75rem; color:#fca5a5;">
+              ⚠️ <strong>Fail-Over Registrado:</strong> ${d.failovers.map(f => `Motor ${escapeHtml(f.dead_engine)} caiu e foi substituído por ${escapeHtml(f.replacement)}`).join('; ')}
+            </div>`;
+          }
+
+          let votesGrid = '';
+          (d.votes || []).forEach(v => {
+            votesGrid += `<div style="background:#080d19; border:1px solid #1e293b; border-radius:6px; padding:6px 8px; font-size:0.75rem;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                <strong style="color:#38bdf8;">${escapeHtml(v.engine)}</strong>
+                <span style="color:#10b981; font-weight:700;">${escapeHtml(v.vote)}</span>
+              </div>
+              <div style="color:#94a3b8; font-style:italic;">"${escapeHtml(v.rationale)}"</div>
+            </div>`;
+          });
+
+          const openLink = d.entrypoint
+            ? `<a href="aicreate/${d.entrypoint.replace(/^aicreate\//, '')}" target="_blank" class="btn btn-sm btn-primary" style="font-size:0.74rem; text-decoration:none;">🚀 Abrir Ferramenta Criada</a>`
+            : '';
+
+          html += `<div style="background:#0f172a; border:1px solid #1e293b; border-radius:10px; padding:14px; margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+              <div>
+                <strong style="color:#f8fafc; font-size:0.92rem;">💡 "${escapeHtml(d.suggestion)}"</strong>
+                <div style="font-size:0.72rem; color:#94a3b8; margin-top:2px;">🕒 ${escapeHtml(d.formatted_time || d.timestamp)}</div>
+              </div>
+              <span class="badge" style="font-size:0.72rem; padding:3px 10px; ${badgeStyle}">${escapeHtml(d.consensus || 'APROVADO 5/5')}</span>
+            </div>
+            ${failoverMsg}
+            <div style="font-size:0.78rem; color:#cbd5e1; margin-bottom:8px;">
+              <strong style="color:#f59e0b;">⚖️ Custo Computacional:</strong> ${escapeHtml(d.cost_analysis || '')}
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:6px; margin-bottom:10px;">
+              ${votesGrid}
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+              ${openLink}
+            </div>
+          </div>`;
+        });
+        container.innerHTML = html;
+      } catch (err) {
+        container.innerHTML = `<div style="color:#ef4444; padding:20px;">Erro ao carregar histórico: ${err.message}</div>`;
+      }
+    }
+
+    function closeCouncilHistoryModal() {
+      const overlay = document.getElementById('councilHistoryOverlay');
+      if (overlay) overlay.classList.remove('active');
+    }
     }
 
     function buildEnrichedMailItems(rawMailbox) {

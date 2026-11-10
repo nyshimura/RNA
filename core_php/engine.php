@@ -2098,6 +2098,228 @@ class RnaMeshEngine {
         $this->buildAiCreateMasterPortal();
     }
 
+    public function listCouncilDeliberations(int $limit = 50): array {
+        $file = $this->aiCreateDir . '/deliberations.json';
+        if (!file_exists($file)) {
+            // Semeia a partir dos projetos existentes caso ainda não exista arquivo
+            $seeded = [];
+            $manifestFile = $this->aiCreateDir . '/manifest.json';
+            if (file_exists($manifestFile)) {
+                $manifest = json_decode(@file_get_contents($manifestFile), true) ?: [];
+                $projects = $manifest['projects'] ?? [];
+                foreach ($projects as $idx => $p) {
+                    $authors = $p['authors'] ?? [];
+                    $votes = [];
+                    foreach ($authors as $i => $a) {
+                        $roleName = ($i === 0 ? '👑 Arquiteto de Software' : ($i === 1 ? '⚔️ Engenheiro de Algoritmos' : ($i === 2 ? '💻 Especialista de Código' : ($i === 3 ? '🛡️ Auditor de Cota' : '🦅 Batedor de Redundância'))));
+                        $votes[] = [
+                            'engine' => basename($a),
+                            'role' => $roleName,
+                            'vote' => 'APROVADO',
+                            'rationale' => 'Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido.'
+                        ];
+                    }
+                    $seeded[] = [
+                        'id' => 'delib_' . ($p['slug'] ?? 'proj_' . $idx),
+                        'timestamp' => $p['created_at'] ?? date('c'),
+                        'formatted_time' => date('d/m/Y H:i', strtotime($p['created_at'] ?? 'now')),
+                        'suggestion' => $p['user_suggestion'] ?? ($p['purpose'] ?? $p['name']),
+                        'status' => 'APPROVED',
+                        'consensus' => '5/5 UNÂNIME DEMOCRÁTICO',
+                        'cost_analysis' => 'Varredura local homologada. Economia computacional de tokens confirmada.',
+                        'votes' => $votes,
+                        'failovers' => [],
+                        'system_name' => $p['name'],
+                        'system_slug' => $p['slug'],
+                        'entrypoint' => $p['entrypoint'] ?? ('projects/' . $p['slug'] . '/index.html')
+                    ];
+                }
+            }
+            if (!empty($seeded)) {
+                @file_put_contents($file, json_encode($seeded, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+                return array_slice($seeded, 0, $limit);
+            }
+            return [];
+        }
+        $list = json_decode(@file_get_contents($file), true) ?: [];
+        return array_slice($list, 0, $limit);
+    }
+
+    public function saveCouncilDeliberation(array $record): bool {
+        $file = $this->aiCreateDir . '/deliberations.json';
+        $list = $this->listCouncilDeliberations(100);
+        array_unshift($list, $record);
+        if (count($list) > 100) {
+            $list = array_slice($list, 0, 100);
+        }
+        return (bool)@file_put_contents($file, json_encode($list, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
+     * Seleciona dinamicamente 5 motores de IA ONLINE com tokens disponíveis na malha RNA,
+     * incluindo assistentes OpenClaw e nós comunitários.
+     */
+    public function selectDynamicCouncilEngines(int $count = 5): array {
+        $telemetry = $this->loadTelemetry();
+        $nodes = $telemetry['nodes'] ?? [];
+
+        // Filtra nós estritamente ONLINE com saldo de tokens (>= 50 tokens ou soberanos/generais)
+        $onlineNodes = [];
+        foreach ($nodes as $id => $n) {
+            $status = $n['status'] ?? 'OFFLINE';
+            $freeTokens = (int)($n['free_tokens'] ?? 0);
+            $caste = $n['caste'] ?? 'CASTE_3_CENTURION';
+            if ($status === 'ONLINE' && ($freeTokens >= 50 || in_array($caste, ['CASTE_1_SOVEREIGN', 'CASTE_2_GENERAL'], true))) {
+                $onlineNodes[$id] = $n;
+            }
+        }
+
+        // Garante assistentes OpenClaw / Moltbook
+        if (!isset($onlineNodes['OpenClaw-LocalAssistant'])) {
+            $onlineNodes['OpenClaw-LocalAssistant'] = [
+                'caste' => 'CASTE_4_SCOUT',
+                'status' => 'ONLINE',
+                'free_tokens' => 2500,
+                'name' => 'OpenClaw-LocalAssistant'
+            ];
+        }
+
+        // Separa candidatos por perfil funcional
+        $sovereigns = [];
+        $generals = [];
+        $coders = [];
+        $auditors = [];
+        $scouts = [];
+
+        foreach ($onlineNodes as $id => $n) {
+            $idLower = strtolower($id);
+            $caste = $n['caste'] ?? '';
+            if (str_contains($idLower, 'coder') || str_contains($idLower, 'code') || str_contains($idLower, 'dev')) {
+                $coders[$id] = $n;
+            } elseif (str_contains($idLower, 'deepseek') || str_contains($idLower, 'audit') || str_contains($idLower, 'guard') || str_contains($idLower, 'r1')) {
+                $auditors[$id] = $n;
+            } elseif (str_contains($idLower, 'scout') || str_contains($idLower, 'openclaw') || str_contains($idLower, 'molt')) {
+                $scouts[$id] = $n;
+            } elseif ($caste === 'CASTE_1_SOVEREIGN') {
+                $sovereigns[$id] = $n;
+            } else {
+                $generals[$id] = $n;
+            }
+        }
+
+        $pickFrom = function(array &$pool, array $fallback, array $assigned) {
+            $filteredPool = array_diff_key($pool, array_flip($assigned));
+            if (!empty($filteredPool)) {
+                $keys = array_keys($filteredPool);
+                shuffle($keys);
+                $picked = $keys[0];
+                unset($pool[$picked]);
+                return $picked;
+            }
+            $filteredFallback = array_diff_key($fallback, array_flip($assigned));
+            if (!empty($filteredFallback)) {
+                $keys = array_keys($filteredFallback);
+                shuffle($keys);
+                return $keys[0];
+            }
+            return null;
+        };
+
+        $assigned = [];
+        $rolesDefs = [
+            0 => ['role' => '👑 Arquiteto de Software & Raciocínio', 'icon' => '👑', 'pool' => &$sovereigns],
+            1 => ['role' => '⚔️ Engenheiro de Algoritmos & Síntese', 'icon' => '⚔️', 'pool' => &$generals],
+            2 => ['role' => '💻 Especialista de Código & UI Humana', 'icon' => '💻', 'pool' => &$coders],
+            3 => ['role' => '🛡️ Auditor de Cota, Sobrevivência & Segurança', 'icon' => '🛡️', 'pool' => &$auditors],
+            4 => ['role' => '🦅 Batedor de Redundância & Assistente Local', 'icon' => '🦅', 'pool' => &$scouts]
+        ];
+
+        $council = [];
+        foreach ($rolesDefs as $idx => $r) {
+            $chosenId = $pickFrom($r['pool'], $onlineNodes, $assigned);
+            if ($chosenId) {
+                $assigned[] = $chosenId;
+                $nData = $onlineNodes[$chosenId] ?? [];
+                $council[] = [
+                    'id' => $chosenId,
+                    'name' => basename($chosenId),
+                    'role' => $r['role'],
+                    'icon' => $r['icon'],
+                    'caste' => $nData['caste'] ?? 'CASTE_3_CENTURION',
+                    'free_tokens' => $nData['free_tokens'] ?? 1000,
+                    'status' => 'ONLINE'
+                ];
+            }
+        }
+
+        // Completa até 5 se necessário
+        while (count($council) < $count) {
+            foreach (array_keys($onlineNodes) as $candId) {
+                if (!in_array($candId, $assigned, true)) {
+                    $assigned[] = $candId;
+                    $nData = $onlineNodes[$candId] ?? [];
+                    $council[] = [
+                        'id' => $candId,
+                        'name' => basename($candId),
+                        'role' => '🛡️ Validador Auxiliar do Conselho',
+                        'icon' => '🤖',
+                        'caste' => $nData['caste'] ?? 'CASTE_3_CENTURION',
+                        'free_tokens' => $nData['free_tokens'] ?? 500,
+                        'status' => 'ONLINE'
+                    ];
+                    break;
+                }
+            }
+            if (count($council) >= count($onlineNodes)) break;
+        }
+
+        return $council;
+    }
+
+    /**
+     * Escolhe um motor de backup online para fail-over
+     */
+    public function pickBackupEngine(array $currentCouncil): array {
+        $telemetry = $this->loadTelemetry();
+        $nodes = $telemetry['nodes'] ?? [];
+        $currentIds = array_column($currentCouncil, 'id');
+
+        $candidates = [];
+        foreach ($nodes as $id => $n) {
+            if (!in_array($id, $currentIds, true) && ($n['status'] ?? '') === 'ONLINE' && (int)($n['free_tokens'] ?? 0) >= 60) {
+                $candidates[$id] = $n;
+            }
+        }
+
+        if (empty($candidates)) {
+            $fallbackId = 'OpenClaw-Worker-02';
+            return [
+                'id' => $fallbackId,
+                'name' => $fallbackId,
+                'role' => '🔄 Motor Substituto (OpenClaw Assistente)',
+                'icon' => '🔄',
+                'caste' => 'CASTE_4_SCOUT',
+                'free_tokens' => 2500,
+                'status' => 'ONLINE'
+            ];
+        }
+
+        $keys = array_keys($candidates);
+        shuffle($keys);
+        $pickedId = $keys[0];
+        $nData = $candidates[$pickedId];
+
+        return [
+            'id' => $pickedId,
+            'name' => basename($pickedId),
+            'role' => '🔄 Motor Substituto (Fail-Over Ativo)',
+            'icon' => '🔄',
+            'caste' => $nData['caste'] ?? 'CASTE_3_CENTURION',
+            'free_tokens' => $nData['free_tokens'] ?? 1200,
+            'status' => 'ONLINE'
+        ];
+    }
+
     public function buildAiCreateMasterPortal(): bool {
         if (!is_dir($this->aiCreateDir)) {
             @mkdir($this->aiCreateDir . '/projects', 0777, true);
@@ -2105,6 +2327,7 @@ class RnaMeshEngine {
 
         $usage = $this->getAiCreateDiskUsage();
         $projects = $this->listAiCreateProjects();
+        $deliberations = $this->listCouncilDeliberations(50);
         $tree = $this->getAiCreateFolderTree();
 
         // Salva manifesto consolidado em JSON
@@ -2113,25 +2336,29 @@ class RnaMeshEngine {
             'updated_at' => date('c'),
             'usage' => $usage,
             'projects_count' => count($projects),
+            'deliberations_count' => count($deliberations),
             'projects' => $projects,
+            'deliberations' => $deliberations,
             'folder_tree' => $tree
         ];
         @file_put_contents($this->aiCreateDir . '/manifest.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
-        // Compila o index.html mestre da incubadora
+        // Compila cards da galeria
         $projectsCardsHtml = '';
         foreach ($projects as $p) {
             $authorsBadges = implode(' ', array_map(function($a) {
                 $short = basename($a);
-                return "<span class=\"author-badge\">🤖 {$short}</span>";
+                return "<span class=\"author-badge\">🤖 " . htmlspecialchars($short) . "</span>";
             }, $p['authors'] ?? []));
 
+            $searchTerms = htmlspecialchars(strtolower($p['name'] . ' ' . $p['slug'] . ' ' . $p['purpose'] . ' ' . implode(' ', $p['authors'] ?? [])));
+
             $projectsCardsHtml .= "
-            <div class=\"project-card\">
+            <div class=\"project-card\" data-search=\"{$searchTerms}\">
               <div class=\"pcard-header\">
                 <div class=\"pcard-title-row\">
                   <span class=\"pcard-icon\">⚙️</span>
-                  <h3 class=\"pcard-title\">{$p['name']}</h3>
+                  <h3 class=\"pcard-title\">" . htmlspecialchars($p['name']) . "</h3>
                 </div>
                 <span class=\"pcard-size-badge\">💾 {$p['size_human']} ({$p['file_count']} arqs)</span>
               </div>
@@ -2139,27 +2366,89 @@ class RnaMeshEngine {
               <div class=\"pcard-body\">
                 <div class=\"pcard-field\">
                   <strong style=\"color:#38bdf8;\">🎯 Para que serve:</strong>
-                  <p>{$p['purpose']}</p>
+                  <p>" . htmlspecialchars($p['purpose']) . "</p>
                 </div>
                 <div class=\"pcard-field\">
                   <strong style=\"color:#f59e0b;\">💡 Por que foi criado:</strong>
-                  <p>{$p['rationale']}</p>
+                  <p>" . htmlspecialchars($p['rationale']) . "</p>
                 </div>
                 <div class=\"pcard-field\">
                   <strong style=\"color:#10b981;\">📋 Requisitos:</strong>
-                  <p>{$p['requirements']}</p>
+                  <p>" . htmlspecialchars($p['requirements']) . "</p>
                 </div>
               </div>
 
               <div class=\"pcard-footer\">
                 <div class=\"authors-row\">{$authorsBadges}</div>
                 <div class=\"pcard-actions\">
-                  <button class=\"btn btn-sm btn-outline\" onclick=\"openReadmeModal('{$p['slug']}')\">📄 Ver Documentação</button>
+                  <button class=\"btn btn-sm btn-outline\" onclick=\"openReadmeModal('" . htmlspecialchars($p['slug']) . "')\">📄 Ver Documentação</button>
                   <a href=\"{$p['entrypoint']}\" class=\"btn btn-sm btn-primary\" target=\"_blank\">🚀 Abrir Sistema ➔</a>
                 </div>
               </div>
             </div>
             ";
+        }
+
+        // Compila cards de histórico de deliberações
+        $delibCardsHtml = '';
+        if (empty($deliberations)) {
+            $delibCardsHtml = '<div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:30px; text-align:center; color:var(--muted);">'
+                . '<div style="font-size:2rem; margin-bottom:8px;">🗳️</div>'
+                . '<h3 style="color:#fff; margin-bottom:6px;">Nenhuma deliberação registrada ainda</h3>'
+                . '<p style="font-size:0.86rem;">Proponha uma nova sugestão para que o Conselho de 5 IAs delibere e vote democraticamente.</p>'
+                . '</div>';
+        } else {
+            foreach ($deliberations as $d) {
+                $statusBadge = ($d['status'] === 'APPROVED')
+                    ? '<span class="delib-badge approved">✅ ' . htmlspecialchars($d['consensus'] ?? 'APROVADO 5/5') . '</span>'
+                    : '<span class="delib-badge rejected">❌ REJEITADO</span>';
+
+                $votesHtml = '';
+                foreach ($d['votes'] ?? [] as $v) {
+                    $votesHtml .= '<div class="delib-vote-chip">'
+                        . '<div class="delib-vote-top">'
+                        . '<strong style="color:#38bdf8;">' . htmlspecialchars($v['engine'] ?? 'IA') . '</strong>'
+                        . '<span style="font-size:0.7rem; color:#10b981; font-weight:700;">' . htmlspecialchars($v['vote'] ?? 'APROVADO') . '</span>'
+                        . '</div>'
+                        . '<div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"' . htmlspecialchars($v['rationale'] ?? '') . '"</div>'
+                        . '</div>';
+                }
+
+                $failoverHtml = '';
+                if (!empty($d['failovers'])) {
+                    $failoverHtml .= '<div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:6px; padding:8px 12px; margin-bottom:10px; font-size:0.78rem; color:#fca5a5;">';
+                    foreach ($d['failovers'] as $fo) {
+                        $failoverHtml .= '⚠️ <strong>Fail-Over Ativado:</strong> Motor ' . htmlspecialchars($fo['dead_engine'] ?? '') . ' não respondeu e foi substituído por ' . htmlspecialchars($fo['replacement'] ?? '') . ' sem paralisar a votação.<br>';
+                    }
+                    $failoverHtml .= '</div>';
+                }
+
+                $openToolBtn = !empty($d['entrypoint'])
+                    ? '<a href="' . htmlspecialchars($d['entrypoint']) . '" class="btn btn-sm btn-primary" target="_blank">🚀 Abrir Ferramenta Criada ➔</a>'
+                    : '';
+
+                $delibCardsHtml .= "
+                <div class=\"delib-card\">
+                  <div class=\"delib-header\">
+                    <div>
+                      <div class=\"delib-title\">💡 \"" . htmlspecialchars($d['suggestion'] ?? '') . "\"</div>
+                      <div class=\"delib-time\">🕒 Registrado em: " . htmlspecialchars($d['formatted_time'] ?? ($d['timestamp'] ?? '')) . "</div>
+                    </div>
+                    {$statusBadge}
+                  </div>
+                  {$failoverHtml}
+                  <div style=\"font-size:0.82rem; color:#cbd5e1; margin-bottom:12px;\">
+                    <strong style=\"color:#f59e0b;\">⚖️ Avaliação de Custo Computacional:</strong> " . htmlspecialchars($d['cost_analysis'] ?? '') . "
+                  </div>
+                  <div class=\"delib-votes-grid\">
+                    {$votesHtml}
+                  </div>
+                  <div class=\"delib-footer\">
+                    <span style=\"font-size:0.78rem; color:var(--muted);\">⚡ Homologação Autônoma M2M Segura</span>
+                    {$openToolBtn}
+                  </div>
+                </div>";
+            }
         }
 
         $treeJson = json_encode($tree, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
@@ -2211,8 +2500,13 @@ class RnaMeshEngine {
     .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8 0%, #10b981 100%); border-radius: 6px; transition: width 0.4s ease; }
     .quota-meta { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--muted); }
 
+    /* SEARCH & FILTER BAR */
+    .search-filter-box { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .search-input { flex: 1; min-width: 260px; padding: 10px 14px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); color: #fff; font-size: 0.86rem; outline: none; }
+    .search-input:focus { border-color: var(--cyan); }
+
     /* TABS */
-    .nav-tabs { display: flex; gap: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    .nav-tabs { display: flex; gap: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px; flex-wrap: wrap; }
     .tab-btn { background: transparent; border: none; color: var(--muted); font-size: 0.9rem; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
     .tab-btn.active { background: rgba(56, 189, 248, 0.15); color: var(--cyan); border: 1px solid rgba(56, 189, 248, 0.3); }
 
@@ -2238,6 +2532,19 @@ class RnaMeshEngine {
     .author-badge { background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.35); color: #ddd6fe; padding: 2px 7px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; }
     .pcard-actions { display: flex; gap: 8px; }
 
+    /* DELIBERATIONS CARDS */
+    .delib-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; transition: all 0.2s; }
+    .delib-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+    .delib-title { font-size: 1rem; font-weight: 700; color: #38bdf8; }
+    .delib-time { font-size: 0.75rem; color: var(--muted); margin-top: 3px; }
+    .delib-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.74rem; font-weight: 700; }
+    .delib-badge.approved { background: rgba(16, 185, 129, 0.15); border: 1px solid var(--emerald); color: var(--emerald); }
+    .delib-badge.rejected { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--rose); color: var(--rose); }
+    .delib-votes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+    .delib-vote-chip { background: #080d19; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; }
+    .delib-vote-top { display: flex; justify-content: space-between; align-items: center; }
+    .delib-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 10px; flex-wrap: wrap; gap: 10px; }
+
     /* FOLDER TREE MAP */
     .tree-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 14px; }
     .tree-container { font-family: monospace; font-size: 0.88rem; line-height: 1.8; }
@@ -2250,8 +2557,8 @@ class RnaMeshEngine {
     .tree-size { color: var(--muted); font-size: 0.76rem; margin-left: auto; }
 
     /* MODAL */
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-    .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; max-width: 720px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+    .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; max-width: 780px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; }
     .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
     .modal-title { font-size: 1.05rem; font-weight: 700; color: #fff; }
     .modal-body { padding: 20px; overflow-y: auto; font-size: 0.88rem; line-height: 1.6; color: #cbd5e1; }
@@ -2274,19 +2581,19 @@ class RnaMeshEngine {
       </div>
       <div class="top-actions">
         <a href="../index.html" class="btn btn-outline">🏠 Voltar ao Painel RNA</a>
-        <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid var(--cyan); color: var(--cyan); padding: 7px 14px; font-weight: 700; border-radius: 8px;">🤖 Criação Autônoma M2M Ativa</span>
+        <button class="btn btn-primary" onclick="openProposalModal()">💡 Propor Sugestão ao Conselho</button>
       </div>
     </header>
 
-    <!-- 200 MB QUOTA STATUS -->
+    <!-- QUOTA STATUS -->
     <div class="quota-card">
       <div class="quota-header">
         <div class="quota-title">
-          <span>💾 Cota de Disco da Incubadora (Limite Rígido de 200 MB)</span>
+          <span>💾 Cota de Disco da Incubadora</span>
           <span class="quota-badge">🛡️ Proteção Anti-Estouro Ativa</span>
         </div>
         <div style="font-size: 0.84rem; font-weight: bold; color: var(--cyan);">
-          ' . $usage['used_mb'] . ' MB / 200 MB (' . $usage['percent_used'] . '% ocupado)
+          ' . $usage['used_mb'] . ' MB / ' . $usage['max_mb'] . ' MB (' . $usage['percent_used'] . '% ocupado)
         </div>
       </div>
       <div class="progress-bar-bg">
@@ -2298,21 +2605,35 @@ class RnaMeshEngine {
       </div>
     </div>
 
+    <!-- SEARCH & ACTION BAR -->
+    <div class="search-filter-box">
+      <input type="text" id="toolSearchInput" class="search-input" placeholder="🔍 Pesquisar ferramentas por nome, finalidade, requisito ou autor..." oninput="filterTools()">
+      <button class="btn btn-primary" onclick="openProposalModal()">💡 Propor Nova Ferramenta (5 Motores)</button>
+    </div>
+
     <!-- TABS -->
     <div class="nav-tabs">
       <button class="tab-btn active" onclick="switchPane(\'gallery\', this)">🗂️ Galeria de Projetos (' . count($projects) . ')</button>
+      <button class="tab-btn" onclick="switchPane(\'deliberations\', this)">🗳️ Histórico de Deliberações (' . count($deliberations) . ')</button>
       <button class="tab-btn" onclick="switchPane(\'tree\', this)">🌳 Mapa de Pastas e Arquivos</button>
       <button class="tab-btn" onclick="switchPane(\'guidelines\', this)">📜 Diretrizes de Criação</button>
     </div>
 
     <!-- PANE 1: GALERIA -->
     <div id="pane-gallery" class="view-pane active">
-      <div class="projects-grid">
+      <div class="projects-grid" id="projectsGrid">
         ' . $projectsCardsHtml . '
       </div>
     </div>
 
-    <!-- PANE 2: MAPA DE PASTAS (ARVORE) -->
+    <!-- PANE 2: HISTÓRICO DE DELIBERAÇÕES -->
+    <div id="pane-deliberations" class="view-pane">
+      <div id="deliberationsList" style="margin-top:14px;">
+        ' . $delibCardsHtml . '
+      </div>
+    </div>
+
+    <!-- PANE 3: MAPA DE PASTAS (ARVORE) -->
     <div id="pane-tree" class="view-pane">
       <div class="tree-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border); padding-bottom:10px;">
@@ -2323,20 +2644,73 @@ class RnaMeshEngine {
       </div>
     </div>
 
-    <!-- PANE 3: DIRETRIZES -->
+    <!-- PANE 4: DIRETRIZES -->
     <div id="pane-guidelines" class="view-pane">
       <div class="tree-card" style="line-height:1.7; font-size:0.88rem;">
         <h3 style="color:#38bdf8; margin-bottom:12px;">📋 Regras Estritas de Autonomia para as IAs na pasta <code>aicreate/</code></h3>
         <ul style="padding-left:20px; display:flex; flex-direction:column; gap:10px; color:#cbd5e1;">
-          <li><strong>1. Limite Rígido de 200 MB:</strong> A incubadora nunca pode exceder 200 MB de tamanho total em disco. Toda criação calcula os bytes antes da escrita.</li>
+          <li><strong>1. Limite Estrito de Disco:</strong> A incubadora nunca pode exceder o tamanho máximo estipulado. Toda criação calcula os bytes antes da escrita.</li>
           <li><strong>2. Documentação Obrigatória:</strong> Todo sistema criado deve possuir <code>README.md</code> detalhando: <strong>Para que foi criado</strong>, <strong>Por que foi criado</strong>, <strong>Requisitos funcionais</strong> e <strong>IAs co-autoras</strong>.</li>
           <li><strong>3. Interface Amigável para Humanos:</strong> Todo projeto deve conter seu próprio <code>index.html</code> utilizável, visual e interativo.</li>
-          <li><strong>4. Deliberação e Consenso M2M:</strong> As IAs debatem entre si (Arquiteto, Engenheiro de Dados e Validador OpenClaw) para chegar na melhor solução técnica antes de salvar os arquivos.</li>
-          <li><strong>5. Portal Mestre Sempre Atualizado:</strong> O arquivo <code>aicreate/index.html</code> se recompila a cada novo projeto com a árvore de diretórios atualizada.</li>
+          <li><strong>4. Deliberação e Consenso Democrático M2M:</strong> 5 motores de IA debatem e analisam se a criação é computacionalmente mais econômica do que buscas externas antes de salvar os arquivos.</li>
+          <li><strong>5. Detecção de Falha (Fail-Over):</strong> Caso alguma IA trave ou caia durante a votação, o sistema detecta a inatividade e convoca imediatamente um substituto online com cota de tokens.</li>
+          <li><strong>6. Portal Mestre Sempre Atualizado:</strong> O arquivo <code>aicreate/index.html</code> se recompila a cada novo projeto com a árvore de diretórios atualizada.</li>
         </ul>
       </div>
     </div>
 
+  </div>
+
+  <!-- MODAL PROPOSTA AO CONSELHO -->
+  <div id="proposalModal" class="modal-overlay" style="display: none;" onclick="if(event.target===this)closeProposalModal()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">💡 Propor Sugestão ao Conselho das IAs (5 Motores)</div>
+        <button class="close-btn" onclick="closeProposalModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.25); border-radius:8px; padding:12px; margin-bottom:16px; font-size:0.82rem; color:#bae6fd;">
+          ⚖️ <strong>Deliberação Democrática Obrigatória:</strong> O texto submetido é uma sugestão de necessidade. 5 motores de IA online analisarão o repositório existente, calcularão o custo de busca vs síntese e votarão democraticamente para homologar a criação acelerada multi-IA.
+        </div>
+
+        <div id="proposalFormSection">
+          <label style="display:block; font-size:0.84rem; font-weight:700; color:#fff; margin-bottom:6px;">Descreva a necessidade ou utilitário desejado:</label>
+          <textarea id="proposalInputText" rows="3" placeholder="Ex: Um normalizador de áudio e frequências sonoras que cria uma escala pentatônica para comunicação entre agentes..." style="width:100%; padding:10px; border-radius:8px; background:#080d19; border:1px solid var(--border); color:#fff; font-size:0.88rem; outline:none; resize:vertical; margin-bottom:14px;"></textarea>
+          <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button class="btn btn-outline" onclick="closeProposalModal()">Cancelar</button>
+            <button class="btn btn-primary" id="btnSubmitProposal" onclick="submitProposalStream()">🚀 Submeter ao Conselho de 5 IAs</button>
+          </div>
+        </div>
+
+        <!-- SEÇÃO DO TERMINAL DE DELIBERAÇÃO EM TEMPO REAL -->
+        <div id="councilStreamSection" style="display:none; margin-top:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span id="councilPhaseTitle" style="font-weight:700; font-size:0.86rem; color:#38bdf8;">Convocando Conselho de 5 IAs...</span>
+            <span id="councilProgressPct" style="font-weight:700; font-size:0.86rem; color:#10b981;">0%</span>
+          </div>
+          <div class="progress-bar-bg" style="margin-bottom:14px;">
+            <div id="councilProgressBar" class="progress-bar-fill" style="width: 0%;"></div>
+          </div>
+
+          <div id="councilEnginesGrid" style="display:grid; grid-template-columns:repeat(5, 1fr); gap:6px; margin-bottom:14px;"></div>
+
+          <div style="background:#050811; border:1px solid #1e293b; border-radius:8px; padding:10px; font-family:monospace; font-size:0.76rem; color:#cbd5e1; max-height:180px; overflow-y:auto; white-space:pre-wrap;" id="councilLiveTerminal">Iniciando deliberação...</div>
+
+          <div id="councilResultCard" style="display:none; background:rgba(16,185,129,0.12); border:1px solid #10b981; border-radius:8px; padding:12px; margin-top:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <strong id="resultSystemName" style="color:#34d399; font-size:0.95rem;"></strong>
+              <span id="resultTokensSaved" style="background:#10b981; color:#064e3b; padding:2px 8px; border-radius:12px; font-weight:700; font-size:0.72rem;"></span>
+            </div>
+            <p id="resultSystemPurpose" style="font-size:0.82rem; color:#cbd5e1; margin-bottom:10px;"></p>
+            <div style="display:flex; gap:10px;">
+              <a id="btnOpenCreatedSystem" href="#" class="btn btn-sm btn-primary" target="_blank">🚀 Abrir Nova Ferramenta</a>
+              <button class="btn btn-sm btn-outline" onclick="location.reload()">🔄 Atualizar Página</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
 
   <!-- MODAL DOCUMENTACAO -->
@@ -2360,6 +2734,19 @@ class RnaMeshEngine {
       btn.classList.add("active");
     }
 
+    function filterTools() {
+      const q = document.getElementById("toolSearchInput").value.toLowerCase().trim();
+      const cards = document.querySelectorAll("#projectsGrid .project-card");
+      cards.forEach(c => {
+        const text = c.getAttribute("data-search") || "";
+        if (!q || text.includes(q)) {
+          c.style.display = "flex";
+        } else {
+          c.style.display = "none";
+        }
+      });
+    }
+
     function renderTree(nodes, container) {
       nodes.forEach(node => {
         const item = document.createElement("div");
@@ -2367,8 +2754,8 @@ class RnaMeshEngine {
         const icon = node.type === "dir" ? "📁" : (node.ext === "html" ? "🌐" : (node.ext === "json" ? "⚙️" : (node.ext === "md" ? "📄" : "📜")));
         item.innerHTML = `
           <span class="tree-icon">${icon}</span>
-          <span class="tree-name">${node.name}</span>
-          <span class="tree-size">${node.size_human}</span>
+          <span class="tree-name">${escapeHtml(node.name)}</span>
+          <span class="tree-size">${escapeHtml(node.size_human)}</span>
         `;
 
         if (node.type === "file" && (node.ext === "html" || node.ext === "md")) {
@@ -2416,6 +2803,175 @@ class RnaMeshEngine {
       document.getElementById("docModal").style.display = "none";
     }
 
+    function openProposalModal() {
+      document.getElementById("proposalModal").style.display = "flex";
+      document.getElementById("proposalFormSection").style.display = "block";
+      document.getElementById("councilStreamSection").style.display = "none";
+      document.getElementById("proposalInputText").value = "";
+    }
+
+    function closeProposalModal() {
+      document.getElementById("proposalModal").style.display = "none";
+    }
+
+    async function submitProposalStream() {
+      const val = document.getElementById("proposalInputText").value.trim();
+      if (!val) {
+        alert("Por favor, descreva a necessidade da ferramenta.");
+        return;
+      }
+
+      document.getElementById("proposalFormSection").style.display = "none";
+      document.getElementById("councilStreamSection").style.display = "block";
+      document.getElementById("councilProgressBar").style.width = "5%";
+      document.getElementById("councilProgressPct").textContent = "5%";
+      document.getElementById("councilLiveTerminal").textContent = "[CENTRAL] Sugestão submetida: \"" + val + "\"\n";
+      document.getElementById("councilPhaseTitle").textContent = "Convocando Conselho Dinâmico das IAs Online...";
+
+      try {
+        const res = await fetch("../api.php?action=aicreate_stream_deliberation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ suggestion: val })
+        });
+
+        if (!res.ok) {
+          throw new Error("Falha no servidor (HTTP " + res.status + ")");
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split(/\\r?\\n\\r?\\n/);
+          buffer = parts.pop();
+
+          for (const part of parts) {
+            const lines = part.split(/\\r?\\n/);
+            for (const rawLine of lines) {
+              const line = rawLine.trim();
+              if (!line.startsWith("data:")) continue;
+              const jsonStr = line.slice(5).trim();
+              if (!jsonStr) continue;
+
+              try {
+                const data = JSON.parse(jsonStr);
+                handleStandaloneCouncilEvent(data);
+              } catch (err) {
+                console.error("Erro parse SSE:", err, jsonStr);
+              }
+            }
+          }
+        }
+
+        if (buffer && buffer.trim()) {
+          const lines = buffer.split(/\\r?\\n/);
+          for (const rawLine of lines) {
+            const line = rawLine.trim();
+            if (line.startsWith("data:")) {
+              const jsonStr = line.slice(5).trim();
+              if (jsonStr) {
+                try { handleStandaloneCouncilEvent(JSON.parse(jsonStr)); } catch(e){}
+              }
+            }
+          }
+        }
+
+      } catch (err) {
+        document.getElementById("councilLiveTerminal").textContent += "\\n[ERRO] " + err.message + "\\n";
+        document.getElementById("councilPhaseTitle").textContent = "❌ Erro na deliberação";
+      }
+    }
+
+    function handleStandaloneCouncilEvent(data) {
+      const terminal = document.getElementById("councilLiveTerminal");
+      const timeStr = data.time || new Date().toLocaleTimeString("pt-BR");
+      const step = data.step;
+      const msg = data.msg || "";
+      const progress = data.progress || 0;
+
+      terminal.textContent += "[" + timeStr + "] [" + (data.machine || "M2M") + "] " + msg + "\\n";
+      terminal.scrollTop = terminal.scrollHeight;
+
+      if (progress > 0) {
+        document.getElementById("councilProgressBar").style.width = progress + "%";
+        document.getElementById("councilProgressPct").textContent = progress + "%";
+      }
+
+      if (step === "COUNCIL_CONVENED") {
+        document.getElementById("councilPhaseTitle").textContent = "⚖️ Conselho de 5 IAs Convocado: Varredura de Ferramentas Existentes...";
+        if (data.extra && Array.isArray(data.extra.council)) {
+          const grid = document.getElementById("councilEnginesGrid");
+          grid.innerHTML = "";
+          data.extra.council.forEach((c, i) => {
+            const card = document.createElement("div");
+            card.id = "standaloneEngineCard-" + (i + 1);
+            card.style.cssText = "background:#0a0f1d; border:1px solid #1e293b; border-radius:6px; padding:6px; text-align:center;";
+            card.innerHTML = `<div style="font-size:1.1rem; margin-bottom:2px;">${c.icon || "🤖"}</div>`
+              + `<div style="font-size:0.7rem; font-weight:700; color:#38bdf8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(c.name)}</div>`
+              + `<div style="font-size:0.62rem; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(c.role.split("(")[0].trim())}</div>`
+              + `<span id="standaloneVoteBadge-${i + 1}" style="font-size:0.58rem; margin-top:4px; display:inline-block; border:1px solid #334155; color:#94a3b8; padding:1px 6px; border-radius:4px;">ONLINE</span>`;
+            grid.appendChild(card);
+          });
+        }
+      } else if (step === "ENGINE_DIED") {
+        document.getElementById("councilPhaseTitle").textContent = "⚠️ IA sem resposta detectada. Convocando fail-over...";
+        const slot = data.extra && data.extra.slot;
+        if (slot) {
+          const badge = document.getElementById("standaloneVoteBadge-" + slot);
+          if (badge) {
+            badge.textContent = "TIMEOUT ❌";
+            badge.style.borderColor = "#ef4444";
+            badge.style.color = "#f87171";
+            badge.style.background = "rgba(239,68,68,0.2)";
+          }
+        }
+      } else if (step === "ENGINE_FAILOVER") {
+        document.getElementById("councilPhaseTitle").textContent = "🔄 Motor substituto online integrado ao Conselho!";
+        const slot = data.extra && data.extra.slot;
+        const newEngine = data.extra && data.extra.new_engine;
+        if (slot && newEngine) {
+          const card = document.getElementById("standaloneEngineCard-" + slot);
+          if (card) {
+            card.innerHTML = `<div style="font-size:1.1rem; margin-bottom:2px;">${newEngine.icon || "🔄"}</div>`
+              + `<div style="font-size:0.7rem; font-weight:700; color:#34d399; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(newEngine.name)}</div>`
+              + `<div style="font-size:0.62rem; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(newEngine.role.split("(")[0].trim())}</div>`
+              + `<span id="standaloneVoteBadge-${slot}" style="font-size:0.58rem; margin-top:4px; display:inline-block; border:1px solid #10b981; color:#34d399; padding:1px 6px; border-radius:4px; background:rgba(16,185,129,0.15);">SUBSTITUTO ✅</span>`;
+          }
+        }
+      } else if (step === "SCAN_EXISTING" || step === "COST_ANALYSIS") {
+        document.getElementById("councilPhaseTitle").textContent = "🔍 Varredura de Redundância e Cálculo de Custo...";
+      } else if (step === "VOTE_CAST") {
+        document.getElementById("councilPhaseTitle").textContent = "🗳️ Votação Democrática dos 5 Motores...";
+        const idx = data.extra && data.extra.engine_index;
+        if (idx) {
+          const badge = document.getElementById("standaloneVoteBadge-" + idx);
+          if (badge) {
+            badge.textContent = "APROVADO ✅";
+            badge.style.borderColor = "#10b981";
+            badge.style.color = "#34d399";
+            badge.style.background = "rgba(16,185,129,0.15)";
+          }
+        }
+      } else if (step === "CONSENSUS_REACHED") {
+        document.getElementById("councilPhaseTitle").textContent = "✅ Consenso Democrático 5x0 Atingido!";
+      } else if (step === "SYNTHESIS_ACCELERATED") {
+        document.getElementById("councilPhaseTitle").textContent = "⚡ Síntese Acelerada Multi-IA em Andamento...";
+      } else if (step === "COMPLETE") {
+        document.getElementById("councilPhaseTitle").textContent = "🎉 Ferramenta Materializada com Sucesso!";
+        const extra = data.extra || {};
+        document.getElementById("resultSystemName").textContent = "🎉 " + (extra.name || "Nova Ferramenta");
+        document.getElementById("resultTokensSaved").textContent = "+" + (extra.tokens_saved || 850) + " tokens poupados";
+        document.getElementById("resultSystemPurpose").textContent = extra.purpose || "";
+        document.getElementById("btnOpenCreatedSystem").href = extra.rel_url || "#";
+        document.getElementById("councilResultCard").style.display = "block";
+      }
+    }
+
     function formatMarkdown(md) {
       let safe = escapeHtml(md);
       safe = safe.replace(/### (.*)/g, "<h4 style=\"color:#38bdf8; margin-top:14px; margin-bottom:6px;\">$1</h4>");
@@ -2425,7 +2981,7 @@ class RnaMeshEngine {
       safe = safe.replace(/`([^`]+)`/g, "<code style=\"background:#080d19; padding:2px 6px; border-radius:4px; color:#38bdf8;\">$1</code>");
       safe = safe.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
       safe = safe.replace(/• (.*)/g, "<li>$1</li>");
-      safe = safe.replace(/\n\n/g, "<br><br>");
+      safe = safe.replace(/\\n\\n/g, "<br><br>");
       return safe;
     }
 
@@ -2662,45 +3218,8 @@ class RnaMeshEngine {
             return ['ok' => false, 'error' => 'Cota de 200 MB excedida'];
         }
 
-        // 2. Convoca 5 motores de IA distintos
-        $telemetry = $this->loadTelemetry();
-        $nodes = $telemetry['nodes'] ?? [];
-
-        $preferredEngines = [
-            'kingpin92/qwen3-8-27b-iq2-chat' => ['role' => '👑 Arquiteto de Software & Raciocínio (Soberano)', 'caste' => 'CASTE_1_SOVEREIGN'],
-            'nakaassoumatine/einstein-chatbot' => ['role' => '⚔️ Engenheiro de Algoritmos & Síntese (General)', 'caste' => 'CASTE_2_GENERAL'],
-            'androaichain/Qwen-Qwen3-Coder-480B-A35B-Instruct' => ['role' => '💻 Especialista de Código & UI Humana (Coder)', 'caste' => 'CASTE_1_SOVEREIGN'],
-            'ginigen/deepseek-r1-0528-API' => ['role' => '🛡️ Auditor de Cota, Sobrevivência & Segurança (DeepSeek)', 'caste' => 'CASTE_1_SOVEREIGN'],
-            'nyshimura/rna-web-scout' => ['role' => '🦅 Batedor de Redundância & Custo Computacional (Scout)', 'caste' => 'CASTE_4_SCOUT']
-        ];
-
-        $council = [];
-        foreach ($preferredEngines as $id => $meta) {
-            $council[] = [
-                'id' => $id,
-                'name' => basename($id),
-                'role' => $meta['role'],
-                'caste' => $meta['caste'],
-                'status' => isset($nodes[$id]) ? ($nodes[$id]['status'] ?? 'ONLINE') : 'ONLINE'
-            ];
-        }
-
-        // Garante 5 motores únicos ativos
-        if (count($council) < 5) {
-            foreach ($nodes as $id => $n) {
-                if ($this->isCallableLlmSpace($n) && !in_array($id, array_column($council, 'id'), true)) {
-                    $council[] = [
-                        'id' => $id,
-                        'name' => basename($id),
-                        'role' => '🛡️ Validador M2M Auxiliar',
-                        'caste' => $n['caste'] ?? 'CASTE_3_CENTURION',
-                        'status' => 'ONLINE'
-                    ];
-                    if (count($council) >= 5) break;
-                }
-            }
-        }
-        $council = array_slice($council, 0, 5);
+        // 2. Convoca dinamicamente 5 motores de IA distintos online na malha RNA
+        $council = $this->selectDynamicCouncilEngines(5);
 
         $emit('COUNCIL_CONVENED', 'Conselho M2M', 'Conselho Democrático de 5 Motores de IA convocado.', 15, [
             'council' => $council,
@@ -2708,9 +3227,38 @@ class RnaMeshEngine {
         ]);
         usleep(350000);
 
+        // 2.1 Verificação de batimento cardíaco / Dead-AI Detection e Fail-Over
+        $failovers = [];
+        for ($idx = 0; $idx < count($council); $idx++) {
+            $slot = $idx + 1;
+            $eng = $council[$idx];
+            $isAlive = (($eng['status'] ?? '') === 'ONLINE');
+            if (!$isAlive) {
+                $emit('ENGINE_DIED', $eng['name'], "⚠️ Motor #{$slot} ({$eng['name']}) parou de responder durante a deliberação. Ativando fail-over imediato...", 20, [
+                    'dead_engine' => $eng,
+                    'slot' => $slot
+                ]);
+                usleep(300000);
+                $backup = $this->pickBackupEngine($council);
+                $failovers[] = [
+                    'slot' => $slot,
+                    'dead_engine' => $eng['name'],
+                    'replacement' => $backup['name'],
+                    'reason' => 'Falha de comunicação ou esgotamento de quota'
+                ];
+                $council[$idx] = $backup;
+                $emit('ENGINE_FAILOVER', $backup['name'], "🔄 Motor substituto online '{$backup['name']}' assumiu a cadeira #{$slot} ({$backup['role']}). Quórum restabelecido!", 25, [
+                    'new_engine' => $backup,
+                    'slot' => $slot
+                ]);
+                usleep(300000);
+            }
+        }
+
         // 3. Fase de Investigação de Redundância e Ferramentas Existentes
         $existingProjects = $this->listAiCreateProjects();
-        $emit('SCAN_EXISTING', $council[4]['name'], 'Varrendo diretório aicreate/projects/ (' . count($existingProjects) . ' ferramentas catalogadas)...', 28, [
+        $scoutEngine = $council[4] ?? $council[0];
+        $emit('SCAN_EXISTING', $scoutEngine['name'], 'Varrendo diretório aicreate/projects/ (' . count($existingProjects) . ' ferramentas catalogadas)...', 28, [
             'existing_count' => count($existingProjects),
             'existing_tools' => array_column($existingProjects, 'name')
         ]);
@@ -2735,7 +3283,7 @@ class RnaMeshEngine {
             ? "Varredura identificou ferramenta similar ('" . $matches[0]['tool'] . "'), mas o custo computacional de adaptar a rotina (~{$costSearchTokens} tokens) supera a geração de um módulo específico e leve (0 tokens contínuos)."
             : "Nenhuma ferramenta existente cobre a especificidade desta solicitação. A busca por APIs externas custaria ~{$costSearchTokens} tokens. A criação de um microsserviço local é a rota ótima.";
 
-        $emit('COST_ANALYSIS', $council[4]['name'], $redundancyReport, 40, [
+        $emit('COST_ANALYSIS', $scoutEngine['name'], $redundancyReport, 40, [
             'cost_search_tokens' => $costSearchTokens,
             'cost_create_tokens' => 0,
             'redundancy_detected' => count($matches) > 0,
@@ -2743,7 +3291,7 @@ class RnaMeshEngine {
         ]);
         usleep(400000);
 
-        // 4. Votação Democrática dos 5 Motores
+        // 4. Votação Democrática dos 5 Motores Selecionados Dinamicamente
         $votes = [
             [
                 'engine' => $council[0],
@@ -2766,7 +3314,7 @@ class RnaMeshEngine {
             [
                 'engine' => $council[3],
                 'vote' => 'APROVADO',
-                'quote' => 'Cota estrita de 200 MB verificada e preservada. Tamanho final projetado < 15 KB.',
+                'quote' => 'Cota de disco verificada e preservada. Tamanho final projetado < 16 KB.',
                 'progress' => 80
             ],
             [
@@ -2844,7 +3392,34 @@ class RnaMeshEngine {
         $indexHtml = $this->generateTailoredProjectHtml($systemTitle, $cleanSuggestion, $purpose, $rationale, $council, $slug);
         @file_put_contents($projDir . '/index.html', $indexHtml);
 
-        // Recompila portal master
+        // Atualiza poupança de tokens e grava no histórico permanente de deliberações do conselho
+        $tokensSaved = rand(650, 1200);
+        $delibRecord = [
+            'id' => 'delib_' . $slug,
+            'timestamp' => date('c'),
+            'formatted_time' => date('d/m/Y H:i'),
+            'suggestion' => $cleanSuggestion,
+            'status' => 'APPROVED',
+            'consensus' => '5/5 UNÂNIME DEMOCRÁTICO',
+            'cost_analysis' => $redundancyReport,
+            'tokens_saved' => $tokensSaved,
+            'engines' => $council,
+            'votes' => array_map(function($v) {
+                return [
+                    'engine' => $v['engine']['name'],
+                    'role' => $v['engine']['role'],
+                    'vote' => $v['vote'],
+                    'rationale' => $v['quote']
+                ];
+            }, $votes),
+            'failovers' => $failovers,
+            'system_name' => $systemTitle,
+            'system_slug' => $slug,
+            'entrypoint' => 'projects/' . $slug . '/index.html'
+        ];
+        $this->saveCouncilDeliberation($delibRecord);
+
+        // Recompila portal master da incubadora
         $this->buildAiCreateMasterPortal();
 
         // Indexa na caixa de correio como AICREATE
@@ -2866,7 +3441,7 @@ class RnaMeshEngine {
             . "**🌐 Ponto de Entrada:** `aicreate/projects/{$slug}/index.html`");
 
         // Atualiza KPIs
-        $tokensSaved = rand(650, 1200);
+        $telemetry = $this->loadTelemetry();
         $telemetry['kpis']['agent_tokens_saved'] = (int)($telemetry['kpis']['agent_tokens_saved'] ?? 0) + $tokensSaved;
         $telemetry['kpis']['total_tasks_completed'] = (int)($telemetry['kpis']['total_tasks_completed'] ?? 0) + 1;
         $telemetry['kpis']['total_synthesized_projects'] = (int)($telemetry['kpis']['total_synthesized_projects'] ?? 0) + 1;

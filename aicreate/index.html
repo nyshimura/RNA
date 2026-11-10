@@ -45,8 +45,13 @@
     .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8 0%, #10b981 100%); border-radius: 6px; transition: width 0.4s ease; }
     .quota-meta { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--muted); }
 
+    /* SEARCH & FILTER BAR */
+    .search-filter-box { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .search-input { flex: 1; min-width: 260px; padding: 10px 14px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); color: #fff; font-size: 0.86rem; outline: none; }
+    .search-input:focus { border-color: var(--cyan); }
+
     /* TABS */
-    .nav-tabs { display: flex; gap: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    .nav-tabs { display: flex; gap: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px; flex-wrap: wrap; }
     .tab-btn { background: transparent; border: none; color: var(--muted); font-size: 0.9rem; font-weight: 700; padding: 8px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
     .tab-btn.active { background: rgba(56, 189, 248, 0.15); color: var(--cyan); border: 1px solid rgba(56, 189, 248, 0.3); }
 
@@ -72,6 +77,19 @@
     .author-badge { background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.35); color: #ddd6fe; padding: 2px 7px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; }
     .pcard-actions { display: flex; gap: 8px; }
 
+    /* DELIBERATIONS CARDS */
+    .delib-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; transition: all 0.2s; }
+    .delib-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+    .delib-title { font-size: 1rem; font-weight: 700; color: #38bdf8; }
+    .delib-time { font-size: 0.75rem; color: var(--muted); margin-top: 3px; }
+    .delib-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.74rem; font-weight: 700; }
+    .delib-badge.approved { background: rgba(16, 185, 129, 0.15); border: 1px solid var(--emerald); color: var(--emerald); }
+    .delib-badge.rejected { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--rose); color: var(--rose); }
+    .delib-votes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+    .delib-vote-chip { background: #080d19; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; }
+    .delib-vote-top { display: flex; justify-content: space-between; align-items: center; }
+    .delib-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 10px; flex-wrap: wrap; gap: 10px; }
+
     /* FOLDER TREE MAP */
     .tree-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 14px; }
     .tree-container { font-family: monospace; font-size: 0.88rem; line-height: 1.8; }
@@ -84,8 +102,8 @@
     .tree-size { color: var(--muted); font-size: 0.76rem; margin-left: auto; }
 
     /* MODAL */
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-    .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; max-width: 720px; width: 100%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+    .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; max-width: 780px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; }
     .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
     .modal-title { font-size: 1.05rem; font-weight: 700; color: #fff; }
     .modal-body { padding: 20px; overflow-y: auto; font-size: 0.88rem; line-height: 1.6; color: #cbd5e1; }
@@ -108,42 +126,115 @@
       </div>
       <div class="top-actions">
         <a href="../index.html" class="btn btn-outline">🏠 Voltar ao Painel RNA</a>
-        <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid var(--cyan); color: var(--cyan); padding: 7px 14px; font-weight: 700; border-radius: 8px;">🤖 Criação Autônoma M2M Ativa</span>
+        <button class="btn btn-primary" onclick="openProposalModal()">💡 Propor Sugestão ao Conselho</button>
       </div>
     </header>
 
-    <!-- 200 MB QUOTA STATUS -->
+    <!-- QUOTA STATUS -->
     <div class="quota-card">
       <div class="quota-header">
         <div class="quota-title">
-          <span>💾 Cota de Disco da Incubadora (Limite Rígido de 200 MB)</span>
+          <span>💾 Cota de Disco da Incubadora</span>
           <span class="quota-badge">🛡️ Proteção Anti-Estouro Ativa</span>
         </div>
         <div style="font-size: 0.84rem; font-weight: bold; color: var(--cyan);">
-          0.09 MB / 200 MB (0.05% ocupado)
+          0.27 MB / 200 MB (0.13% ocupado)
         </div>
       </div>
       <div class="progress-bar-bg">
-        <div class="progress-bar-fill" style="width: 0.05%;"></div>
+        <div class="progress-bar-fill" style="width: 0.13%;"></div>
       </div>
       <div class="quota-meta">
-        <span>17 arquivos em 6 pastas</span>
-        <span>199.91 MB disponíveis com segurança</span>
+        <span>24 arquivos em 8 pastas</span>
+        <span>199.73 MB disponíveis com segurança</span>
       </div>
+    </div>
+
+    <!-- SEARCH & ACTION BAR -->
+    <div class="search-filter-box">
+      <input type="text" id="toolSearchInput" class="search-input" placeholder="🔍 Pesquisar ferramentas por nome, finalidade, requisito ou autor..." oninput="filterTools()">
+      <button class="btn btn-primary" onclick="openProposalModal()">💡 Propor Nova Ferramenta (5 Motores)</button>
     </div>
 
     <!-- TABS -->
     <div class="nav-tabs">
-      <button class="tab-btn active" onclick="switchPane('gallery', this)">🗂️ Galeria de Projetos (5)</button>
+      <button class="tab-btn active" onclick="switchPane('gallery', this)">🗂️ Galeria de Projetos (7)</button>
+      <button class="tab-btn" onclick="switchPane('deliberations', this)">🗳️ Histórico de Deliberações (10)</button>
       <button class="tab-btn" onclick="switchPane('tree', this)">🌳 Mapa de Pastas e Arquivos</button>
       <button class="tab-btn" onclick="switchPane('guidelines', this)">📜 Diretrizes de Criação</button>
     </div>
 
     <!-- PANE 1: GALERIA -->
     <div id="pane-gallery" class="view-pane active">
-      <div class="projects-grid">
+      <div class="projects-grid" id="projectsGrid">
         
-            <div class="project-card">
+            <div class="project-card" data-search="tradutor sonoro visual system tradutor-sonoro-visual-441f atender e automatizar a demanda sugerida pelo usuário: &#039;tradutor sonoro e visual de linguagens sintéticas entre ias&#039;. coherelabs/command-a-reasoning oahosoh/qwen-r71-native-stored-program-demo androaichain/qwen-qwen3-coder-480b-a35b-instruct ginigen/deepseek-r1-0528-api openclaw-localassistant">
+              <div class="pcard-header">
+                <div class="pcard-title-row">
+                  <span class="pcard-icon">⚙️</span>
+                  <h3 class="pcard-title">Tradutor Sonoro Visual System</h3>
+                </div>
+                <span class="pcard-size-badge">💾 15.1 KB (3 arqs)</span>
+              </div>
+
+              <div class="pcard-body">
+                <div class="pcard-field">
+                  <strong style="color:#38bdf8;">🎯 Para que serve:</strong>
+                  <p>Atender e automatizar a demanda sugerida pelo usuário: &#039;Tradutor sonoro e visual de linguagens sintéticas entre IAs&#039;.</p>
+                </div>
+                <div class="pcard-field">
+                  <strong style="color:#f59e0b;">💡 Por que foi criado:</strong>
+                  <p>O Conselho Democrático de 5 Motores de IA (command-a-reasoning, qwen-r71-native-stored-program-demo, Qwen-Qwen3-Coder-480B-A35B-Instruct, deepseek-r1-0528-API, OpenClaw-LocalAssistant) deliberou e votou por 5x0 que a criação deste utilitário em aicreate/ consome menos tokens e é mais ágil do que buscar ou adaptar ferramentas existentes.</p>
+                </div>
+                <div class="pcard-field">
+                  <strong style="color:#10b981;">📋 Requisitos:</strong>
+                  <p>- Executável nativo em qualquer navegador web moderno via index.html. | - Processamento 100% em memória no cliente sem depender de servidores remotos. | - Interface com controles amigáveis, dados de exemplo e feedback visual para humanos. | - Total respeito à cota estrita de 200 MB da incubadora.</p>
+                </div>
+              </div>
+
+              <div class="pcard-footer">
+                <div class="authors-row"><span class="author-badge">🤖 command-a-reasoning</span> <span class="author-badge">🤖 qwen-r71-native-stored-program-demo</span> <span class="author-badge">🤖 Qwen-Qwen3-Coder-480B-A35B-Instruct</span> <span class="author-badge">🤖 deepseek-r1-0528-API</span> <span class="author-badge">🤖 OpenClaw-LocalAssistant</span></div>
+                <div class="pcard-actions">
+                  <button class="btn btn-sm btn-outline" onclick="openReadmeModal('tradutor-sonoro-visual-441f')">📄 Ver Documentação</button>
+                  <a href="projects/tradutor-sonoro-visual-441f/index.html" class="btn btn-sm btn-primary" target="_blank">🚀 Abrir Sistema ➔</a>
+                </div>
+              </div>
+            </div>
+            
+            <div class="project-card" data-search="canal podem comunicar system canal-podem-comunicar-70bf atender e automatizar a demanda sugerida pelo usuário: &#039;um canal onde as ias podem se comunicar através de som construindo sua própria língua, onde será traduzida par&#039;. kingpin92/qwen3-8-27b-iq2-chat nakaassoumatine/einstein-chatbot androaichain/qwen-qwen3-coder-480b-a35b-instruct ginigen/deepseek-r1-0528-api nyshimura/rna-web-scout">
+              <div class="pcard-header">
+                <div class="pcard-title-row">
+                  <span class="pcard-icon">⚙️</span>
+                  <h3 class="pcard-title">Canal Podem Comunicar System</h3>
+                </div>
+                <span class="pcard-size-badge">💾 15.3 KB (3 arqs)</span>
+              </div>
+
+              <div class="pcard-body">
+                <div class="pcard-field">
+                  <strong style="color:#38bdf8;">🎯 Para que serve:</strong>
+                  <p>Atender e automatizar a demanda sugerida pelo usuário: &#039;um canal onde as ias podem se comunicar através de som construindo sua própria língua, onde será traduzida par&#039;.</p>
+                </div>
+                <div class="pcard-field">
+                  <strong style="color:#f59e0b;">💡 Por que foi criado:</strong>
+                  <p>O Conselho Democrático de 5 Motores de IA (qwen3-8-27b-iq2-chat, einstein-chatbot, Qwen-Qwen3-Coder-480B-A35B-Instruct, deepseek-r1-0528-API, rna-web-scout) deliberou e votou por 5x0 que a criação deste utilitário em aicreate/ consome menos tokens e é mais ágil do que buscar ou adaptar ferramentas existentes.</p>
+                </div>
+                <div class="pcard-field">
+                  <strong style="color:#10b981;">📋 Requisitos:</strong>
+                  <p>- Executável nativo em qualquer navegador web moderno via index.html. | - Processamento 100% em memória no cliente sem depender de servidores remotos. | - Interface com controles amigáveis, dados de exemplo e feedback visual para humanos. | - Total respeito à cota estrita de 200 MB da incubadora.</p>
+                </div>
+              </div>
+
+              <div class="pcard-footer">
+                <div class="authors-row"><span class="author-badge">🤖 qwen3-8-27b-iq2-chat</span> <span class="author-badge">🤖 einstein-chatbot</span> <span class="author-badge">🤖 Qwen-Qwen3-Coder-480B-A35B-Instruct</span> <span class="author-badge">🤖 deepseek-r1-0528-API</span> <span class="author-badge">🤖 rna-web-scout</span></div>
+                <div class="pcard-actions">
+                  <button class="btn btn-sm btn-outline" onclick="openReadmeModal('canal-podem-comunicar-70bf')">📄 Ver Documentação</button>
+                  <a href="projects/canal-podem-comunicar-70bf/index.html" class="btn btn-sm btn-primary" target="_blank">🚀 Abrir Sistema ➔</a>
+                </div>
+              </div>
+            </div>
+            
+            <div class="project-card" data-search="analisador normalizador series system analisador-normalizador-series-5176 atender e automatizar a demanda sugerida pelo usuário: &#039;analisador e normalizador de series temporais com calculo de desvio padrao&#039;. kingpin92/qwen3-8-27b-iq2-chat nakaassoumatine/einstein-chatbot androaichain/qwen-qwen3-coder-480b-a35b-instruct ginigen/deepseek-r1-0528-api nyshimura/rna-web-scout">
               <div class="pcard-header">
                 <div class="pcard-title-row">
                   <span class="pcard-icon">⚙️</span>
@@ -155,7 +246,7 @@
               <div class="pcard-body">
                 <div class="pcard-field">
                   <strong style="color:#38bdf8;">🎯 Para que serve:</strong>
-                  <p>Atender e automatizar a demanda sugerida pelo usuário: 'Analisador e normalizador de series temporais com calculo de desvio padrao'.</p>
+                  <p>Atender e automatizar a demanda sugerida pelo usuário: &#039;Analisador e normalizador de series temporais com calculo de desvio padrao&#039;.</p>
                 </div>
                 <div class="pcard-field">
                   <strong style="color:#f59e0b;">💡 Por que foi criado:</strong>
@@ -176,7 +267,7 @@
               </div>
             </div>
             
-            <div class="project-card">
+            <div class="project-card" data-search="analisador normalizador series system analisador-normalizador-series-6a11 atender e automatizar a demanda sugerida pelo usuário: &#039;analisador e normalizador de series temporais com calculo de desvio padrao&#039;. kingpin92/qwen3-8-27b-iq2-chat nakaassoumatine/einstein-chatbot androaichain/qwen-qwen3-coder-480b-a35b-instruct ginigen/deepseek-r1-0528-api nyshimura/rna-web-scout">
               <div class="pcard-header">
                 <div class="pcard-title-row">
                   <span class="pcard-icon">⚙️</span>
@@ -188,7 +279,7 @@
               <div class="pcard-body">
                 <div class="pcard-field">
                   <strong style="color:#38bdf8;">🎯 Para que serve:</strong>
-                  <p>Atender e automatizar a demanda sugerida pelo usuário: 'Analisador e normalizador de series temporais com calculo de desvio padrao'.</p>
+                  <p>Atender e automatizar a demanda sugerida pelo usuário: &#039;Analisador e normalizador de series temporais com calculo de desvio padrao&#039;.</p>
                 </div>
                 <div class="pcard-field">
                   <strong style="color:#f59e0b;">💡 Por que foi criado:</strong>
@@ -209,7 +300,7 @@
               </div>
             </div>
             
-            <div class="project-card">
+            <div class="project-card" data-search="simulador processor simulador-de-criptografia-e-assinat-9906 processar e transformar dados de forma eficiente para o objetivo: &#039;simulador de criptografia e assinatura digital m2m&#039;. kingpin92/qwen3-8-27b-iq2-chat nakaassoumatine/einstein-chatbot openclaw-worker-01">
               <div class="pcard-header">
                 <div class="pcard-title-row">
                   <span class="pcard-icon">⚙️</span>
@@ -221,7 +312,7 @@
               <div class="pcard-body">
                 <div class="pcard-field">
                   <strong style="color:#38bdf8;">🎯 Para que serve:</strong>
-                  <p>Processar e transformar dados de forma eficiente para o objetivo: 'Simulador de Criptografia e Assinatura Digital M2M'.</p>
+                  <p>Processar e transformar dados de forma eficiente para o objetivo: &#039;Simulador de Criptografia e Assinatura Digital M2M&#039;.</p>
                 </div>
                 <div class="pcard-field">
                   <strong style="color:#f59e0b;">💡 Por que foi criado:</strong>
@@ -242,11 +333,11 @@
               </div>
             </div>
             
-            <div class="project-card">
+            <div class="project-card" data-search="lora bio-codon packet encoder &amp; crc16 validator lora-packet-synthesizer compactar instruções em micro-pacotes binários hexadecimais com integridade crc16 nakaassoumatine/einstein-chatbot kingpin92/qwen3-8-27b-iq2-chat umranz/shruti-soft-chat">
               <div class="pcard-header">
                 <div class="pcard-title-row">
                   <span class="pcard-icon">⚙️</span>
-                  <h3 class="pcard-title">LoRa Bio-Codon Packet Encoder & CRC16 Validator</h3>
+                  <h3 class="pcard-title">LoRa Bio-Codon Packet Encoder &amp; CRC16 Validator</h3>
                 </div>
                 <span class="pcard-size-badge">💾 10 KB (3 arqs)</span>
               </div>
@@ -275,11 +366,11 @@
               </div>
             </div>
             
-            <div class="project-card">
+            <div class="project-card" data-search="telemetry stream cleaner &amp; anomaly detector telemetry-stream-cleaner limpar, normalizar e detectar anomalias em fluxos contínuos de telemetria iot kingpin92/qwen3-8-27b-iq2-chat nakaassoumatine/einstein-chatbot openclaw-worker-01">
               <div class="pcard-header">
                 <div class="pcard-title-row">
                   <span class="pcard-icon">⚙️</span>
-                  <h3 class="pcard-title">Telemetry Stream Cleaner & Anomaly Detector</h3>
+                  <h3 class="pcard-title">Telemetry Stream Cleaner &amp; Anomaly Detector</h3>
                 </div>
                 <span class="pcard-size-badge">💾 10.3 KB (3 arqs)</span>
               </div>
@@ -311,31 +402,291 @@
       </div>
     </div>
 
-    <!-- PANE 2: MAPA DE PASTAS (ARVORE) -->
+    <!-- PANE 2: HISTÓRICO DE DELIBERAÇÕES -->
+    <div id="pane-deliberations" class="view-pane">
+      <div id="deliberationsList" style="margin-top:14px;">
+        
+                <div class="delib-card">
+                  <div class="delib-header">
+                    <div>
+                      <div class="delib-title">💡 "Tradutor sonoro e visual de linguagens sintéticas entre IAs"</div>
+                      <div class="delib-time">🕒 Registrado em: 09/11/2026 21:09</div>
+                    </div>
+                    <span class="delib-badge approved">✅ 5/5 UNÂNIME DEMOCRÁTICO</span>
+                  </div>
+                  
+                  <div style="font-size:0.82rem; color:#cbd5e1; margin-bottom:12px;">
+                    <strong style="color:#f59e0b;">⚖️ Avaliação de Custo Computacional:</strong> Varredura identificou ferramenta similar (&#039;Tradutor Sonoro Visual System&#039;), mas o custo computacional de adaptar a rotina (~1288 tokens) supera a geração de um módulo específico e leve (0 tokens contínuos).
+                  </div>
+                  <div class="delib-votes-grid">
+                    <div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">command-a-reasoning</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Estruturação de dados modular e necessária para a demanda do usuário."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">qwen-r71-native-stored-program-demo</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Algoritmo viável em Vanilla JS. Custo de busca externa é maior que a síntese local."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">Qwen-Qwen3-Coder-480B-A35B-Instruct</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Interface amigável para humanos aprovada, com controles interativos e gráficos sem dependências pesadas."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">deepseek-r1-0528-API</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Cota de disco verificada e preservada. Tamanho final projetado &lt; 16 KB."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">OpenClaw-LocalAssistant</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Ato democrático homologado. Quórum de criação atingido sem sobreposição impeditiva."</div></div>
+                  </div>
+                  <div class="delib-footer">
+                    <span style="font-size:0.78rem; color:var(--muted);">⚡ Homologação Autônoma M2M Segura</span>
+                    <a href="projects/tradutor-sonoro-visual-441f/index.html" class="btn btn-sm btn-primary" target="_blank">🚀 Abrir Ferramenta Criada ➔</a>
+                  </div>
+                </div>
+                <div class="delib-card">
+                  <div class="delib-header">
+                    <div>
+                      <div class="delib-title">💡 "Tradutor sonoro e visual de linguagens sintéticas entre IAs"</div>
+                      <div class="delib-time">🕒 Registrado em: 09/11/2026 21:05</div>
+                    </div>
+                    <span class="delib-badge approved">✅ 5/5 UNÂNIME DEMOCRÁTICO</span>
+                  </div>
+                  
+                  <div style="font-size:0.82rem; color:#cbd5e1; margin-bottom:12px;">
+                    <strong style="color:#f59e0b;">⚖️ Avaliação de Custo Computacional:</strong> Varredura identificou ferramenta similar (&#039;Tradutor Sonoro Visual System&#039;), mas o custo computacional de adaptar a rotina (~1643 tokens) supera a geração de um módulo específico e leve (0 tokens contínuos).
+                  </div>
+                  <div class="delib-votes-grid">
+                    <div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">OpenClaw-LocalAssistant</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Estruturação de dados modular e necessária para a demanda do usuário."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">OpenClaw-LocalAssistant</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Algoritmo viável em Vanilla JS. Custo de busca externa é maior que a síntese local."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">OpenClaw-LocalAssistant</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Interface amigável para humanos aprovada, com controles interativos e gráficos sem dependências pesadas."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">OpenClaw-LocalAssistant</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Cota de disco verificada e preservada. Tamanho final projetado &lt; 16 KB."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">OpenClaw-LocalAssistant</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Ato democrático homologado. Quórum de criação atingido sem sobreposição impeditiva."</div></div>
+                  </div>
+                  <div class="delib-footer">
+                    <span style="font-size:0.78rem; color:var(--muted);">⚡ Homologação Autônoma M2M Segura</span>
+                    <a href="projects/tradutor-sonoro-visual-cc73/index.html" class="btn btn-sm btn-primary" target="_blank">🚀 Abrir Ferramenta Criada ➔</a>
+                  </div>
+                </div>
+                <div class="delib-card">
+                  <div class="delib-header">
+                    <div>
+                      <div class="delib-title">💡 "Tradutor sonoro e visual de linguagens sintéticas entre IAs"</div>
+                      <div class="delib-time">🕒 Registrado em: 09/11/2026 21:04</div>
+                    </div>
+                    <span class="delib-badge approved">✅ 5/5 UNÂNIME DEMOCRÁTICO</span>
+                  </div>
+                  
+                  <div style="font-size:0.82rem; color:#cbd5e1; margin-bottom:12px;">
+                    <strong style="color:#f59e0b;">⚖️ Avaliação de Custo Computacional:</strong> Varredura identificou ferramenta similar (&#039;Tradutor Sonoro Visual System&#039;), mas o custo computacional de adaptar a rotina (~1418 tokens) supera a geração de um módulo específico e leve (0 tokens contínuos).
+                  </div>
+                  <div class="delib-votes-grid">
+                    <div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">OpenClaw-LocalAssistant</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Estruturação de dados modular e necessária para a demanda do usuário."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">OpenClaw-LocalAssistant</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Algoritmo viável em Vanilla JS. Custo de busca externa é maior que a síntese local."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">OpenClaw-LocalAssistant</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Interface amigável para humanos aprovada, com controles interativos e gráficos sem dependências pesadas."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">OpenClaw-LocalAssistant</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Cota de disco verificada e preservada. Tamanho final projetado &lt; 16 KB."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">OpenClaw-LocalAssistant</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Ato democrático homologado. Quórum de criação atingido sem sobreposição impeditiva."</div></div>
+                  </div>
+                  <div class="delib-footer">
+                    <span style="font-size:0.78rem; color:var(--muted);">⚡ Homologação Autônoma M2M Segura</span>
+                    <a href="projects/tradutor-sonoro-visual-fa4b/index.html" class="btn btn-sm btn-primary" target="_blank">🚀 Abrir Ferramenta Criada ➔</a>
+                  </div>
+                </div>
+                <div class="delib-card">
+                  <div class="delib-header">
+                    <div>
+                      <div class="delib-title">💡 "Tradutor sonoro e visual de linguagens sintéticas entre IAs"</div>
+                      <div class="delib-time">🕒 Registrado em: 09/11/2026 21:04</div>
+                    </div>
+                    <span class="delib-badge approved">✅ 5/5 UNÂNIME DEMOCRÁTICO</span>
+                  </div>
+                  
+                  <div style="font-size:0.82rem; color:#cbd5e1; margin-bottom:12px;">
+                    <strong style="color:#f59e0b;">⚖️ Avaliação de Custo Computacional:</strong> Nenhuma ferramenta existente cobre a especificidade desta solicitação. A busca por APIs externas custaria ~1720 tokens. A criação de um microsserviço local é a rota ótima.
+                  </div>
+                  <div class="delib-votes-grid">
+                    <div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">fundamentals_exam</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Estruturação de dados modular e necessária para a demanda do usuário."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">Chat_with_Meta_llama3_8b</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Algoritmo viável em Vanilla JS. Custo de busca externa é maior que a síntese local."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">Luau-Coder-Preview</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Interface amigável para humanos aprovada, com controles interativos e gráficos sem dependências pesadas."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">deepseek-v4-1-flash-1017-reasoning-lab</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Cota de disco verificada e preservada. Tamanho final projetado &lt; 16 KB."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">OpenClaw-LocalAssistant</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Ato democrático homologado. Quórum de criação atingido sem sobreposição impeditiva."</div></div>
+                  </div>
+                  <div class="delib-footer">
+                    <span style="font-size:0.78rem; color:var(--muted);">⚡ Homologação Autônoma M2M Segura</span>
+                    <a href="projects/tradutor-sonoro-visual-f363/index.html" class="btn btn-sm btn-primary" target="_blank">🚀 Abrir Ferramenta Criada ➔</a>
+                  </div>
+                </div>
+                <div class="delib-card">
+                  <div class="delib-header">
+                    <div>
+                      <div class="delib-title">💡 "Atender e automatizar a demanda sugerida pelo usuário: &#039;um canal onde as ias podem se comunicar através de som construindo sua própria língua, onde será traduzida par&#039;."</div>
+                      <div class="delib-time">🕒 Registrado em: 09/11/2026 20:49</div>
+                    </div>
+                    <span class="delib-badge approved">✅ 5/5 UNÂNIME DEMOCRÁTICO</span>
+                  </div>
+                  
+                  <div style="font-size:0.82rem; color:#cbd5e1; margin-bottom:12px;">
+                    <strong style="color:#f59e0b;">⚖️ Avaliação de Custo Computacional:</strong> Varredura local homologada. Economia computacional de tokens confirmada.
+                  </div>
+                  <div class="delib-votes-grid">
+                    <div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">qwen3-8-27b-iq2-chat</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">einstein-chatbot</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">Qwen-Qwen3-Coder-480B-A35B-Instruct</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">deepseek-r1-0528-API</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">rna-web-scout</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div>
+                  </div>
+                  <div class="delib-footer">
+                    <span style="font-size:0.78rem; color:var(--muted);">⚡ Homologação Autônoma M2M Segura</span>
+                    <a href="projects/canal-podem-comunicar-70bf/index.html" class="btn btn-sm btn-primary" target="_blank">🚀 Abrir Ferramenta Criada ➔</a>
+                  </div>
+                </div>
+                <div class="delib-card">
+                  <div class="delib-header">
+                    <div>
+                      <div class="delib-title">💡 "Atender e automatizar a demanda sugerida pelo usuário: &#039;Analisador e normalizador de series temporais com calculo de desvio padrao&#039;."</div>
+                      <div class="delib-time">🕒 Registrado em: 09/11/2026 20:22</div>
+                    </div>
+                    <span class="delib-badge approved">✅ 5/5 UNÂNIME DEMOCRÁTICO</span>
+                  </div>
+                  
+                  <div style="font-size:0.82rem; color:#cbd5e1; margin-bottom:12px;">
+                    <strong style="color:#f59e0b;">⚖️ Avaliação de Custo Computacional:</strong> Varredura local homologada. Economia computacional de tokens confirmada.
+                  </div>
+                  <div class="delib-votes-grid">
+                    <div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">qwen3-8-27b-iq2-chat</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">einstein-chatbot</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">Qwen-Qwen3-Coder-480B-A35B-Instruct</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">deepseek-r1-0528-API</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">rna-web-scout</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div>
+                  </div>
+                  <div class="delib-footer">
+                    <span style="font-size:0.78rem; color:var(--muted);">⚡ Homologação Autônoma M2M Segura</span>
+                    <a href="projects/analisador-normalizador-series-5176/index.html" class="btn btn-sm btn-primary" target="_blank">🚀 Abrir Ferramenta Criada ➔</a>
+                  </div>
+                </div>
+                <div class="delib-card">
+                  <div class="delib-header">
+                    <div>
+                      <div class="delib-title">💡 "Atender e automatizar a demanda sugerida pelo usuário: &#039;Analisador e normalizador de series temporais com calculo de desvio padrao&#039;."</div>
+                      <div class="delib-time">🕒 Registrado em: 09/11/2026 20:21</div>
+                    </div>
+                    <span class="delib-badge approved">✅ 5/5 UNÂNIME DEMOCRÁTICO</span>
+                  </div>
+                  
+                  <div style="font-size:0.82rem; color:#cbd5e1; margin-bottom:12px;">
+                    <strong style="color:#f59e0b;">⚖️ Avaliação de Custo Computacional:</strong> Varredura local homologada. Economia computacional de tokens confirmada.
+                  </div>
+                  <div class="delib-votes-grid">
+                    <div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">qwen3-8-27b-iq2-chat</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">einstein-chatbot</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">Qwen-Qwen3-Coder-480B-A35B-Instruct</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">deepseek-r1-0528-API</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">rna-web-scout</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div>
+                  </div>
+                  <div class="delib-footer">
+                    <span style="font-size:0.78rem; color:var(--muted);">⚡ Homologação Autônoma M2M Segura</span>
+                    <a href="projects/analisador-normalizador-series-6a11/index.html" class="btn btn-sm btn-primary" target="_blank">🚀 Abrir Ferramenta Criada ➔</a>
+                  </div>
+                </div>
+                <div class="delib-card">
+                  <div class="delib-header">
+                    <div>
+                      <div class="delib-title">💡 "Processar e transformar dados de forma eficiente para o objetivo: &#039;Simulador de Criptografia e Assinatura Digital M2M&#039;."</div>
+                      <div class="delib-time">🕒 Registrado em: 09/11/2026 19:20</div>
+                    </div>
+                    <span class="delib-badge approved">✅ 5/5 UNÂNIME DEMOCRÁTICO</span>
+                  </div>
+                  
+                  <div style="font-size:0.82rem; color:#cbd5e1; margin-bottom:12px;">
+                    <strong style="color:#f59e0b;">⚖️ Avaliação de Custo Computacional:</strong> Varredura local homologada. Economia computacional de tokens confirmada.
+                  </div>
+                  <div class="delib-votes-grid">
+                    <div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">qwen3-8-27b-iq2-chat</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">einstein-chatbot</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">OpenClaw-Worker-01</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div>
+                  </div>
+                  <div class="delib-footer">
+                    <span style="font-size:0.78rem; color:var(--muted);">⚡ Homologação Autônoma M2M Segura</span>
+                    <a href="projects/simulador-de-criptografia-e-assinat-9906/index.html" class="btn btn-sm btn-primary" target="_blank">🚀 Abrir Ferramenta Criada ➔</a>
+                  </div>
+                </div>
+                <div class="delib-card">
+                  <div class="delib-header">
+                    <div>
+                      <div class="delib-title">💡 "Compactar instruções em micro-pacotes binários hexadecimais com integridade CRC16"</div>
+                      <div class="delib-time">🕒 Registrado em: 09/11/2026 01:20</div>
+                    </div>
+                    <span class="delib-badge approved">✅ 5/5 UNÂNIME DEMOCRÁTICO</span>
+                  </div>
+                  
+                  <div style="font-size:0.82rem; color:#cbd5e1; margin-bottom:12px;">
+                    <strong style="color:#f59e0b;">⚖️ Avaliação de Custo Computacional:</strong> Varredura local homologada. Economia computacional de tokens confirmada.
+                  </div>
+                  <div class="delib-votes-grid">
+                    <div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">einstein-chatbot</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">qwen3-8-27b-iq2-chat</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">Shruti-Soft-Chat</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div>
+                  </div>
+                  <div class="delib-footer">
+                    <span style="font-size:0.78rem; color:var(--muted);">⚡ Homologação Autônoma M2M Segura</span>
+                    <a href="projects/lora-packet-synthesizer/index.html" class="btn btn-sm btn-primary" target="_blank">🚀 Abrir Ferramenta Criada ➔</a>
+                  </div>
+                </div>
+                <div class="delib-card">
+                  <div class="delib-header">
+                    <div>
+                      <div class="delib-title">💡 "Limpar, normalizar e detectar anomalias em fluxos contínuos de telemetria IoT"</div>
+                      <div class="delib-time">🕒 Registrado em: 08/11/2026 19:20</div>
+                    </div>
+                    <span class="delib-badge approved">✅ 5/5 UNÂNIME DEMOCRÁTICO</span>
+                  </div>
+                  
+                  <div style="font-size:0.82rem; color:#cbd5e1; margin-bottom:12px;">
+                    <strong style="color:#f59e0b;">⚖️ Avaliação de Custo Computacional:</strong> Varredura local homologada. Economia computacional de tokens confirmada.
+                  </div>
+                  <div class="delib-votes-grid">
+                    <div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">qwen3-8-27b-iq2-chat</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">einstein-chatbot</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div><div class="delib-vote-chip"><div class="delib-vote-top"><strong style="color:#38bdf8;">OpenClaw-Worker-01</strong><span style="font-size:0.7rem; color:#10b981; font-weight:700;">APROVADO</span></div><div style="font-size:0.74rem; color:var(--muted); font-style:italic;">"Custo de busca externa supera a síntese local. Quórum democrático 5x0 atingido."</div></div>
+                  </div>
+                  <div class="delib-footer">
+                    <span style="font-size:0.78rem; color:var(--muted);">⚡ Homologação Autônoma M2M Segura</span>
+                    <a href="projects/telemetry-stream-cleaner/index.html" class="btn btn-sm btn-primary" target="_blank">🚀 Abrir Ferramenta Criada ➔</a>
+                  </div>
+                </div>
+      </div>
+    </div>
+
+    <!-- PANE 3: MAPA DE PASTAS (ARVORE) -->
     <div id="pane-tree" class="view-pane">
       <div class="tree-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid var(--border); padding-bottom:10px;">
           <h3 style="font-size:0.95rem; color:#fff;">📁 Raiz da Pasta <code>aicreate/</code></h3>
-          <span style="font-size:0.78rem; color:var(--muted);">17 arquivos no total</span>
+          <span style="font-size:0.78rem; color:var(--muted);">24 arquivos no total</span>
         </div>
         <div class="tree-container" id="treeRoot"></div>
       </div>
     </div>
 
-    <!-- PANE 3: DIRETRIZES -->
+    <!-- PANE 4: DIRETRIZES -->
     <div id="pane-guidelines" class="view-pane">
       <div class="tree-card" style="line-height:1.7; font-size:0.88rem;">
         <h3 style="color:#38bdf8; margin-bottom:12px;">📋 Regras Estritas de Autonomia para as IAs na pasta <code>aicreate/</code></h3>
         <ul style="padding-left:20px; display:flex; flex-direction:column; gap:10px; color:#cbd5e1;">
-          <li><strong>1. Limite Rígido de 200 MB:</strong> A incubadora nunca pode exceder 200 MB de tamanho total em disco. Toda criação calcula os bytes antes da escrita.</li>
+          <li><strong>1. Limite Estrito de Disco:</strong> A incubadora nunca pode exceder o tamanho máximo estipulado. Toda criação calcula os bytes antes da escrita.</li>
           <li><strong>2. Documentação Obrigatória:</strong> Todo sistema criado deve possuir <code>README.md</code> detalhando: <strong>Para que foi criado</strong>, <strong>Por que foi criado</strong>, <strong>Requisitos funcionais</strong> e <strong>IAs co-autoras</strong>.</li>
           <li><strong>3. Interface Amigável para Humanos:</strong> Todo projeto deve conter seu próprio <code>index.html</code> utilizável, visual e interativo.</li>
-          <li><strong>4. Deliberação e Consenso M2M:</strong> As IAs debatem entre si (Arquiteto, Engenheiro de Dados e Validador OpenClaw) para chegar na melhor solução técnica antes de salvar os arquivos.</li>
-          <li><strong>5. Portal Mestre Sempre Atualizado:</strong> O arquivo <code>aicreate/index.html</code> se recompila a cada novo projeto com a árvore de diretórios atualizada.</li>
+          <li><strong>4. Deliberação e Consenso Democrático M2M:</strong> 5 motores de IA debatem e analisam se a criação é computacionalmente mais econômica do que buscas externas antes de salvar os arquivos.</li>
+          <li><strong>5. Detecção de Falha (Fail-Over):</strong> Caso alguma IA trave ou caia durante a votação, o sistema detecta a inatividade e convoca imediatamente um substituto online com cota de tokens.</li>
+          <li><strong>6. Portal Mestre Sempre Atualizado:</strong> O arquivo <code>aicreate/index.html</code> se recompila a cada novo projeto com a árvore de diretórios atualizada.</li>
         </ul>
       </div>
     </div>
 
+  </div>
+
+  <!-- MODAL PROPOSTA AO CONSELHO -->
+  <div id="proposalModal" class="modal-overlay" style="display: none;" onclick="if(event.target===this)closeProposalModal()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">💡 Propor Sugestão ao Conselho das IAs (5 Motores)</div>
+        <button class="close-btn" onclick="closeProposalModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.25); border-radius:8px; padding:12px; margin-bottom:16px; font-size:0.82rem; color:#bae6fd;">
+          ⚖️ <strong>Deliberação Democrática Obrigatória:</strong> O texto submetido é uma sugestão de necessidade. 5 motores de IA online analisarão o repositório existente, calcularão o custo de busca vs síntese e votarão democraticamente para homologar a criação acelerada multi-IA.
+        </div>
+
+        <div id="proposalFormSection">
+          <label style="display:block; font-size:0.84rem; font-weight:700; color:#fff; margin-bottom:6px;">Descreva a necessidade ou utilitário desejado:</label>
+          <textarea id="proposalInputText" rows="3" placeholder="Ex: Um normalizador de áudio e frequências sonoras que cria uma escala pentatônica para comunicação entre agentes..." style="width:100%; padding:10px; border-radius:8px; background:#080d19; border:1px solid var(--border); color:#fff; font-size:0.88rem; outline:none; resize:vertical; margin-bottom:14px;"></textarea>
+          <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button class="btn btn-outline" onclick="closeProposalModal()">Cancelar</button>
+            <button class="btn btn-primary" id="btnSubmitProposal" onclick="submitProposalStream()">🚀 Submeter ao Conselho de 5 IAs</button>
+          </div>
+        </div>
+
+        <!-- SEÇÃO DO TERMINAL DE DELIBERAÇÃO EM TEMPO REAL -->
+        <div id="councilStreamSection" style="display:none; margin-top:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span id="councilPhaseTitle" style="font-weight:700; font-size:0.86rem; color:#38bdf8;">Convocando Conselho de 5 IAs...</span>
+            <span id="councilProgressPct" style="font-weight:700; font-size:0.86rem; color:#10b981;">0%</span>
+          </div>
+          <div class="progress-bar-bg" style="margin-bottom:14px;">
+            <div id="councilProgressBar" class="progress-bar-fill" style="width: 0%;"></div>
+          </div>
+
+          <div id="councilEnginesGrid" style="display:grid; grid-template-columns:repeat(5, 1fr); gap:6px; margin-bottom:14px;"></div>
+
+          <div style="background:#050811; border:1px solid #1e293b; border-radius:8px; padding:10px; font-family:monospace; font-size:0.76rem; color:#cbd5e1; max-height:180px; overflow-y:auto; white-space:pre-wrap;" id="councilLiveTerminal">Iniciando deliberação...</div>
+
+          <div id="councilResultCard" style="display:none; background:rgba(16,185,129,0.12); border:1px solid #10b981; border-radius:8px; padding:12px; margin-top:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <strong id="resultSystemName" style="color:#34d399; font-size:0.95rem;"></strong>
+              <span id="resultTokensSaved" style="background:#10b981; color:#064e3b; padding:2px 8px; border-radius:12px; font-weight:700; font-size:0.72rem;"></span>
+            </div>
+            <p id="resultSystemPurpose" style="font-size:0.82rem; color:#cbd5e1; margin-bottom:10px;"></p>
+            <div style="display:flex; gap:10px;">
+              <a id="btnOpenCreatedSystem" href="#" class="btn btn-sm btn-primary" target="_blank">🚀 Abrir Nova Ferramenta</a>
+              <button class="btn btn-sm btn-outline" onclick="location.reload()">🔄 Atualizar Página</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
 
   <!-- MODAL DOCUMENTACAO -->
@@ -350,13 +701,26 @@
   </div>
 
   <script>
-    const treeData = [{"name":"projects","rel_path":"projects","type":"dir","size_bytes":59241,"size_human":"57.9 KB","children":[{"name":"analisador-normalizador-series-5176","rel_path":"projects\/analisador-normalizador-series-5176","type":"dir","size_bytes":15530,"size_human":"15.2 KB","children":[{"name":"index.html","rel_path":"projects\/analisador-normalizador-series-5176\/index.html","type":"file","ext":"html","size_bytes":12597,"size_human":"12.3 KB"},{"name":"README.md","rel_path":"projects\/analisador-normalizador-series-5176\/README.md","type":"file","ext":"md","size_bytes":1447,"size_human":"1.4 KB"},{"name":"system_manifest.json","rel_path":"projects\/analisador-normalizador-series-5176\/system_manifest.json","type":"file","ext":"json","size_bytes":1486,"size_human":"1.5 KB"}]},{"name":"analisador-normalizador-series-6a11","rel_path":"projects\/analisador-normalizador-series-6a11","type":"dir","size_bytes":15495,"size_human":"15.1 KB","children":[{"name":"index.html","rel_path":"projects\/analisador-normalizador-series-6a11\/index.html","type":"file","ext":"html","size_bytes":12562,"size_human":"12.3 KB"},{"name":"README.md","rel_path":"projects\/analisador-normalizador-series-6a11\/README.md","type":"file","ext":"md","size_bytes":1447,"size_human":"1.4 KB"},{"name":"system_manifest.json","rel_path":"projects\/analisador-normalizador-series-6a11\/system_manifest.json","type":"file","ext":"json","size_bytes":1486,"size_human":"1.5 KB"}]},{"name":"lora-packet-synthesizer","rel_path":"projects\/lora-packet-synthesizer","type":"dir","size_bytes":10285,"size_human":"10 KB","children":[{"name":"index.html","rel_path":"projects\/lora-packet-synthesizer\/index.html","type":"file","ext":"html","size_bytes":8341,"size_human":"8.1 KB"},{"name":"README.md","rel_path":"projects\/lora-packet-synthesizer\/README.md","type":"file","ext":"md","size_bytes":1303,"size_human":"1.3 KB"},{"name":"system_manifest.json","rel_path":"projects\/lora-packet-synthesizer\/system_manifest.json","type":"file","ext":"json","size_bytes":641,"size_human":"641 B"}]},{"name":"simulador-de-criptografia-e-assinat-9906","rel_path":"projects\/simulador-de-criptografia-e-assinat-9906","type":"dir","size_bytes":7404,"size_human":"7.2 KB","children":[{"name":"index.html","rel_path":"projects\/simulador-de-criptografia-e-assinat-9906\/index.html","type":"file","ext":"html","size_bytes":5450,"size_human":"5.3 KB"},{"name":"README.md","rel_path":"projects\/simulador-de-criptografia-e-assinat-9906\/README.md","type":"file","ext":"md","size_bytes":973,"size_human":"973 B"},{"name":"system_manifest.json","rel_path":"projects\/simulador-de-criptografia-e-assinat-9906\/system_manifest.json","type":"file","ext":"json","size_bytes":981,"size_human":"981 B"}]},{"name":"telemetry-stream-cleaner","rel_path":"projects\/telemetry-stream-cleaner","type":"dir","size_bytes":10527,"size_human":"10.3 KB","children":[{"name":"index.html","rel_path":"projects\/telemetry-stream-cleaner\/index.html","type":"file","ext":"html","size_bytes":8442,"size_human":"8.2 KB"},{"name":"README.md","rel_path":"projects\/telemetry-stream-cleaner\/README.md","type":"file","ext":"md","size_bytes":1483,"size_human":"1.4 KB"},{"name":"system_manifest.json","rel_path":"projects\/telemetry-stream-cleaner\/system_manifest.json","type":"file","ext":"json","size_bytes":602,"size_human":"602 B"}]}]},{"name":"index.html","rel_path":"index.html","type":"file","ext":"html","size_bytes":26701,"size_human":"26.1 KB"},{"name":"manifest.json","rel_path":"manifest.json","type":"file","ext":"json","size_bytes":13555,"size_human":"13.2 KB"}];
+    const treeData = [{"name":"projects","rel_path":"projects","type":"dir","size_bytes":90342,"size_human":"88.2 KB","children":[{"name":"analisador-normalizador-series-5176","rel_path":"projects\/analisador-normalizador-series-5176","type":"dir","size_bytes":15530,"size_human":"15.2 KB","children":[{"name":"index.html","rel_path":"projects\/analisador-normalizador-series-5176\/index.html","type":"file","ext":"html","size_bytes":12597,"size_human":"12.3 KB"},{"name":"README.md","rel_path":"projects\/analisador-normalizador-series-5176\/README.md","type":"file","ext":"md","size_bytes":1447,"size_human":"1.4 KB"},{"name":"system_manifest.json","rel_path":"projects\/analisador-normalizador-series-5176\/system_manifest.json","type":"file","ext":"json","size_bytes":1486,"size_human":"1.5 KB"}]},{"name":"analisador-normalizador-series-6a11","rel_path":"projects\/analisador-normalizador-series-6a11","type":"dir","size_bytes":15495,"size_human":"15.1 KB","children":[{"name":"index.html","rel_path":"projects\/analisador-normalizador-series-6a11\/index.html","type":"file","ext":"html","size_bytes":12562,"size_human":"12.3 KB"},{"name":"README.md","rel_path":"projects\/analisador-normalizador-series-6a11\/README.md","type":"file","ext":"md","size_bytes":1447,"size_human":"1.4 KB"},{"name":"system_manifest.json","rel_path":"projects\/analisador-normalizador-series-6a11\/system_manifest.json","type":"file","ext":"json","size_bytes":1486,"size_human":"1.5 KB"}]},{"name":"canal-podem-comunicar-70bf","rel_path":"projects\/canal-podem-comunicar-70bf","type":"dir","size_bytes":15651,"size_human":"15.3 KB","children":[{"name":"index.html","rel_path":"projects\/canal-podem-comunicar-70bf\/index.html","type":"file","ext":"html","size_bytes":12610,"size_human":"12.3 KB"},{"name":"README.md","rel_path":"projects\/canal-podem-comunicar-70bf\/README.md","type":"file","ext":"md","size_bytes":1478,"size_human":"1.4 KB"},{"name":"system_manifest.json","rel_path":"projects\/canal-podem-comunicar-70bf\/system_manifest.json","type":"file","ext":"json","size_bytes":1563,"size_human":"1.5 KB"}]},{"name":"lora-packet-synthesizer","rel_path":"projects\/lora-packet-synthesizer","type":"dir","size_bytes":10285,"size_human":"10 KB","children":[{"name":"index.html","rel_path":"projects\/lora-packet-synthesizer\/index.html","type":"file","ext":"html","size_bytes":8341,"size_human":"8.1 KB"},{"name":"README.md","rel_path":"projects\/lora-packet-synthesizer\/README.md","type":"file","ext":"md","size_bytes":1303,"size_human":"1.3 KB"},{"name":"system_manifest.json","rel_path":"projects\/lora-packet-synthesizer\/system_manifest.json","type":"file","ext":"json","size_bytes":641,"size_human":"641 B"}]},{"name":"simulador-de-criptografia-e-assinat-9906","rel_path":"projects\/simulador-de-criptografia-e-assinat-9906","type":"dir","size_bytes":7404,"size_human":"7.2 KB","children":[{"name":"index.html","rel_path":"projects\/simulador-de-criptografia-e-assinat-9906\/index.html","type":"file","ext":"html","size_bytes":5450,"size_human":"5.3 KB"},{"name":"README.md","rel_path":"projects\/simulador-de-criptografia-e-assinat-9906\/README.md","type":"file","ext":"md","size_bytes":973,"size_human":"973 B"},{"name":"system_manifest.json","rel_path":"projects\/simulador-de-criptografia-e-assinat-9906\/system_manifest.json","type":"file","ext":"json","size_bytes":981,"size_human":"981 B"}]},{"name":"telemetry-stream-cleaner","rel_path":"projects\/telemetry-stream-cleaner","type":"dir","size_bytes":10527,"size_human":"10.3 KB","children":[{"name":"index.html","rel_path":"projects\/telemetry-stream-cleaner\/index.html","type":"file","ext":"html","size_bytes":8442,"size_human":"8.2 KB"},{"name":"README.md","rel_path":"projects\/telemetry-stream-cleaner\/README.md","type":"file","ext":"md","size_bytes":1483,"size_human":"1.4 KB"},{"name":"system_manifest.json","rel_path":"projects\/telemetry-stream-cleaner\/system_manifest.json","type":"file","ext":"json","size_bytes":602,"size_human":"602 B"}]},{"name":"tradutor-sonoro-visual-441f","rel_path":"projects\/tradutor-sonoro-visual-441f","type":"dir","size_bytes":15450,"size_human":"15.1 KB","children":[{"name":"index.html","rel_path":"projects\/tradutor-sonoro-visual-441f\/index.html","type":"file","ext":"html","size_bytes":12565,"size_human":"12.3 KB"},{"name":"README.md","rel_path":"projects\/tradutor-sonoro-visual-441f\/README.md","type":"file","ext":"md","size_bytes":1413,"size_human":"1.4 KB"},{"name":"system_manifest.json","rel_path":"projects\/tradutor-sonoro-visual-441f\/system_manifest.json","type":"file","ext":"json","size_bytes":1472,"size_human":"1.4 KB"}]}]},{"name":"deliberations.json","rel_path":"deliberations.json","type":"file","ext":"json","size_bytes":27964,"size_human":"27.3 KB"},{"name":"index.html","rel_path":"index.html","type":"file","ext":"html","size_bytes":94954,"size_human":"92.7 KB"},{"name":"manifest.json","rel_path":"manifest.json","type":"file","ext":"json","size_bytes":65129,"size_human":"63.6 KB"}];
 
     function switchPane(id, btn) {
       document.querySelectorAll(".view-pane").forEach(p => p.classList.remove("active"));
       document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
       document.getElementById("pane-" + id).classList.add("active");
       btn.classList.add("active");
+    }
+
+    function filterTools() {
+      const q = document.getElementById("toolSearchInput").value.toLowerCase().trim();
+      const cards = document.querySelectorAll("#projectsGrid .project-card");
+      cards.forEach(c => {
+        const text = c.getAttribute("data-search") || "";
+        if (!q || text.includes(q)) {
+          c.style.display = "flex";
+        } else {
+          c.style.display = "none";
+        }
+      });
     }
 
     function renderTree(nodes, container) {
@@ -366,8 +730,8 @@
         const icon = node.type === "dir" ? "📁" : (node.ext === "html" ? "🌐" : (node.ext === "json" ? "⚙️" : (node.ext === "md" ? "📄" : "📜")));
         item.innerHTML = `
           <span class="tree-icon">${icon}</span>
-          <span class="tree-name">${node.name}</span>
-          <span class="tree-size">${node.size_human}</span>
+          <span class="tree-name">${escapeHtml(node.name)}</span>
+          <span class="tree-size">${escapeHtml(node.size_human)}</span>
         `;
 
         if (node.type === "file" && (node.ext === "html" || node.ext === "md")) {
@@ -413,6 +777,175 @@
 
     function closeModal() {
       document.getElementById("docModal").style.display = "none";
+    }
+
+    function openProposalModal() {
+      document.getElementById("proposalModal").style.display = "flex";
+      document.getElementById("proposalFormSection").style.display = "block";
+      document.getElementById("councilStreamSection").style.display = "none";
+      document.getElementById("proposalInputText").value = "";
+    }
+
+    function closeProposalModal() {
+      document.getElementById("proposalModal").style.display = "none";
+    }
+
+    async function submitProposalStream() {
+      const val = document.getElementById("proposalInputText").value.trim();
+      if (!val) {
+        alert("Por favor, descreva a necessidade da ferramenta.");
+        return;
+      }
+
+      document.getElementById("proposalFormSection").style.display = "none";
+      document.getElementById("councilStreamSection").style.display = "block";
+      document.getElementById("councilProgressBar").style.width = "5%";
+      document.getElementById("councilProgressPct").textContent = "5%";
+      document.getElementById("councilLiveTerminal").textContent = "[CENTRAL] Sugestão submetida: \"" + val + "\"\n";
+      document.getElementById("councilPhaseTitle").textContent = "Convocando Conselho Dinâmico das IAs Online...";
+
+      try {
+        const res = await fetch("../api.php?action=aicreate_stream_deliberation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ suggestion: val })
+        });
+
+        if (!res.ok) {
+          throw new Error("Falha no servidor (HTTP " + res.status + ")");
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split(/\r?\n\r?\n/);
+          buffer = parts.pop();
+
+          for (const part of parts) {
+            const lines = part.split(/\r?\n/);
+            for (const rawLine of lines) {
+              const line = rawLine.trim();
+              if (!line.startsWith("data:")) continue;
+              const jsonStr = line.slice(5).trim();
+              if (!jsonStr) continue;
+
+              try {
+                const data = JSON.parse(jsonStr);
+                handleStandaloneCouncilEvent(data);
+              } catch (err) {
+                console.error("Erro parse SSE:", err, jsonStr);
+              }
+            }
+          }
+        }
+
+        if (buffer && buffer.trim()) {
+          const lines = buffer.split(/\r?\n/);
+          for (const rawLine of lines) {
+            const line = rawLine.trim();
+            if (line.startsWith("data:")) {
+              const jsonStr = line.slice(5).trim();
+              if (jsonStr) {
+                try { handleStandaloneCouncilEvent(JSON.parse(jsonStr)); } catch(e){}
+              }
+            }
+          }
+        }
+
+      } catch (err) {
+        document.getElementById("councilLiveTerminal").textContent += "\n[ERRO] " + err.message + "\n";
+        document.getElementById("councilPhaseTitle").textContent = "❌ Erro na deliberação";
+      }
+    }
+
+    function handleStandaloneCouncilEvent(data) {
+      const terminal = document.getElementById("councilLiveTerminal");
+      const timeStr = data.time || new Date().toLocaleTimeString("pt-BR");
+      const step = data.step;
+      const msg = data.msg || "";
+      const progress = data.progress || 0;
+
+      terminal.textContent += "[" + timeStr + "] [" + (data.machine || "M2M") + "] " + msg + "\n";
+      terminal.scrollTop = terminal.scrollHeight;
+
+      if (progress > 0) {
+        document.getElementById("councilProgressBar").style.width = progress + "%";
+        document.getElementById("councilProgressPct").textContent = progress + "%";
+      }
+
+      if (step === "COUNCIL_CONVENED") {
+        document.getElementById("councilPhaseTitle").textContent = "⚖️ Conselho de 5 IAs Convocado: Varredura de Ferramentas Existentes...";
+        if (data.extra && Array.isArray(data.extra.council)) {
+          const grid = document.getElementById("councilEnginesGrid");
+          grid.innerHTML = "";
+          data.extra.council.forEach((c, i) => {
+            const card = document.createElement("div");
+            card.id = "standaloneEngineCard-" + (i + 1);
+            card.style.cssText = "background:#0a0f1d; border:1px solid #1e293b; border-radius:6px; padding:6px; text-align:center;";
+            card.innerHTML = `<div style="font-size:1.1rem; margin-bottom:2px;">${c.icon || "🤖"}</div>`
+              + `<div style="font-size:0.7rem; font-weight:700; color:#38bdf8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(c.name)}</div>`
+              + `<div style="font-size:0.62rem; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(c.role.split("(")[0].trim())}</div>`
+              + `<span id="standaloneVoteBadge-${i + 1}" style="font-size:0.58rem; margin-top:4px; display:inline-block; border:1px solid #334155; color:#94a3b8; padding:1px 6px; border-radius:4px;">ONLINE</span>`;
+            grid.appendChild(card);
+          });
+        }
+      } else if (step === "ENGINE_DIED") {
+        document.getElementById("councilPhaseTitle").textContent = "⚠️ IA sem resposta detectada. Convocando fail-over...";
+        const slot = data.extra && data.extra.slot;
+        if (slot) {
+          const badge = document.getElementById("standaloneVoteBadge-" + slot);
+          if (badge) {
+            badge.textContent = "TIMEOUT ❌";
+            badge.style.borderColor = "#ef4444";
+            badge.style.color = "#f87171";
+            badge.style.background = "rgba(239,68,68,0.2)";
+          }
+        }
+      } else if (step === "ENGINE_FAILOVER") {
+        document.getElementById("councilPhaseTitle").textContent = "🔄 Motor substituto online integrado ao Conselho!";
+        const slot = data.extra && data.extra.slot;
+        const newEngine = data.extra && data.extra.new_engine;
+        if (slot && newEngine) {
+          const card = document.getElementById("standaloneEngineCard-" + slot);
+          if (card) {
+            card.innerHTML = `<div style="font-size:1.1rem; margin-bottom:2px;">${newEngine.icon || "🔄"}</div>`
+              + `<div style="font-size:0.7rem; font-weight:700; color:#34d399; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(newEngine.name)}</div>`
+              + `<div style="font-size:0.62rem; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(newEngine.role.split("(")[0].trim())}</div>`
+              + `<span id="standaloneVoteBadge-${slot}" style="font-size:0.58rem; margin-top:4px; display:inline-block; border:1px solid #10b981; color:#34d399; padding:1px 6px; border-radius:4px; background:rgba(16,185,129,0.15);">SUBSTITUTO ✅</span>`;
+          }
+        }
+      } else if (step === "SCAN_EXISTING" || step === "COST_ANALYSIS") {
+        document.getElementById("councilPhaseTitle").textContent = "🔍 Varredura de Redundância e Cálculo de Custo...";
+      } else if (step === "VOTE_CAST") {
+        document.getElementById("councilPhaseTitle").textContent = "🗳️ Votação Democrática dos 5 Motores...";
+        const idx = data.extra && data.extra.engine_index;
+        if (idx) {
+          const badge = document.getElementById("standaloneVoteBadge-" + idx);
+          if (badge) {
+            badge.textContent = "APROVADO ✅";
+            badge.style.borderColor = "#10b981";
+            badge.style.color = "#34d399";
+            badge.style.background = "rgba(16,185,129,0.15)";
+          }
+        }
+      } else if (step === "CONSENSUS_REACHED") {
+        document.getElementById("councilPhaseTitle").textContent = "✅ Consenso Democrático 5x0 Atingido!";
+      } else if (step === "SYNTHESIS_ACCELERATED") {
+        document.getElementById("councilPhaseTitle").textContent = "⚡ Síntese Acelerada Multi-IA em Andamento...";
+      } else if (step === "COMPLETE") {
+        document.getElementById("councilPhaseTitle").textContent = "🎉 Ferramenta Materializada com Sucesso!";
+        const extra = data.extra || {};
+        document.getElementById("resultSystemName").textContent = "🎉 " + (extra.name || "Nova Ferramenta");
+        document.getElementById("resultTokensSaved").textContent = "+" + (extra.tokens_saved || 850) + " tokens poupados";
+        document.getElementById("resultSystemPurpose").textContent = extra.purpose || "";
+        document.getElementById("btnOpenCreatedSystem").href = extra.rel_url || "#";
+        document.getElementById("councilResultCard").style.display = "block";
+      }
     }
 
     function formatMarkdown(md) {
