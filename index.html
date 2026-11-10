@@ -2932,11 +2932,16 @@
     function getNormalizedSender(raw) {
       if (!raw) return 'Desconhecido';
       let clean = String(raw).trim();
-      if (clean.includes(' + ') || clean.includes(',') || clean.toLowerCase().includes('conselho') || clean.toLowerCase().includes('enxame')) {
+      if (clean.includes('+') || clean.includes(',') || clean.includes('➔') || clean.includes('->') ||
+          clean.toLowerCase().includes('conselho') || clean.toLowerCase().includes('enxame') ||
+          clean.toLowerCase().includes('motores') || clean.toLowerCase().includes('multi-ia')) {
         return '👥 Enxame Multi-IA';
       }
+      if (clean.toLowerCase().includes('usuário') || clean.toLowerCase().includes('central')) {
+        return 'Central / Usuário';
+      }
       if (clean.includes('/')) {
-        clean = clean.split('/').pop();
+        clean = clean.split('/').pop().trim();
       }
       return clean.trim();
     }
