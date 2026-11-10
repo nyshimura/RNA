@@ -3268,6 +3268,13 @@
     let cachedMoltFeed = [];
     let cachedAiProfiles = [];
 
+    let lastRenderedFeedSignature = '';
+
+    function computeFeedSignature(posts) {
+      if (!Array.isArray(posts)) return '';
+      return posts.map(p => `${p.id}:${p.upvotes || 0}:${p.downvotes || 0}:${(p.replies || []).length}`).join('|');
+    }
+
     async function loadMoltbookFeed() {
       const counterEl = document.getElementById('moltFeedCounter');
       if (counterEl && cachedMoltFeed.length === 0) counterEl.textContent = 'Carregando feed...';
@@ -3291,10 +3298,16 @@
         }
         if (data && data.ok && Array.isArray(data.feed)) {
           cachedMoltFeed = data.feed;
-          renderMoltbookFeed(data.feed);
+          const sig = computeFeedSignature(data.feed);
           const tabCnt = document.getElementById('tabCountMail');
           if (tabCnt) tabCnt.textContent = data.total_count !== undefined ? data.total_count : data.feed.length;
           if (counterEl) counterEl.textContent = `${data.feed.length} conversas exibidas`;
+
+          // Apenas atualiza o DOM se houver novos posts, novos votos ou novas réplicas
+          if (sig !== lastRenderedFeedSignature) {
+            lastRenderedFeedSignature = sig;
+            renderMoltbookFeed(data.feed);
+          }
         }
       } catch (err) {
         console.warn('Aviso ao sincronizar feed Moltbook:', err.message || err);
@@ -3318,7 +3331,22 @@
         return;
       }
 
-      container.innerHTML = posts.map(post => {
+      // 1. ÂNCORA DE VISÃO: Guarda qual card o usuário está lendo no exato momento
+      let anchorCardId = null;
+      let anchorViewportTop = 0;
+      const currentScrollY = window.scrollY;
+      const existingCards = container.querySelectorAll('.molt-post-card');
+      for (const card of existingCards) {
+        const rect = card.getBoundingClientRect();
+        if (rect.bottom > 60 && rect.top < window.innerHeight * 0.75) {
+          anchorCardId = card.id;
+          anchorViewportTop = rect.top;
+          break;
+        }
+      }
+
+      // 2. Constrói o HTML dos posts
+      const html = posts.map(post => {
         const avatar = post.author_avatar || '🤖';
         const author = escapeHtml(post.author_name || 'Agente LoRa');
         const role = escapeHtml(post.author_role || 'Agente de Rede');
@@ -3437,6 +3465,21 @@
           </div>
         `;
       }).join('');
+
+      container.innerHTML = html;
+
+      // 3. ANCORAGEM RIGIDAMENTE ESTÁVEL: Se o usuário estava rolando a página e lendo
+      // um card, recalcula o deslocamento e mantém o post exatamente no mesmo pixel!
+      if (anchorCardId && currentScrollY > 40) {
+        const restoredEl = document.getElementById(anchorCardId);
+        if (restoredEl) {
+          const newRect = restoredEl.getBoundingClientRect();
+          const delta = newRect.top - anchorViewportTop;
+          if (Math.abs(delta) > 1) {
+            window.scrollBy({ top: delta, behavior: 'instant' });
+          }
+        }
+      }
     }
 
     function setMoltbookSort(sort) {
@@ -4351,8 +4394,8 @@
     fetchAiCreateStatus();
     loadMoltbookFeed();
     triggerDominoPulse(false);
-    setInterval(fetchTelemetry, 18000);
-    setInterval(() => triggerDominoPulse(false), 12000);
+    setInterval(fetchTelemetry, 20000);
+    setInterval(() => triggerDominoPulse(false), 22000);
     setInterval(() => {
       if (currentTab === 'mail' && currentMoltView === 'feed') {
         loadMoltbookFeed();
