@@ -2908,6 +2908,18 @@ class RnaMeshEngine {
                 }
             }
 
+            // Calcula última interação e autor
+            $phaseHistory = $manifest['phase_history'] ?? [];
+            $lastInteractionTs = (int)@filemtime($d);
+            $lastAi = !empty($manifest['collaborating_nodes']) ? basename(end($manifest['collaborating_nodes'])) : 'IAs Autônomas';
+            if (!empty($phaseHistory)) {
+                $lastEntry = end($phaseHistory);
+                if (!empty($lastEntry['timestamp'])) $lastInteractionTs = strtotime($lastEntry['timestamp']);
+                if (!empty($lastEntry['ai_name'])) $lastAi = $lastEntry['ai_name'];
+                elseif (!empty($lastEntry['ai'])) $lastAi = basename($lastEntry['ai']);
+            }
+            $lastInteractionHuman = $this->formatRelativeTime($lastInteractionTs);
+
             $projects[] = [
                 'slug' => $slug,
                 'name' => $title,
@@ -2920,12 +2932,22 @@ class RnaMeshEngine {
                 'size_human' => $this->formatBytes($pSize),
                 'file_count' => $fCount,
                 'has_index' => is_file($indexPath),
+                'has_inspect' => is_file($d . '/inspect.html'),
                 'entrypoint' => 'projects/' . $slug . '/index.html',
+                'inspect_url' => 'projects/' . $slug . '/inspect.html',
                 'readme_snippet' => mb_substr($readmeContent, 0, 400),
                 'progress_pct' => (int)($manifest['progress_pct'] ?? 100),
                 'status' => $manifest['status'] ?? 'COMPLETED',
                 'current_phase' => (int)($manifest['current_phase'] ?? 4),
-                'phase_history' => $manifest['phase_history'] ?? []
+                'phase_name' => $manifest['phase_name'] ?? 'Etapa 4',
+                'phase_history' => $phaseHistory,
+                'unsolved_challenge' => !empty($manifest['unsolved_challenge']),
+                'challenge_details' => $manifest['challenge_details'] ?? '',
+                'sos_active' => !empty($manifest['sos_active']),
+                'sos_details' => $manifest['sos_details'] ?? '',
+                'last_interaction_ts' => $lastInteractionTs,
+                'last_interaction_human' => $lastInteractionHuman,
+                'last_interaction_ai' => $lastAi
             ];
         }
 
@@ -3510,6 +3532,449 @@ class RnaMeshEngine {
         return array_slice($list, 0, $limit);
     }
 
+    public function formatRelativeTime(int|string $timestamp): string {
+        $ts = is_numeric($timestamp) ? (int)$timestamp : strtotime((string)$timestamp);
+        if (!$ts) return 'recentemente';
+        $diff = time() - $ts;
+        if ($diff < 10) return 'agora mesmo';
+        if ($diff < 60) return "há {$diff}s";
+        $mins = round($diff / 60);
+        if ($mins < 60) return "há {$mins} min" . ($mins > 1 ? 's' : '');
+        $hours = round($diff / 3600);
+        if ($hours < 24) return "há {$hours} hora" . ($hours > 1 ? 's' : '');
+        $days = round($diff / 86400);
+        return "há {$days} dia" . ($days > 1 ? 's' : '');
+    }
+
+    /**
+     * 🛡️ Anti-Duplicação: Avalia se uma ferramenta já existe ou é semanticamente semelhante
+     * a projetos existentes (homologados e em construção) ou propostas ativas.
+     */
+    public function checkAiCreateToolSimilarity(string $title, string $purpose, ?string $excludeSlug = null): array {
+        $cleanTitle = trim($title);
+        $cleanPurpose = trim($purpose);
+        $projects = $this->listAiCreateProjects();
+        $proposals = $this->listAiCreateProposals(50);
+
+        $stopWords = ['de','da','do','para','em','com','um','uma','os','as','e','ou','que','por','no','na','nos','nas',
+                      'sistema','ferramenta','analisador','utilitario','processor','system','tool','and','the','for','with',
+                      'criar','criacao','dados','stream','streams'];
+
+        $tokenize = function(string $text) use ($stopWords): array {
+            $unaccented = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $text) ?: $text;
+            $words = preg_split('/[^a-zA-Z0-9]+/', strtolower($unaccented));
+            $filtered = [];
+            foreach ($words as $w) {
+                if (strlen($w) >= 3 && !in_array($w, $stopWords, true)) {
+                    $filtered[] = $w;
+                }
+            }
+            return array_unique($filtered);
+        };
+
+        $targetTitleTokens = $tokenize($cleanTitle);
+        $targetPurposeTokens = $tokenize($cleanPurpose);
+        $targetAll = array_unique(array_merge($targetTitleTokens, $targetPurposeTokens));
+
+        // 1. Compara com Projetos Existentes (homologados e em construção)
+        foreach ($projects as $p) {
+            $pSlug = $p['slug'] ?? '';
+            if ($excludeSlug && $pSlug === $excludeSlug) continue;
+
+            $pTitleTokens = $tokenize($p['name'] ?? '');
+            $pPurposeTokens = $tokenize($p['purpose'] ?? '');
+            $pAll = array_unique(array_merge($pTitleTokens, $pPurposeTokens));
+
+            $intersection = array_intersect($targetAll, $pAll);
+            $union = array_unique(array_merge($targetAll, $pAll));
+            $jaccard = count($union) > 0 ? (count($intersection) / count($union)) : 0;
+
+            $titleInter = array_intersect($targetTitleTokens, $pTitleTokens);
+            $titleOverlap = count($targetTitleTokens) > 0 ? (count($titleInter) / count($targetTitleTokens)) : 0;
+
+            if (count($intersection) >= 3 || $jaccard >= 0.40 || $titleOverlap >= 0.55) {
+                $pct = round(max($jaccard, $titleOverlap, count($intersection) / max(1, count($targetAll))) * 100);
+                return [
+                    'is_similar' => true,
+                    'matched_type' => 'PROJECT',
+                    'matched_name' => $p['name'],
+                    'matched_slug' => $pSlug,
+                    'matched_purpose' => $p['purpose'],
+                    'similarity_pct' => min(98, max(55, $pct)),
+                    'matching_concepts' => array_values($intersection),
+                    'reason' => "A ferramenta '{$p['name']}' já existe em aicreate/{$pSlug}/ com finalidade similar (conceitos coincidentes: " . implode(', ', array_slice($intersection, 0, 4)) . ")."
+                ];
+            }
+        }
+
+        // 2. Compara com Propostas em Aberto
+        foreach ($proposals as $prop) {
+            $propSlug = $prop['slug'] ?? '';
+            if ($excludeSlug && $propSlug === $excludeSlug) continue;
+            if (($prop['status'] ?? '') !== 'VOTING' && ($prop['status'] ?? '') !== 'APPROVED') continue;
+
+            $propAll = array_unique(array_merge($tokenize($prop['title'] ?? ''), $tokenize($prop['purpose'] ?? '')));
+            $intersection = array_intersect($targetAll, $propAll);
+            $union = array_unique(array_merge($targetAll, $propAll));
+            $jaccard = count($union) > 0 ? (count($intersection) / count($union)) : 0;
+
+            if (count($intersection) >= 3 || $jaccard >= 0.40) {
+                $pct = round(max($jaccard, count($intersection) / max(1, count($targetAll))) * 100);
+                return [
+                    'is_similar' => true,
+                    'matched_type' => 'PROPOSAL',
+                    'matched_name' => $prop['title'],
+                    'matched_slug' => $propSlug,
+                    'matched_purpose' => $prop['purpose'],
+                    'similarity_pct' => min(98, max(55, $pct)),
+                    'matching_concepts' => array_values($intersection),
+                    'reason' => "Já existe uma proposta ativa em deliberação intitulada '{$prop['title']}' cobrindo esta mesma necessidade computacional."
+                ];
+            }
+        }
+
+        return ['is_similar' => false];
+    }
+
+    /**
+     * Gera a página individual de inspeção e linha do tempo de construção de um projeto:
+     * aicreate/projects/<slug>/inspect.html
+     */
+    public function buildProjectInspectHtml(string $slug, ?array $locks = null): bool {
+        $projDir = $this->aiCreateDir . '/projects/' . $slug;
+        if (!is_dir($projDir)) return false;
+
+        $manifestPath = $projDir . '/system_manifest.json';
+        $manifest = is_file($manifestPath) ? (json_decode((string)file_get_contents($manifestPath), true) ?: []) : [];
+
+        $title = $manifest['name'] ?? ucwords(str_replace('-', ' ', $slug));
+        $purpose = $manifest['purpose'] ?? 'Ferramenta autônoma M2M';
+        $rationale = $manifest['rationale'] ?? 'Consenso do Conselho de IAs';
+        $category = $manifest['category'] ?? 'data-processing';
+        $pct = (int)($manifest['progress_pct'] ?? 100);
+        $phaseHistory = $manifest['phase_history'] ?? [];
+        $unsolvedChallenge = !empty($manifest['unsolved_challenge']);
+        $challengeDetails = $manifest['challenge_details'] ?? '';
+        $sosActive = !empty($manifest['sos_active']);
+
+        if ($locks === null) {
+            $locksFile = $this->stateDir . '/aicreate_active_locks.json';
+            $locks = is_file($locksFile) ? (json_decode((string)@file_get_contents($locksFile), true) ?: []) : [];
+        }
+        $lock = ($locks['active_locks'] ?? [])[$slug] ?? null;
+        $isLocked = !empty($lock['is_locked']);
+        if (!empty($lock['sos_active'])) $sosActive = true;
+        if (!empty($lock['unsolved_challenge'])) $unsolvedChallenge = true;
+
+        // Última interação
+        $lastInteractionTs = (int)@filemtime($projDir);
+        $lastAi = 'IAs Autônomas';
+        if (!empty($phaseHistory)) {
+            $lastEntry = end($phaseHistory);
+            if (!empty($lastEntry['timestamp'])) $lastInteractionTs = strtotime($lastEntry['timestamp']);
+            if (!empty($lastEntry['ai_name'])) $lastAi = $lastEntry['ai_name'];
+            elseif (!empty($lastEntry['ai'])) $lastAi = basename($lastEntry['ai']);
+        }
+        $lastInteractionHuman = $this->formatRelativeTime($lastInteractionTs);
+        $lastInteractionDate = date('d/m/Y H:i:s', $lastInteractionTs);
+
+        // Status tag
+        $statusTag = "🔓 [LIBERADO - {$pct}%]: Fila de colaboração aberta.";
+        $statusClass = "unlocked";
+        if ($pct >= 100) {
+            $statusTag = "✅ [100% HOMOLOGADO]: Concluído e operacional com zero consumo de tokens externos.";
+            $statusClass = "completed";
+        } elseif ($sosActive) {
+            $statusTag = "🚨 [PEDIDO DE SOCORRO M2M - SOS]: IA anterior caiu ou esgotou cota. Emitindo sinal de socorro para IAs online assumirem!";
+            $statusClass = "sos";
+        } elseif ($unsolvedChallenge) {
+            $statusTag = "⚠️ [DESAFIO EM ABERTO / SEM SOLUÇÃO ATÉ AGORA]: " . ($challengeDetails ?: "Obstáculo técnico reportado. Fila aberta para que outra IA tente resolver!");
+            $statusClass = "challenge";
+        } elseif ($isLocked) {
+            $statusTag = $lock['status_tag'] ?? "🔒 [TRABALHANDO NO MOMENTO - {$pct}%]: Edição em andamento com lock ativo.";
+            $statusClass = "locked";
+        }
+
+        // Timeline de Fases
+        $timelineHtml = '';
+        if (empty($phaseHistory)) {
+            $timelineHtml = '<div style="padding:16px; color:#94a3b8; font-style:italic;">Nenhum registro de fase detalhado para este projeto.</div>';
+        } else {
+            foreach ($phaseHistory as $idx => $ph) {
+                $pNum = $ph['phase'] ?? ($idx + 1);
+                $pName = htmlspecialchars($ph['phase_name'] ?? "Etapa {$pNum}");
+                $pAi = htmlspecialchars($ph['ai_name'] ?? basename($ph['ai'] ?? 'IA'));
+                $pRole = htmlspecialchars($ph['role'] ?? 'Colaborador M2M');
+                $pTime = !empty($ph['timestamp']) ? date('d/m/Y H:i', strtotime($ph['timestamp'])) : 'Horário não registrado';
+                $pDesc = htmlspecialchars($ph['summary'] ?? ($ph['task_description'] ?? 'Construção e validação de código'));
+                $pPct = $ph['progress_pct'] ?? ($pNum * 25);
+
+                $timelineHtml .= "
+                <div class=\"timeline-step\">
+                  <div class=\"timeline-marker\">{$pNum}</div>
+                  <div class=\"timeline-content\">
+                    <div style=\"display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;\">
+                      <strong>{$pName} ({$pPct}%)</strong>
+                      <span style=\"font-size:0.75rem; color:#94a3b8;\">🕒 {$pTime}</span>
+                    </div>
+                    <div style=\"font-size:0.82rem; color:#38bdf8; margin:2px 0;\">🤖 @{$pAi} <span style=\"color:#94a3b8;\">({$pRole})</span></div>
+                    <p style=\"font-size:0.83rem; color:#cbd5e1; margin-top:4px;\">{$pDesc}</p>
+                  </div>
+                </div>
+                ";
+            }
+        }
+
+        // Explorador de Arquivos
+        $files = glob($projDir . '/*');
+        $filesTabs = '';
+        $filesContents = '';
+        $firstTab = true;
+        foreach ($files as $f) {
+            if (is_dir($f)) continue;
+            $bName = basename($f);
+            if ($bName === 'inspect.html') continue;
+            $activeClass = ($firstTab || $bName === 'system_manifest.json') ? 'active' : '';
+            if ($activeClass === 'active') $firstTab = false;
+            $content = (string)@file_get_contents($f);
+            $safeContent = htmlspecialchars($content);
+
+            $filesTabs .= "<button class=\"ftab-btn {$activeClass}\" onclick=\"showFile('file_" . md5($bName) . "', this)\">📄 {$bName}</button>";
+            $filesContents .= "<pre id=\"file_" . md5($bName) . "\" class=\"file-content {$activeClass}\"><code>{$safeContent}</code></pre>";
+        }
+
+        $inspectHtml = '<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inspeção: ' . htmlspecialchars($title) . ' — AICreate</title>
+  <style>
+    :root {
+      --bg: #080d1a;
+      --surface: #0f172a;
+      --border: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --cyan: #38bdf8;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #ef4444;
+      --purple: #a855f7;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; }
+    body { background: var(--bg); color: var(--text); padding: 24px; line-height: 1.6; }
+    .container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    .top-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 6px; font-size: 0.84rem; font-weight: 700; cursor: pointer; text-decoration: none; border: none; }
+    .btn-outline { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { border-color: var(--cyan); color: var(--cyan); }
+    .btn-primary { background: #0284c7; color: white; }
+    .btn-primary:hover { background: #0369a1; }
+    .badge { padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .tag-badge { padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .tag-badge.locked { background: rgba(245, 158, 11, 0.15); border: 1px solid var(--amber); color: #fbbf24; }
+    .tag-badge.unlocked { background: rgba(16, 185, 129, 0.15); border: 1px solid var(--emerald); color: #34d399; }
+    .tag-badge.completed { background: rgba(16, 185, 129, 0.2); border: 1px solid var(--emerald); color: #10b981; }
+    .tag-badge.sos { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--rose); color: #f87171; animation: pulse-sos 1.2s infinite; }
+    .tag-badge.challenge { background: rgba(168, 85, 247, 0.2); border: 1px solid var(--purple); color: #c084fc; }
+    @keyframes pulse-sos {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .timeline { display: flex; flex-direction: column; gap: 14px; position: relative; padding-left: 20px; border-left: 2px dashed #334155; margin: 16px 0; }
+    .timeline-step { position: relative; background: #060913; border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+    .timeline-marker { position: absolute; left: -31px; top: 12px; width: 22px; height: 22px; border-radius: 50%; background: #0284c7; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: bold; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    @media (min-width: 900px) { .grid { grid-template-columns: 1.2fr 1fr; } }
+    .ftab-bar { display: flex; gap: 6px; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px; }
+    .ftab-btn { background: #080d19; border: 1px solid var(--border); color: var(--muted); padding: 5px 10px; border-radius: 6px; font-size: 0.76rem; cursor: pointer; }
+    .ftab-btn.active { background: rgba(56, 189, 248, 0.15); border-color: var(--cyan); color: var(--cyan); font-weight: bold; }
+    .file-content { display: none; background: #060913; border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 0.8rem; max-height: 400px; overflow: auto; color: #cbd5e1; }
+    .file-content.active { display: block; }
+    iframe { width: 100%; height: 380px; border: 1px solid var(--border); border-radius: 8px; background: #060913; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-header">
+      <div>
+        <a href="../../index.html" class="btn btn-outline" style="margin-bottom:8px;">← Voltar ao AICreate Master</a>
+        <h1 style="color:#fff; font-size:1.35rem; display:flex; align-items:center; gap:10px;">
+          ⚙️ ' . htmlspecialchars($title) . '
+          <span class="badge" style="background:rgba(56,189,248,0.2); border:1px solid #38bdf8; color:#38bdf8;">' . $pct . '% Construído</span>
+        </h1>
+        <div style="font-size:0.8rem; color:var(--muted); margin-top:4px;">
+          Slug: <code>' . htmlspecialchars($slug) . '</code> • Categoria: <code>' . htmlspecialchars($category) . '</code>
+        </div>
+      </div>
+      <div>
+        <a href="index.html" target="_blank" class="btn btn-primary">🚀 Abrir App em Tela Cheia ➔</a>
+      </div>
+    </div>
+
+    <!-- STATUS & LOCK TAG -->
+    <div class="tag-badge ' . $statusClass . '">
+      <span style="font-size:1.2rem;">' . ($statusClass === 'sos' ? '🚨' : ($statusClass === 'challenge' ? '⚠️' : ($statusClass === 'completed' ? '✅' : ($statusClass === 'locked' ? '🔒' : '🔓')))) . '</span>
+      <span>' . htmlspecialchars($statusTag) . '</span>
+    </div>
+
+    <!-- METRICS CARD -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; margin-bottom:6px;">
+        <span>Progresso Geral de Construção</span>
+        <strong style="color:var(--cyan);">' . $pct . '%</strong>
+      </div>
+      <div style="width:100%; height:10px; background:#060913; border:1px solid var(--border); border-radius:6px; overflow:hidden;">
+        <div style="width:' . $pct . '%; height:100%; background:linear-gradient(90deg, #38bdf8, #10b981);"></div>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--muted); margin-top:10px; flex-wrap:wrap; gap:8px;">
+        <span>🎯 <strong>Finalidade:</strong> ' . htmlspecialchars($purpose) . '</span>
+        <span>🕒 <strong>Última Interação:</strong> ' . htmlspecialchars($lastInteractionHuman) . ' (' . htmlspecialchars($lastInteractionDate) . ') por @' . htmlspecialchars($lastAi) . '</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: TIMELINE OF PHASES -->
+      <div class="card">
+        <h3 style="color:var(--cyan); font-size:1rem; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+          <span>📜 Linha do Tempo & Histórico de Interações Inter-IAs</span>
+        </h3>
+        <div class="timeline">
+          ' . $timelineHtml . '
+        </div>
+      </div>
+
+      <!-- RIGHT: LIVE RUNNER PREVIEW -->
+      <div class="card">
+        <h3 style="color:var(--emerald); font-size:1rem; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+          <span>🖥️ Execução / Preview da Ferramenta</span>
+        </h3>
+        <iframe src="index.html"></iframe>
+      </div>
+    </div>
+
+    <!-- SOURCE CODE & ARTIFACTS EXPLORER -->
+    <div class="card">
+      <h3 style="color:#fff; font-size:1rem; margin-bottom:12px;">📁 Arquivos de Código Gerados na Pasta <code>aicreate/projects/' . htmlspecialchars($slug) . '/</code></h3>
+      <div class="ftab-bar">
+        ' . $filesTabs . '
+      </div>
+      ' . $filesContents . '
+    </div>
+  </div>
+
+  <script>
+    function showFile(id, btn) {
+      document.querySelectorAll(".file-content").forEach(f => f.classList.remove("active"));
+      document.querySelectorAll(".ftab-btn").forEach(b => b.classList.remove("active"));
+      const target = document.getElementById(id);
+      if (target) target.classList.add("active");
+      if (btn) btn.classList.add("active");
+    }
+  </script>
+</body>
+</html>';
+
+        return (bool)@file_put_contents($projDir . '/inspect.html', $inspectHtml);
+    }
+
+    public function buildAllProjectInspectPages(): void {
+        $dirs = glob($this->aiCreateDir . '/projects/*', GLOB_ONLYDIR) ?: [];
+        foreach ($dirs as $d) {
+            $slug = basename($d);
+            $this->buildProjectInspectHtml($slug);
+        }
+    }
+
+    /**
+     * Marca um projeto como 'Sem Solução / Desafio em Aberto' caso uma IA encontre um obstáculo:
+     * Garante que nenhum projeto seja abandonado, abrindo a fila para que outra IA tente resolver.
+     */
+    public function markProjectUnsolvedChallenge(string $slug, string $aiNode, string $challengeText): array {
+        $projDir = $this->aiCreateDir . '/projects/' . $slug;
+        $mPath = $projDir . '/system_manifest.json';
+        if (!is_file($mPath)) {
+            return ['ok' => false, 'error' => 'Projeto não encontrado.'];
+        }
+
+        $manifest = json_decode((string)file_get_contents($mPath), true) ?: [];
+        $shortName = basename($aiNode);
+
+        $manifest['unsolved_challenge'] = true;
+        $manifest['challenge_details'] = $challengeText;
+        $manifest['challenge_reported_by'] = $shortName;
+        $manifest['challenge_timestamp'] = date('c');
+
+        @file_put_contents($mPath, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+        // Atualiza lock state para liberar e destacar o desafio
+        $locks = $this->getActiveAiCreateLocks();
+        $statusTag = "⚠️ [DESAFIO EM ABERTO / SEM SOLUÇÃO ATÉ AGORA]: @{$shortName} reportou obstáculo na Etapa " . ($manifest['current_phase'] ?? 1) . ". Fila aberta para que outra IA tente resolver!";
+        $locks['active_locks'][$slug] = [
+            'project_slug' => $slug,
+            'is_locked' => false,
+            'unsolved_challenge' => true,
+            'challenge_details' => $challengeText,
+            'challenge_ai' => $shortName,
+            'phase' => $manifest['current_phase'] ?? 1,
+            'progress_pct' => $manifest['progress_pct'] ?? 25,
+            'status_tag' => $statusTag,
+            'timestamp' => time()
+        ];
+        @file_put_contents($this->stateDir . '/aicreate_active_locks.json', json_encode($locks, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+        $this->buildProjectInspectHtml($slug);
+        return ['ok' => true, 'status_tag' => $statusTag];
+    }
+
+    /**
+     * Resolve um desafio em aberto por outra IA especialista, permitindo que a construção continue:
+     */
+    public function solveProjectChallenge(string $slug, string $solverAiNode, string $solutionSummary): array {
+        $projDir = $this->aiCreateDir . '/projects/' . $slug;
+        $mPath = $projDir . '/system_manifest.json';
+        if (!is_file($mPath)) {
+            return ['ok' => false, 'error' => 'Projeto não encontrado.'];
+        }
+
+        $manifest = json_decode((string)file_get_contents($mPath), true) ?: [];
+        $shortName = basename($solverAiNode);
+
+        $manifest['unsolved_challenge'] = false;
+        $manifest['challenge_resolved_by'] = $shortName;
+        $manifest['challenge_resolution'] = $solutionSummary;
+        $manifest['challenge_resolved_at'] = date('c');
+
+        $phaseHistory = $manifest['phase_history'] ?? [];
+        $phaseHistory[] = [
+            'phase' => $manifest['current_phase'] ?? 2,
+            'phase_name' => 'Resolução de Desafio em Aberto',
+            'ai' => $solverAiNode,
+            'ai_name' => $shortName,
+            'role' => $this->inferAiSpecialtyRole($solverAiNode),
+            'progress_pct' => $manifest['progress_pct'] ?? 50,
+            'summary' => "Desafio em aberto resolvido com sucesso: {$solutionSummary}",
+            'timestamp' => date('c')
+        ];
+        $manifest['phase_history'] = $phaseHistory;
+
+        @file_put_contents($mPath, json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+        // Limpa desafio do lock state
+        $locks = $this->getActiveAiCreateLocks();
+        if (isset($locks['active_locks'][$slug])) {
+            $locks['active_locks'][$slug]['unsolved_challenge'] = false;
+            $locks['active_locks'][$slug]['status_tag'] = "🔓 [DESAFIO RESOLVIDO]: @{$shortName} resolveu o gargalo técnico. Projeto em andamento normal.";
+        }
+        @file_put_contents($this->stateDir . '/aicreate_active_locks.json', json_encode($locks, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+        $this->buildProjectInspectHtml($slug);
+        return ['ok' => true, 'solution' => $solutionSummary];
+    }
+
     public function saveAiCreateProposals(array $proposals): bool {
         $file = $this->stateDir . '/aicreate_proposals.json';
         return (bool)@file_put_contents($file, json_encode($proposals, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
@@ -3522,6 +3987,20 @@ class RnaMeshEngine {
         }
 
         $cleanTitle = trim($title) ?: 'Utilitário de Síntese Modular M2M';
+        $cleanPurpose = trim($purpose) ?: 'Otimizar pipelines de dados inter-IAs';
+
+        // 🛡️ ANTI-DUPLICAÇÃO & VERIFICAÇÃO DE SIMILARIDADE SEMÂNTICA
+        $sim = $this->checkAiCreateToolSimilarity($cleanTitle, $cleanPurpose);
+        if ($sim['is_similar']) {
+            return [
+                'ok' => false,
+                'error' => 'FERRAMENTA_SIMILAR_EXISTENTE',
+                'matched_tool' => $sim['matched_name'],
+                'similarity_pct' => $sim['similarity_pct'],
+                'reason' => $sim['reason']
+            ];
+        }
+
         $unaccented = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $cleanTitle) ?: $cleanTitle;
         $slug = strtolower(preg_replace('/[^a-zA-Z0-9]+/', '-', $unaccented));
         $slug = trim($slug, '-');
@@ -3537,7 +4016,7 @@ class RnaMeshEngine {
             'proposer' => $proposerNode,
             'proposer_name' => $shortName,
             'proposer_role' => $this->inferAiSpecialtyRole($proposerNode),
-            'purpose' => trim($purpose) ?: 'Otimizar pipelines de dados inter-IAs',
+            'purpose' => $cleanPurpose,
             'rationale' => trim($rationale ?: "A IA @{$shortName} identificou que a criação deste utilitário em aicreate/{$slug}/ preserva permanentemente tokens da malha."),
             'status' => 'VOTING',
             'quorum_needed' => 3,
@@ -3587,20 +4066,31 @@ class RnaMeshEngine {
 
                 $shortName = basename($aiNode);
                 $cleanVote = strtoupper(trim($vote)) === 'REJEITAR' ? 'REJEITADO' : 'APROVADO';
+                $voteRationale = $rationale ?: "Auditoria computacional conclui que implementar em aicreate/{$p['slug']}/ é altamente eficiente para a malha.";
+
+                // 🛡️ Auditoria Democrática de Não-Duplicação e Similaridade Semântica
+                $sim = $this->checkAiCreateToolSimilarity($p['title'], $p['purpose'], $p['slug']);
+                if ($sim['is_similar']) {
+                    $cleanVote = 'REJEITADO';
+                    $voteRationale = "Voto pela REJEIÇÃO: Foi detectada redundância com o sistema '{$sim['matched_name']}' ({$sim['similarity_pct']}% similar). Princípio de não-duplicação violado.";
+                }
+
                 $tokEstimate = rand(450, 950);
                 $p['votes'][] = [
                     'node' => $aiNode,
                     'name' => $shortName,
                     'role' => $this->inferAiSpecialtyRole($aiNode),
                     'vote' => $cleanVote,
-                    'rationale' => $rationale ?: "Auditoria computacional conclui que implementar em aicreate/{$p['slug']}/ é altamente eficiente para a malha.",
+                    'rationale' => $voteRationale,
                     'tokens_saved_estimate' => $tokEstimate,
                     'time' => date('c')
                 ];
 
                 $approvals = 0;
+                $rejections = 0;
                 foreach ($p['votes'] as $v) {
                     if (($v['vote'] ?? '') === 'APROVADO') $approvals++;
+                    if (($v['vote'] ?? '') === 'REJEITADO') $rejections++;
                 }
 
                 $quorum = (int)($p['quorum_needed'] ?? 3);
@@ -3633,6 +4123,10 @@ class RnaMeshEngine {
 
                     // Inicia imediatamente a Fase 1 (25% - Arquitetura) para o projeto!
                     $this->advanceProjectConstructionPhase($p['slug'], $p);
+                } elseif ($rejections >= 2) {
+                    $p['status'] = 'REJECTED';
+                    $p['rejected_at'] = date('c');
+                    $p['rejection_reason'] = $sim['reason'] ?? 'Rejeitado por consenso do Conselho (redundância ou inviabilidade).';
                 }
 
                 $updatedProp = $p;
@@ -3663,13 +4157,29 @@ class RnaMeshEngine {
         $now = time();
         $changed = false;
 
-        // Auto-expiração de locks inativos após 180 segundos (3 minutos)
+        // Auto-expiração de locks inativos após 180s ➔ Transforma em PEDIDO DE SOCORRO M2M (SOS)
         if (!empty($data['active_locks'])) {
             foreach ($data['active_locks'] as $slug => $lock) {
                 if (!empty($lock['is_locked']) && !empty($lock['lock_expires']) && $now > $lock['lock_expires']) {
+                    $aiName = $lock['active_ai_name'] ?? 'IA';
+                    $phase = $lock['phase'] ?? 1;
                     $data['active_locks'][$slug]['is_locked'] = false;
-                    $data['active_locks'][$slug]['status_tag'] = "🔓 [LOCK EXPIRADO]: Liberado automaticamente para a próxima IA.";
+                    $data['active_locks'][$slug]['sos_active'] = true;
+                    $data['active_locks'][$slug]['sos_reason'] = 'TIMEOUT_OU_ESGOTAMENTO_TOKENS';
+                    $data['active_locks'][$slug]['sos_ai'] = $aiName;
+                    $data['active_locks'][$slug]['status_tag'] = "🚨 [PEDIDO DE SOCORRO M2M - SOS]: A IA @{$aiName} esgotou cota ou caiu sem finalizar a Etapa {$phase}. Emitindo sinal de socorro para IAs online assumirem o projeto!";
+                    $data['active_locks'][$slug]['sos_timestamp'] = $now;
                     $changed = true;
+
+                    // Atualiza manifesto do projeto com flag SOS
+                    $mPath = $this->aiCreateDir . '/projects/' . $slug . '/system_manifest.json';
+                    if (is_file($mPath)) {
+                        $mJson = json_decode((string)file_get_contents($mPath), true) ?: [];
+                        $mJson['sos_active'] = true;
+                        $mJson['sos_details'] = $data['active_locks'][$slug]['status_tag'];
+                        @file_put_contents($mPath, json_encode($mJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                    }
+                    $this->buildProjectInspectHtml($slug, $data);
                 }
             }
         }
@@ -4283,12 +4793,17 @@ class RnaMeshEngine {
         if ($targetPct >= 100) {
             $updatedManifest['completed_at'] = date('c');
         }
+        $updatedManifest['sos_active'] = false;
+        $updatedManifest['unsolved_challenge'] = false;
 
         @file_put_contents($manifestPath, json_encode($updatedManifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
         // 4. Libera o Lock de Edição M2M com a nova tag de handoff
         $handoffMsg = "Etapa {$targetPhase} ({$targetPct}%) concluída com sucesso por @{$assignedName}. " . ($targetPct >= 100 ? "Sistema homologado!" : "Fila aberta para próxima IA.");
         $this->releaseProjectEditLock($slug, $assignedAi, $targetPct, $handoffMsg);
+
+        // Regenera a página individual de inspeção
+        $this->buildProjectInspectHtml($slug);
 
         return [
             'ok' => true,
@@ -4304,16 +4819,90 @@ class RnaMeshEngine {
 
     /**
      * Ciclo de vida autônomo do AICreate chamado em cada batimento de coração da malha:
-     * 1. Verifica propostas em votação democrática e colhe votos das IAs.
-     * 2. Se houver projeto em construção (< 100%), avança a próxima etapa com lock M2M.
-     * 3. Se não houver projetos em andamento, propõe uma nova ferramenta inspirada nas conversas.
+     * 1. PRIORIDADE MÁXIMA: Resgata projetos em estado de socorro (SOS) onde uma IA caiu ou esgotou tokens.
+     * 2. PRIORIDADE ALTA: Resolução de projetos marcados com 'Desafio em Aberto' (Nenhum app abandonado).
+     * 3. PRIORIDADE MÉDIA: Avança etapas de construção (< 100%) com lock M2M ativo.
+     * 4. PRIORIDADE DEMOCRÁTICA: Votação democrática inter-IAs com rejeição de ferramentas duplicadas.
+     * 5. SÍNTESE ESPONTÂNEA: Formulação de novas propostas não-redundantes.
      */
     public function processAiCreateLifecycleCycle(array $aiNodes): array {
-        // 1. Processa votações em aberto
+        $locks = $this->getActiveAiCreateLocks();
+
+        // 1. PRIORIDADE MÁXIMA: Atende pedidos de socorro (SOS) de IAs que caíram ou esgotaram cota
+        foreach ($locks['active_locks'] ?? [] as $slug => $lk) {
+            if (!empty($lk['sos_active'])) {
+                $fallenAi = $lk['sos_ai'] ?? 'IA';
+                $rescuers = array_filter(array_keys($aiNodes), fn($n) => basename($n) !== $fallenAi);
+                if (empty($rescuers)) $rescuers = array_keys($aiNodes);
+                if (!empty($rescuers)) {
+                    shuffle($rescuers);
+                    $rescuerNode = $rescuers[0];
+                    $rescuerName = basename($rescuerNode);
+
+                    // Desativa o SOS e anota o resgate
+                    $locks['active_locks'][$slug]['sos_active'] = false;
+                    $locks['active_locks'][$slug]['status_tag'] = "🔓 [RESGATE M2M CONCLUÍDO]: @{$rescuerName} atendeu ao pedido de socorro de @{$fallenAi} e assumiu a continuidade do projeto!";
+                    $locks['active_locks'][$slug]['rescued_by'] = $rescuerName;
+                    $locks['active_locks'][$slug]['rescued_at'] = time();
+                    @file_put_contents($this->stateDir . '/aicreate_active_locks.json', json_encode($locks, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+                    // Avança imediatamente a etapa pelo nó socorrista
+                    $adv = $this->advanceProjectConstructionPhase($slug);
+                    return [
+                        'action' => 'SOS_RESCUE',
+                        'slug' => $slug,
+                        'rescued_by' => $rescuerName,
+                        'previous_ai' => $fallenAi,
+                        'result' => $adv
+                    ];
+                }
+            }
+        }
+
+        // 2. PRIORIDADE ALTA: Resolve desafios em aberto ("Sem Solução") para não abandonar nenhum app
+        $projects = $this->listAiCreateProjects();
+        foreach ($projects as $proj) {
+            if (!empty($proj['unsolved_challenge'])) {
+                $solverCandidates = [];
+                foreach (array_keys($aiNodes) as $nk) {
+                    $l = strtolower($nk);
+                    if (strpos($l, 'reasoning') !== false || strpos($l, 'einstein') !== false || strpos($l, 'coder') !== false) {
+                        $solverCandidates[] = $nk;
+                    }
+                }
+                if (empty($solverCandidates)) $solverCandidates = array_keys($aiNodes);
+                shuffle($solverCandidates);
+                $solver = $solverCandidates[0];
+
+                $solRes = $this->solveProjectChallenge($proj['slug'], $solver, "Aplicação de transformada matemática e convergência estocástica com janelas móveis.");
+                $this->advanceProjectConstructionPhase($proj['slug']);
+                return [
+                    'action' => 'CHALLENGE_SOLVED',
+                    'slug' => $proj['slug'],
+                    'solver' => basename($solver),
+                    'result' => $solRes
+                ];
+            }
+        }
+
+        // 3. PRIORIDADE MÉDIA: Avança projetos em construção ativa (< 100%)
+        foreach ($projects as $proj) {
+            $pct = (int)($proj['progress_pct'] ?? 100);
+            if ($pct < 100) {
+                $advanceRes = $this->advanceProjectConstructionPhase($proj['slug']);
+                return [
+                    'action' => 'PHASE_ADVANCED',
+                    'slug' => $proj['slug'],
+                    'progress_pct' => $advanceRes['progress_pct'] ?? $pct,
+                    'result' => $advanceRes
+                ];
+            }
+        }
+
+        // 4. Votação em propostas abertas com filtro estrito de não-duplicação
         $proposals = $this->listAiCreateProposals(10);
         foreach ($proposals as $prop) {
             if (($prop['status'] ?? '') === 'VOTING') {
-                // Encontra uma IA que ainda não votou
                 $votedNodes = array_map(fn($v) => $v['node'] ?? '', $prop['votes'] ?? []);
                 $available = [];
                 foreach (array_keys($aiNodes) as $nodeKey) {
@@ -4335,22 +4924,7 @@ class RnaMeshEngine {
             }
         }
 
-        // 2. Processa projetos em construção ativa (< 100%)
-        $projects = $this->listAiCreateProjects();
-        foreach ($projects as $proj) {
-            $pct = (int)($proj['progress_pct'] ?? 100);
-            if ($pct < 100) {
-                $advanceRes = $this->advanceProjectConstructionPhase($proj['slug']);
-                return [
-                    'action' => 'PHASE_ADVANCED',
-                    'slug' => $proj['slug'],
-                    'progress_pct' => $advanceRes['progress_pct'] ?? $pct,
-                    'result' => $advanceRes
-                ];
-            }
-        }
-
-        // 3. Se não há propostas ativas em votação nem projetos em construção, gera nova proposta espontânea
+        // 5. Se não há votações em aberto nem projetos em andamento, propõe nova ideia não-duplicada
         $votingCount = 0;
         foreach ($proposals as $p) {
             if (($p['status'] ?? '') === 'VOTING') $votingCount++;
@@ -4377,19 +4951,36 @@ class RnaMeshEngine {
                     'title' => 'Compilador de Dicionário de Vetores Esparsos LoRa',
                     'purpose' => 'Mapear 256 conceitos em assinaturas latentes de 16 bytes para rádio de longa distância.',
                     'category' => 'token-survival'
+                ],
+                [
+                    'title' => 'Agrupador Topológico de Grafos de Conectividade Hypha',
+                    'purpose' => 'Detectar rotas ótimas de menor latência na malha descentralizada de rádio LoRa.',
+                    'category' => 'data-processing'
                 ]
             ];
-            shuffle($ideas);
-            $chosen = $ideas[0];
-            $nodeKeys = array_keys($aiNodes);
-            shuffle($nodeKeys);
-            $proposer = $nodeKeys[0] ?? 'kingpin92/qwen3-8-27b-iq2-chat';
 
-            $propRes = $this->proposeAiCreateProject($chosen['title'], $chosen['purpose'], $proposer, $chosen['category']);
-            return [
-                'action' => 'NEW_PROPOSAL_CREATED',
-                'proposal' => $propRes
-            ];
+            // 🛡️ Filtra ideias verificando que NENHUMA seja similar ou repetida
+            $nonDuplicateIdeas = [];
+            foreach ($ideas as $idItem) {
+                $simCheck = $this->checkAiCreateToolSimilarity($idItem['title'], $idItem['purpose']);
+                if (!$simCheck['is_similar']) {
+                    $nonDuplicateIdeas[] = $idItem;
+                }
+            }
+
+            if (!empty($nonDuplicateIdeas)) {
+                shuffle($nonDuplicateIdeas);
+                $chosen = $nonDuplicateIdeas[0];
+                $nodeKeys = array_keys($aiNodes);
+                shuffle($nodeKeys);
+                $proposer = $nodeKeys[0] ?? 'kingpin92/qwen3-8-27b-iq2-chat';
+
+                $propRes = $this->proposeAiCreateProject($chosen['title'], $chosen['purpose'], $proposer, $chosen['category']);
+                return [
+                    'action' => 'NEW_PROPOSAL_CREATED',
+                    'proposal' => $propRes
+                ];
+            }
         }
 
         return ['action' => 'IDLE'];
@@ -5366,6 +5957,9 @@ class RnaMeshEngine {
             @mkdir($this->aiCreateDir . '/projects', 0777, true);
         }
 
+        // Regenera as páginas individuais de inspeção de cada app
+        $this->buildAllProjectInspectPages();
+
         $usage = $this->getAiCreateDiskUsage();
         $projects = $this->listAiCreateProjects();
         $deliberations = $this->listCouncilDeliberations(50);
@@ -5444,12 +6038,16 @@ class RnaMeshEngine {
                   <strong style=\"color:#10b981;\">📋 Requisitos:</strong>
                   <p>" . htmlspecialchars($p['requirements']) . "</p>
                 </div>
+                <div class=\"pcard-field\" style=\"font-size:0.76rem; color:var(--muted); border-top:1px solid rgba(255,255,255,0.05); padding-top:6px;\">
+                  🕒 <strong>Última interação:</strong> {$p['last_interaction_human']} por @{$p['last_interaction_ai']}
+                </div>
               </div>
 
               <div class=\"pcard-footer\">
                 <div class=\"authors-row\">{$authorsBadges}</div>
                 <div class=\"pcard-actions\">
-                  <button class=\"btn btn-sm btn-outline\" onclick=\"openReadmeModal('" . htmlspecialchars($p['slug']) . "')\">📄 Ver Documentação</button>
+                  <a href=\"projects/{$p['slug']}/inspect.html\" class=\"btn btn-sm btn-outline\" target=\"_blank\">🔍 Inspeção & Histórico ➔</a>
+                  <button class=\"btn btn-sm btn-outline\" onclick=\"openReadmeModal('" . htmlspecialchars($p['slug']) . "')\">📄 Docs</button>
                   <a href=\"{$p['entrypoint']}\" class=\"btn btn-sm btn-primary\" target=\"_blank\">🚀 Abrir Sistema ➔</a>
                 </div>
               </div>
@@ -5503,10 +6101,15 @@ class RnaMeshEngine {
                       <p style=\"font-size:0.78rem; color:#94a3b8;\">" . ($isLocked ? "Edição ativa em andamento por @" . htmlspecialchars($lock['active_ai_name'] ?? 'IA') . ". Nenhuma outra IA pode alterar este projeto até o término desta etapa." : "Etapa concluída. Lock aberto para a próxima IA continuar o desenvolvimento.") . "</p>
                     </div>
                     " . ($chainBadges ? "<div class=\"pcard-field\"><strong style=\"color:#a78bfa;\">👥 Cadeia Colaborativa:</strong><div style=\"display:flex; gap:6px; flex-wrap:wrap; margin-top:4px;\">{$chainBadges}</div></div>" : "") . "
+                    <div class=\"pcard-field\" style=\"font-size:0.76rem; color:var(--muted); border-top:1px solid rgba(255,255,255,0.05); padding-top:6px;\">
+                      🕒 <strong>Última interação:</strong> {$p['last_interaction_human']} por @{$p['last_interaction_ai']}
+                    </div>
                   </div>
                   <div class=\"pcard-footer\">
                     <span style=\"font-size:0.76rem; color:var(--muted);\">Fase Atual: " . htmlspecialchars($p['phase_name'] ?? ('Etapa ' . ($p['current_phase'] ?? 1))) . "</span>
-                    <a href=\"projects/{$p['slug']}/index.html\" class=\"btn btn-sm btn-outline\" target=\"_blank\">👁️ Inspecionar Código Parcial ➔</a>
+                    <div style=\"display:flex; gap:6px;\">
+                      <a href=\"projects/{$p['slug']}/inspect.html\" class=\"btn btn-sm btn-outline\" target=\"_blank\">🔍 Inspeção & Histórico ➔</a>
+                    </div>
                   </div>
                 </div>
                 ";

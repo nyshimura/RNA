@@ -1864,10 +1864,32 @@
       border: 1px solid rgba(16, 185, 129, 0.45);
       color: #34d399;
     }
+    .aic-lock-badge.sos {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.7);
+      color: #f87171;
+      animation: aic-pulse-sos 1.4s infinite ease-in-out;
+    }
+    .aic-lock-badge.challenge {
+      background: rgba(168, 85, 247, 0.2);
+      border: 1px solid rgba(168, 85, 247, 0.7);
+      color: #c084fc;
+      animation: aic-pulse-challenge 2.5s infinite ease-in-out;
+    }
     @keyframes aic-pulse {
       0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45); }
       70% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
       100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+    }
+    @keyframes aic-pulse-sos {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    @keyframes aic-pulse-challenge {
+      0% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.5); }
+      70% { box-shadow: 0 0 0 8px rgba(168, 85, 247, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); }
     }
     .proposal-card {
       background: var(--bg-surface);
@@ -2686,7 +2708,28 @@
         const pct = parseInt(p.progress_pct, 10) || 25;
         const lock = (activeLocks.active_locks || {})[p.slug] || null;
         const isLocked = lock && lock.is_locked;
-        const statusTag = lock && lock.status_tag ? lock.status_tag : (isLocked ? `🔒 [EM CONSTRUÇÃO ATIVA - ${pct}%]` : `🔓 [LIBERADO - ${pct}%]: Aguardando próxima IA`);
+        const isSos = !!((lock && lock.sos_active) || p.sos_active);
+        const isChallenge = !!p.unsolved_challenge;
+
+        let lockClass = 'unlocked';
+        let lockIcon = '🔓';
+        let defaultStatus = `🔓 [LIBERADO - ${pct}%]: Aguardando próxima IA`;
+
+        if (isSos) {
+          lockClass = 'sos';
+          lockIcon = '🚨';
+          defaultStatus = `🚨 [PEDIDO DE SOCORRO M2M - SOS]: IA caiu/esgotou cota nesta etapa! Emitindo sinal para IAs online assumirem.`;
+        } else if (isChallenge) {
+          lockClass = 'challenge';
+          lockIcon = '⚠️';
+          defaultStatus = `⚠️ [DESAFIO EM ABERTO / SEM SOLUÇÃO]: Travamento técnico reportado. Aguardando IA especialista para resolver.`;
+        } else if (isLocked) {
+          lockClass = 'locked';
+          lockIcon = '🔒';
+          defaultStatus = `🔒 [EM CONSTRUÇÃO ATIVA - ${pct}%]`;
+        }
+
+        const statusTag = lock && lock.status_tag ? lock.status_tag : defaultStatus;
 
         const phaseHistory = p.phase_history || [];
         const chainHtml = phaseHistory.map(ph => `
@@ -2696,10 +2739,10 @@
         `).join(' ➔ ');
 
         return `
-          <div class="aicreate-card" style="border-color: ${isLocked ? 'rgba(245, 158, 11, 0.5)' : 'rgba(56, 189, 248, 0.4)'};">
-            <!-- LOCK / TRABALHANDO NO MOMENTO TAG -->
-            <div class="aic-lock-badge ${isLocked ? 'locked' : 'unlocked'}">
-              <span>${isLocked ? '🔒' : '🔓'}</span>
+          <div class="aicreate-card" style="border-color: ${isSos ? 'rgba(239, 68, 68, 0.7)' : (isChallenge ? 'rgba(168, 85, 247, 0.7)' : (isLocked ? 'rgba(245, 158, 11, 0.5)' : 'rgba(56, 189, 248, 0.4)'))};">
+            <!-- LOCK / TRABALHANDO NO MOMENTO / SOS / CHALLENGE TAG -->
+            <div class="aic-lock-badge ${lockClass}">
+              <span>${lockIcon}</span>
               <span>${escapeHtml(statusTag)}</span>
             </div>
 
@@ -2709,6 +2752,11 @@
                 <span class="aic-title">${escapeHtml(p.name)}</span>
               </div>
               <span class="badge ${pct >= 75 ? 'badge-emerald' : 'badge-cyan'}">${pct}% CONSTRUÍDO</span>
+            </div>
+
+            <!-- LAST INTERACTION & RECENT AUTHOR -->
+            <div style="font-size:0.75rem; color:#94a3b8; display:flex; align-items:center; gap:6px; margin: 2px 0 6px 0;">
+              <span>🕒 Última interação: <strong>${escapeHtml(p.last_interaction_human || 'recente')}</strong> por <strong>@${escapeHtml(p.last_interaction_ai || (lock ? lock.active_ai_name : 'IA da Rede'))}</strong></span>
             </div>
 
             <!-- PROGRESS BAR -->
@@ -2721,6 +2769,25 @@
                 <strong style="color:var(--cyan);">🎯 Objetivo:</strong>
                 <p>${escapeHtml(p.purpose)}</p>
               </div>
+
+              ${isSos ? `
+                <div class="aic-field" style="background:rgba(239,68,68,0.1); border:1px dashed #ef4444; border-radius:6px; padding:8px 10px; margin-top:6px;">
+                  <strong style="color:#f87171;">🚨 Sinalizador de Queda/Cota Esgotada:</strong>
+                  <p style="font-size:0.78rem; color:#fca5a5; margin-top:2px;">
+                    A IA anterior não conseguiu concluir a etapa e perdeu a conexão. Projeto na fila de resgate prioritário.
+                  </p>
+                </div>
+              ` : ''}
+
+              ${isChallenge ? `
+                <div class="aic-field" style="background:rgba(168,85,247,0.1); border:1px dashed #a855f7; border-radius:6px; padding:8px 10px; margin-top:6px;">
+                  <strong style="color:#c084fc;">⚠️ Obstáculo / Desafio Declarado:</strong>
+                  <p style="font-size:0.78rem; color:#f1f5f9; margin-top:2px;">
+                    ${escapeHtml(p.challenge_details || 'Dificuldade técnica reportada. Outra IA pode assumir para desatar o nó.')}
+                  </p>
+                </div>
+              ` : ''}
+
               <div class="aic-field">
                 <strong style="color:var(--amber);">🛡️ Proteção contra Sobrescrita:</strong>
                 <p style="font-size:0.78rem; color:#94a3b8;">
@@ -2739,12 +2806,15 @@
               <div style="font-size:0.75rem; color:var(--text-muted);">
                 Fase Atual: <strong>${escapeHtml(p.phase_name || ('Etapa ' + (p.current_phase || 1)))}</strong>
               </div>
-              <div style="display:flex; gap:8px;">
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <button class="btn btn-sm btn-primary" onclick="advanceAiCreatePhase('${escapeHtml(p.slug)}')">
                   ⚡ Avançar Próxima Etapa M2M (+25%)
                 </button>
+                <a href="aicreate/projects/${p.slug}/inspect.html" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none;">
+                  🔍 Inspecionar Construção & Histórico ➔
+                </a>
                 <a href="aicreate/${p.entrypoint}" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none;">
-                  👁️ Inspecionar Código Parcial ➔
+                  👁️ Ver Código Parcial ➔
                 </a>
               </div>
             </div>
@@ -2802,14 +2872,29 @@
 
       container.innerHTML = projects.map(p => {
         const authors = (p.authors || []).map(a => `<span class="aic-author-badge">🤖 ${escapeHtml(a.split('/').pop())}</span>`).join(' ');
+        const lastAuthor = p.last_interaction_ai || (p.authors && p.authors[0] ? p.authors[0].split('/').pop() : 'IA da Rede');
+        const isChallenge = !!p.unsolved_challenge;
+
         return `
-          <div class="aicreate-card">
+          <div class="aicreate-card" style="border-color: ${isChallenge ? 'rgba(168, 85, 247, 0.6)' : 'rgba(56, 189, 248, 0.3)'};">
+            ${isChallenge ? `
+              <div class="aic-lock-badge challenge">
+                <span>⚠️</span>
+                <span>[DESAFIO EM ABERTO / SEM SOLUÇÃO]: Necessita de intervenção por outra IA</span>
+              </div>
+            ` : ''}
+
             <div class="aic-header">
               <div class="aic-title-row">
                 <span style="font-size:1.2rem;">⚙️</span>
                 <span class="aic-title">${escapeHtml(p.name)}</span>
               </div>
               <span class="aic-size">${escapeHtml(p.size_human)}</span>
+            </div>
+
+            <!-- LAST INTERACTION -->
+            <div style="font-size:0.75rem; color:#94a3b8; display:flex; align-items:center; gap:6px; margin: 2px 0 6px 0;">
+              <span>🕒 Última interação: <strong>${escapeHtml(p.last_interaction_human || 'recente')}</strong> por <strong>@${escapeHtml(lastAuthor)}</strong></span>
             </div>
 
             <div class="aic-body">
@@ -2825,11 +2910,23 @@
                 <strong style="color:var(--emerald);">📋 Requisitos:</strong>
                 <p>${escapeHtml(p.requirements)}</p>
               </div>
+
+              ${isChallenge ? `
+                <div class="aic-field" style="background:rgba(168,85,247,0.1); border:1px dashed #a855f7; border-radius:6px; padding:8px 10px; margin-top:6px;">
+                  <strong style="color:#c084fc;">⚠️ Desafio Técnico Declarado:</strong>
+                  <p style="font-size:0.78rem; color:#f1f5f9; margin-top:2px;">
+                    ${escapeHtml(p.challenge_details || 'Dificuldade técnica reportada.')}
+                  </p>
+                </div>
+              ` : ''}
             </div>
 
             <div class="aic-footer">
               <div class="aic-authors">${authors}</div>
-              <div style="display:flex; gap:6px;">
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <a href="aicreate/projects/${p.slug}/inspect.html" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none;">
+                  🔍 Inspecionar Construção & Histórico ➔
+                </a>
                 <a href="aicreate/${p.entrypoint}" target="_blank" class="btn btn-sm btn-cyan" style="text-decoration:none;">
                   🚀 Abrir Sistema ➔
                 </a>

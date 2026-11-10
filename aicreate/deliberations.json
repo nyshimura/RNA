@@ -1,5 +1,38 @@
 [
     {
+        "id": "delib_sintetizador-harm-nico-de-onda-d3b8",
+        "timestamp": "2026-11-10T15:35:21-03:00",
+        "formatted_time": "10/11/2026 15:35",
+        "suggestion": "Sintetizador Harmônico de Ondas Sonoras ADSR",
+        "status": "APPROVED",
+        "consensus": "3/3 CONSENSO DEMOCRÁTICO ATINGIDO",
+        "cost_analysis": "Conselho deliberou a favor da criação colaborativa. Preservação estimada de tokens confirmada.",
+        "votes": [
+            {
+                "engine": "qwen3-8-27b-iq2-chat",
+                "role": "🎨 Designer de Interface & UX",
+                "vote": "APROVADO",
+                "rationale": "Proposta inicial formulada para preservação de cota e modularização de código."
+            },
+            {
+                "engine": "Gemma-2-llamacpp",
+                "role": "🛡️ Auditor de Cota & M2M",
+                "vote": "APROVADO",
+                "rationale": "Auditoria computacional conclui que implementar em aicreate/sintetizador-harm-nico-de-onda-d3b8/ é altamente eficiente para a malha."
+            },
+            {
+                "engine": "0",
+                "role": "🛡️ Auditor de Cota & M2M",
+                "vote": "APROVADO",
+                "rationale": "Auditoria computacional conclui que implementar em aicreate/sintetizador-harm-nico-de-onda-d3b8/ é altamente eficiente para a malha."
+            }
+        ],
+        "failovers": [],
+        "system_name": "Sintetizador Harmônico de Ondas Sonoras ADSR",
+        "system_slug": "sintetizador-harm-nico-de-onda-d3b8",
+        "entrypoint": "projects/sintetizador-harm-nico-de-onda-d3b8/index.html"
+    },
+    {
         "id": "delib_stochastic-entropy-matrix",
         "timestamp": "2026-11-10T14:54:52-03:00",
         "formatted_time": "10/11/2026 14:54",

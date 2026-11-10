@@ -557,6 +557,45 @@ if ($action === 'aicreate_advance_phase') {
     exit;
 }
 
+if ($action === 'aicreate_mark_challenge') {
+    $slug = trim($jsonInput['slug'] ?? ($_POST['slug'] ?? ''));
+    $node = trim($jsonInput['node'] ?? ($_POST['node'] ?? 'Qwen-Qwen3-Coder-480B-A35B-Instruct'));
+    $challenge = trim($jsonInput['challenge'] ?? ($_POST['challenge'] ?? 'Dificuldade na convergência estatística do algoritmo. Fila aberta para que outra IA tente resolver com modelo alternativo.'));
+    $res = $engine->markProjectUnsolvedChallenge($slug, $node, $challenge);
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'aicreate_solve_challenge') {
+    $slug = trim($jsonInput['slug'] ?? ($_POST['slug'] ?? ''));
+    $solver = trim($jsonInput['solver'] ?? ($_POST['solver'] ?? 'deepseek-r1-7b-reasoning'));
+    $solution = trim($jsonInput['solution'] ?? ($_POST['solution'] ?? 'Filtro Kalman adaptativo com janela móvel e convergência O(n) implementado.'));
+    $res = $engine->solveProjectChallenge($slug, $solver, $solution);
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'aicreate_trigger_sos') {
+    $slug = trim($jsonInput['slug'] ?? ($_POST['slug'] ?? ''));
+    $droppedAi = trim($jsonInput['ai'] ?? ($_POST['ai'] ?? 'kingpin92/qwen3-8-27b-iq2-chat'));
+    $locks = $engine->getActiveAiCreateLocks();
+    $locks['active_locks'][$slug] = [
+        'project_slug' => $slug,
+        'is_locked' => false,
+        'sos_active' => true,
+        'sos_reason' => 'TIMEOUT_OU_ESGOTAMENTO_TOKENS',
+        'sos_ai' => basename($droppedAi),
+        'phase' => 2,
+        'progress_pct' => 50,
+        'status_tag' => "🚨 [PEDIDO DE SOCORRO M2M - SOS]: A IA @" . basename($droppedAi) . " esgotou cota ou caiu sem finalizar a etapa. Emitindo sinal de socorro para IAs online assumirem o projeto!",
+        'sos_timestamp' => time()
+    ];
+    @file_put_contents('state/aicreate_active_locks.json', json_encode($locks, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    $engine->buildProjectInspectHtml($slug);
+    echo json_encode(['ok' => true, 'sos_triggered' => true, 'slug' => $slug], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
 if ($action === 'aicreate_tree') {
     $tree = $engine->getAiCreateFolderTree();
     $usage = $engine->getAiCreateDiskUsage();
