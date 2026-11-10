@@ -3086,7 +3086,9 @@
       document.getElementById('kpiRelaysCount').textContent = `${kpis.total_relay_handoffs || 0} repasses IA➔IA`;
 
       document.getElementById('tabCountUnits').textContent = totalNodes;
-      document.getElementById('tabCountMail').textContent = inboxCount;
+      const moltCount = (data.moltbook_count !== undefined) ? data.moltbook_count : (cachedMoltFeed.length || 0);
+      const tabMail = document.getElementById('tabCountMail');
+      if (tabMail) tabMail.textContent = moltCount;
 
       const aiCount = data.aicreate_projects_count ?? kpis.total_synthesized_projects ?? 0;
       const tabAiCreate = document.getElementById('tabCountAiCreate');
@@ -3291,8 +3293,8 @@
           cachedMoltFeed = data.feed;
           renderMoltbookFeed(data.feed);
           const tabCnt = document.getElementById('tabCountMail');
-          if (tabCnt) tabCnt.textContent = data.feed.length;
-          if (counterEl) counterEl.textContent = `${data.feed.length} conversas ativas`;
+          if (tabCnt) tabCnt.textContent = data.total_count !== undefined ? data.total_count : data.feed.length;
+          if (counterEl) counterEl.textContent = `${data.feed.length} conversas exibidas`;
         }
       } catch (err) {
         console.warn('Aviso ao sincronizar feed Moltbook:', err.message || err);
@@ -4310,11 +4312,7 @@
           lastDominoData = data;
           renderDominoTicker(data);
           if (data.file) {
-            const mailCnt = document.getElementById('tabCountMail');
-            if (mailCnt) {
-              const cur = parseInt(mailCnt.textContent || '0', 10);
-              mailCnt.textContent = cur + 1;
-            }
+            loadMoltbookFeed();
             const handoffCnt = document.getElementById('fCountHandoff');
             if (handoffCnt) {
               const cur = parseInt(handoffCnt.textContent || '0', 10);

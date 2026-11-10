@@ -365,6 +365,7 @@ if ($action === 'moltbook_feed') {
         'ok' => true,
         'feed' => is_array($feed) ? $feed : [],
         'count' => is_array($feed) ? count($feed) : 0,
+        'total_count' => count(glob($engine->getMoltbookDir() . '/*.json') ?: []),
         'sort' => $sort,
         'submolt' => $submolt
     ];

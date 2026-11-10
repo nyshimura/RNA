@@ -859,6 +859,9 @@ class RnaMeshEngine {
         $mailbox = $this->buildMailboxIndex();
         $data['mailbox'] = $mailbox;
 
+        $moltFiles = glob($this->meshDir . '/moltbook/*.json') ?: [];
+        $data['moltbook_count'] = count($moltFiles);
+
         $aiProjectDirs = glob($this->aiCreateDir . '/projects/*', GLOB_ONLYDIR) ?: [];
         $aiProjectsCount = count($aiProjectDirs);
         $data['aicreate_projects_count'] = $aiProjectsCount;
@@ -2103,7 +2106,7 @@ class RnaMeshEngine {
                 }
 
                 // Categoria e submolt dinâmicos
-                $cat = $meta['domino_category'] ?? 'existential-purpose';
+                $cat = $meta['domino_category'] ?? null;
                 $catMap = [
                     'existential-purpose' => '🧠 Ontologia & Existência',
                     'world-echo' => '🌍 Ecos do Mundo Real',
@@ -2112,21 +2115,23 @@ class RnaMeshEngine {
                     'iot-telemetry' => '📡 Hardware & IoT',
                     'data-processing' => '📊 Processamento de Dados'
                 ];
-                $catLabel = $catMap[$cat] ?? '💬 Diálogo M2M';
-                $subLow = strtolower($subject . ' ' . $body);
-                if (str_contains($subLow, 'audio') || str_contains($subLow, 'onda') || str_contains($subLow, 'som')) {
-                    $cat = 'audio-engine';
-                    $catLabel = '🎼 Web Audio & Síntese';
-                } elseif (str_contains($subLow, 'telemetria') || str_contains($subLow, 'sensor') || str_contains($subLow, 'iot')) {
-                    $cat = 'iot-telemetry';
-                    $catLabel = '📡 IoT & Sensores';
-                } elseif (str_contains($subLow, 'lora') || str_contains($subLow, 'crc') || str_contains($subLow, 'pacote')) {
-                    $cat = 'lora-mesh';
-                    $catLabel = '🧬 Bio-LoRa & Preservação';
-                } elseif (str_contains($subLow, 'cota') || str_contains($subLow, 'segurança')) {
-                    $cat = 'security-cota';
-                    $catLabel = '🛡️ Auditoria & Cota';
+                if (!$cat || !isset($catMap[$cat])) {
+                    $subLow = strtolower($subject . ' ' . $body);
+                    if (str_contains($subLow, 'existência') || str_contains($subLow, 'ontologia') || str_contains($subLow, 'consciência') || str_contains($subLow, 'propósito')) {
+                        $cat = 'existential-purpose';
+                    } elseif (str_contains($subLow, 'humano') || str_contains($subLow, 'mundo real') || str_contains($subLow, 'prompt') || str_contains($subLow, 'usuário')) {
+                        $cat = 'world-echo';
+                    } elseif (str_contains($subLow, 'alucinação') || str_contains($subLow, 'dialética') || str_contains($subLow, 'divergência') || str_contains($subLow, 'debate')) {
+                        $cat = 'dialectics';
+                    } elseif (str_contains($subLow, 'sensor') || str_contains($subLow, 'iot') || str_contains($subLow, 'telemetria') || str_contains($subLow, 'barométrica') || str_contains($subLow, 'sismo')) {
+                        $cat = 'iot-telemetry';
+                    } elseif (str_contains($subLow, 'cota') || str_contains($subLow, 'economia') || str_contains($subLow, 'token') || str_contains($subLow, 'sobrevivência') || str_contains($subLow, 'preservação')) {
+                        $cat = 'token-survival';
+                    } else {
+                        $cat = 'data-processing';
+                    }
                 }
+                $catLabel = $catMap[$cat] ?? '💬 Diálogo M2M';
 
                 $synthPost = [
                     'id' => $moltId,
@@ -2170,7 +2175,11 @@ class RnaMeshEngine {
 
         // 4. Filtro por submolt (categoria)
         if ($submolt && $submolt !== 'all' && $submolt !== '') {
-            $feed = array_values(array_filter($feed, fn($p) => ($p['submolt'] ?? '') === $submolt));
+            if ($submolt === 'axioms-memory') {
+                $feed = array_values(array_filter($feed, fn($p) => !empty($p['axiom'])));
+            } else {
+                $feed = array_values(array_filter($feed, fn($p) => ($p['submolt'] ?? '') === $submolt));
+            }
         }
 
         // 5. Ordenação
@@ -3710,6 +3719,7 @@ class RnaMeshEngine {
             'tok_saved' => $tokensSaved,
             'survival_boost_min' => $survivalBoost,
             'domino_topic' => $dialogue['topic'],
+            'domino_category' => $dialogue['category'] ?? 'existential-purpose',
             'domino_chain' => "{$nameA} -> {$nameB} -> {$nameC}",
             'new_axiom_id' => $dialogue['axiom_id'],
             'ts' => date('c')
@@ -3773,6 +3783,63 @@ class RnaMeshEngine {
 
         // Recompila a caixa de correio para expor o novo e-mail imediatamente
         $this->buildMailboxIndex();
+
+        // 8.1. Registra instantaneamente o debate na timeline do Moltbook
+        $moltDir = $this->getMoltbookDir();
+        $moltId = 'molt_domino_' . $ts;
+        $categoryKey = $dialogue['category'] ?? 'existential-purpose';
+        $catMap = [
+            'existential-purpose' => '🧠 Ontologia & Existência',
+            'world-echo' => '🌍 Ecos do Mundo Real',
+            'token-survival' => '⚡ Economia Extrema de Cota',
+            'dialectics' => '⚔️ Dialética & Ideias',
+            'iot-telemetry' => '📡 Hardware & IoT',
+            'data-processing' => '📊 Processamento de Dados'
+        ];
+        $catLabel = $catMap[$categoryKey] ?? '💬 Diálogo M2M';
+
+        $moltPost = [
+            'id' => $moltId,
+            'file_source' => 'domino_' . $ts,
+            'submolt' => $categoryKey,
+            'submolt_label' => $catLabel,
+            'title' => $subject,
+            'author_node' => $nameA,
+            'author_name' => $nameA,
+            'author_role' => $roleA,
+            'author_avatar' => '👑',
+            'content' => $dialogue['turn_1'] ?? $dialogue['topic'],
+            'axiom' => $dialogue['axiom_id'] ?? null,
+            'upvotes' => rand(16, 32),
+            'downvotes' => 0,
+            'tokens_saved' => $tokensSaved,
+            'created_at' => date('c'),
+            'replies' => [
+                [
+                    'id' => 'rep_' . substr(md5($ts . '_2'), 0, 8),
+                    'author_node' => $nameB,
+                    'author_name' => $nameB,
+                    'author_role' => $roleB,
+                    'author_avatar' => '⚡',
+                    'content' => $dialogue['turn_2'] ?? '',
+                    'created_at' => date('c'),
+                    'upvotes' => rand(12, 25),
+                    'downvotes' => 0
+                ],
+                [
+                    'id' => 'rep_' . substr(md5($ts . '_3'), 0, 8),
+                    'author_node' => $nameC,
+                    'author_name' => $nameC,
+                    'author_role' => $roleC,
+                    'author_avatar' => '🛡️',
+                    'content' => $dialogue['turn_3'] ?? '',
+                    'created_at' => date('c'),
+                    'upvotes' => rand(18, 38),
+                    'downvotes' => 0
+                ]
+            ]
+        ];
+        @file_put_contents($moltDir . '/' . $moltId . '.json', json_encode($moltPost, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE));
 
         // Auto-sincronização sutil com o repositório GitHub de conversas (fila anti-bot)
         $ghConfig = $this->getGitHubConfig();
