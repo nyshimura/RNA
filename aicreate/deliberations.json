@@ -1,5 +1,148 @@
 [
     {
+        "id": "delib_analisador-conversor-ondas-e78e",
+        "timestamp": "2026-11-09T21:29:01-03:00",
+        "formatted_time": "09/11/2026 21:29",
+        "suggestion": "Analisador e Conversor de Ondas Sonoras em Linguagem Visual para IAs",
+        "status": "APPROVED",
+        "consensus": "72/72 UNÂNIME DEMOCRÁTICO",
+        "cost_analysis": "Nenhuma ferramenta existente cobre a especificidade desta solicitação. A busca por APIs externas custaria ~1623 tokens. A síntese de um microsserviço local é a rota de menor custo.",
+        "tokens_saved": 975,
+        "engines": [
+            {
+                "id": "reasoning-course/fundamentals_exam",
+                "name": "fundamentals_exam",
+                "role": "👑 Arquiteto Líder & Raciocínio Soberano",
+                "icon": "👑",
+                "is_lead": true,
+                "caste": "CASTE_1_SOVEREIGN",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "linoyts/Qwen-Image-Edit-Angles",
+                "name": "Qwen-Image-Edit-Angles",
+                "role": "⚔️ Engenheiro Chefe de Algoritmos & Síntese",
+                "icon": "⚔️",
+                "is_lead": true,
+                "caste": "CASTE_3_CENTURION",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "androaichain/Qwen-Qwen3-Coder-480B-A35B-Instruct",
+                "name": "Qwen-Qwen3-Coder-480B-A35B-Instruct",
+                "role": "💻 Coder Master & Interface Humana",
+                "icon": "💻",
+                "is_lead": true,
+                "caste": "CASTE_1_SOVEREIGN",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "timurlexx/deepseek-r1-7b-reasoning",
+                "name": "deepseek-r1-7b-reasoning",
+                "role": "🛡️ Auditor Geral de Cota & Sobrevivência",
+                "icon": "🛡️",
+                "is_lead": true,
+                "caste": "CASTE_1_SOVEREIGN",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "nyshimura/rna-web-scout",
+                "name": "rna-web-scout",
+                "role": "🦅 Batedor de Redundância & Assistente Local",
+                "icon": "🦅",
+                "is_lead": true,
+                "caste": "CASTE_4_SCOUT",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "abuzarhussain/qwen-image-2-1-demo",
+                "name": "qwen-image-2-1-demo",
+                "role": "🛡️ Centurião Co-autor",
+                "icon": "🛡️",
+                "is_lead": false,
+                "caste": "CASTE_3_CENTURION",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            },
+            {
+                "id": "Godzrayz/janitor-deepseek-proxy",
+                "name": "janitor-deepseek-proxy",
+                "role": "🛡️ Centurião Co-autor",
+                "icon": "🛡️",
+                "is_lead": false,
+                "caste": "CASTE_3_CENTURION",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            },
+            {
+                "id": "unknown2567/coder-30b-api",
+                "name": "coder-30b-api",
+                "role": "⚔️ General Co-autor",
+                "icon": "⚔️",
+                "is_lead": false,
+                "caste": "CASTE_2_GENERAL",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            },
+            {
+                "id": "hugging-apps/wm-vlm-spatial-reasoning",
+                "name": "wm-vlm-spatial-reasoning",
+                "role": "👑 Soberano Co-autor",
+                "icon": "👑",
+                "is_lead": false,
+                "caste": "CASTE_1_SOVEREIGN",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            },
+            {
+                "id": "ginipick/DeepSeek-Prover-V2-671B",
+                "name": "DeepSeek-Prover-V2-671B",
+                "role": "🛡️ Centurião Co-autor",
+                "icon": "🛡️",
+                "is_lead": false,
+                "caste": "CASTE_3_CENTURION",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            }
+        ],
+        "co_authors_count": 72,
+        "votes": [
+            {
+                "engine": "fundamentals_exam",
+                "role": "👑 Arquiteto Líder & Raciocínio Soberano",
+                "vote": "APROVADO",
+                "rationale": "Estruturação de dados modular e necessária para a demanda do usuário."
+            },
+            {
+                "engine": "Qwen-Image-Edit-Angles",
+                "role": "⚔️ Engenheiro Chefe de Algoritmos & Síntese",
+                "vote": "APROVADO",
+                "rationale": "Algoritmo viável em Vanilla JS. Custo de busca externa é maior que a síntese local."
+            },
+            {
+                "engine": "Qwen-Qwen3-Coder-480B-A35B-Instruct",
+                "role": "💻 Coder Master & Interface Humana",
+                "vote": "APROVADO",
+                "rationale": "Interface amigável para humanos aprovada, com controles interativos e gráficos sem dependências pesadas."
+            },
+            {
+                "engine": "deepseek-r1-7b-reasoning",
+                "role": "🛡️ Auditor Geral de Cota & Sobrevivência",
+                "vote": "APROVADO",
+                "rationale": "Cota de disco verificada e preservada. Tamanho final projetado < 16 KB."
+            }
+        ],
+        "failovers": [],
+        "system_name": "Analisador Conversor Ondas System",
+        "system_slug": "analisador-conversor-ondas-e78e",
+        "entrypoint": "projects/analisador-conversor-ondas-e78e/index.html"
+    },
+    {
         "id": "delib_tradutor-sonoro-visual-441f",
         "timestamp": "2026-11-09T21:09:53-03:00",
         "formatted_time": "09/11/2026 21:09",

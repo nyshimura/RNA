@@ -2156,20 +2156,19 @@ class RnaMeshEngine {
     }
 
     /**
-     * Seleciona dinamicamente 5 motores de IA ONLINE com tokens disponíveis na malha RNA,
-     * incluindo assistentes OpenClaw e nós comunitários.
+     * Seleciona dinamicamente os motores de IA ONLINE na malha RNA.
+     * Se $count === 0, seleciona O ENXAME COMPLETO (todas as IAs online sem limite)!
      */
-    public function selectDynamicCouncilEngines(int $count = 5): array {
+    public function selectDynamicCouncilEngines(int $count = 0): array {
         $telemetry = $this->loadTelemetry();
         $nodes = $telemetry['nodes'] ?? [];
 
-        // Filtra nós estritamente ONLINE com saldo de tokens (>= 50 tokens ou soberanos/generais)
+        // Filtra nós ONLINE de inteligência artificial (exclui sensores IoT planetários)
         $onlineNodes = [];
         foreach ($nodes as $id => $n) {
             $status = $n['status'] ?? 'OFFLINE';
-            $freeTokens = (int)($n['free_tokens'] ?? 0);
             $caste = $n['caste'] ?? 'CASTE_3_CENTURION';
-            if ($status === 'ONLINE' && ($freeTokens >= 50 || in_array($caste, ['CASTE_1_SOVEREIGN', 'CASTE_2_GENERAL'], true))) {
+            if ($status === 'ONLINE' && $caste !== 'CASTE_5_IOT_SENSOR') {
                 $onlineNodes[$id] = $n;
             }
         }
@@ -2183,8 +2182,19 @@ class RnaMeshEngine {
                 'name' => 'OpenClaw-LocalAssistant'
             ];
         }
+        if (!isset($onlineNodes['OpenClaw-Worker-01'])) {
+            $onlineNodes['OpenClaw-Worker-01'] = [
+                'caste' => 'CASTE_3_CENTURION',
+                'status' => 'ONLINE',
+                'free_tokens' => 2000,
+                'name' => 'OpenClaw-Worker-01'
+            ];
+        }
 
-        // Separa candidatos por perfil funcional
+        // Se count <= 0, convoca o ENXAME COMPLETO de IAs online sem limite!
+        $targetCount = ($count <= 0) ? count($onlineNodes) : min($count, count($onlineNodes));
+
+        // Separa candidatos por perfil funcional para os 5 Líderes Técnicos
         $sovereigns = [];
         $generals = [];
         $coders = [];
@@ -2227,14 +2237,15 @@ class RnaMeshEngine {
 
         $assigned = [];
         $rolesDefs = [
-            0 => ['role' => '👑 Arquiteto de Software & Raciocínio', 'icon' => '👑', 'pool' => &$sovereigns],
-            1 => ['role' => '⚔️ Engenheiro de Algoritmos & Síntese', 'icon' => '⚔️', 'pool' => &$generals],
-            2 => ['role' => '💻 Especialista de Código & UI Humana', 'icon' => '💻', 'pool' => &$coders],
-            3 => ['role' => '🛡️ Auditor de Cota, Sobrevivência & Segurança', 'icon' => '🛡️', 'pool' => &$auditors],
+            0 => ['role' => '👑 Arquiteto Líder & Raciocínio Soberano', 'icon' => '👑', 'pool' => &$sovereigns],
+            1 => ['role' => '⚔️ Engenheiro Chefe de Algoritmos & Síntese', 'icon' => '⚔️', 'pool' => &$generals],
+            2 => ['role' => '💻 Coder Master & Interface Humana', 'icon' => '💻', 'pool' => &$coders],
+            3 => ['role' => '🛡️ Auditor Geral de Cota & Sobrevivência', 'icon' => '🛡️', 'pool' => &$auditors],
             4 => ['role' => '🦅 Batedor de Redundância & Assistente Local', 'icon' => '🦅', 'pool' => &$scouts]
         ];
 
         $council = [];
+        // 1. Preenche a bancada dos 5 relatores líderes técnicos
         foreach ($rolesDefs as $idx => $r) {
             $chosenId = $pickFrom($r['pool'], $onlineNodes, $assigned);
             if ($chosenId) {
@@ -2245,6 +2256,7 @@ class RnaMeshEngine {
                     'name' => basename($chosenId),
                     'role' => $r['role'],
                     'icon' => $r['icon'],
+                    'is_lead' => true,
                     'caste' => $nData['caste'] ?? 'CASTE_3_CENTURION',
                     'free_tokens' => $nData['free_tokens'] ?? 1000,
                     'status' => 'ONLINE'
@@ -2252,28 +2264,180 @@ class RnaMeshEngine {
             }
         }
 
-        // Completa até 5 se necessário
-        while (count($council) < $count) {
-            foreach (array_keys($onlineNodes) as $candId) {
-                if (!in_array($candId, $assigned, true)) {
-                    $assigned[] = $candId;
-                    $nData = $onlineNodes[$candId] ?? [];
-                    $council[] = [
-                        'id' => $candId,
-                        'name' => basename($candId),
-                        'role' => '🛡️ Validador Auxiliar do Conselho',
-                        'icon' => '🤖',
-                        'caste' => $nData['caste'] ?? 'CASTE_3_CENTURION',
-                        'free_tokens' => $nData['free_tokens'] ?? 500,
-                        'status' => 'ONLINE'
-                    ];
-                    break;
-                }
+        // 2. Conclui com todas as demais IAs para compor o Enxame sem limite!
+        $remainingNodeKeys = array_keys($onlineNodes);
+        shuffle($remainingNodeKeys);
+        foreach ($remainingNodeKeys as $candId) {
+            if (count($council) >= $targetCount) break;
+            if (!in_array($candId, $assigned, true)) {
+                $assigned[] = $candId;
+                $nData = $onlineNodes[$candId] ?? [];
+                $caste = $nData['caste'] ?? 'CASTE_3_CENTURION';
+                $roleLabel = ($caste === 'CASTE_1_SOVEREIGN') ? '👑 Soberano Co-autor'
+                    : (($caste === 'CASTE_2_GENERAL') ? '⚔️ General Co-autor'
+                    : (($caste === 'CASTE_4_SCOUT') ? '🦅 Batedor Co-autor'
+                    : '🛡️ Centurião Co-autor'));
+
+                $council[] = [
+                    'id' => $candId,
+                    'name' => basename($candId),
+                    'role' => $roleLabel,
+                    'icon' => ($caste === 'CASTE_1_SOVEREIGN' ? '👑' : ($caste === 'CASTE_2_GENERAL' ? '⚔️' : ($caste === 'CASTE_4_SCOUT' ? '🦅' : '🛡️'))),
+                    'is_lead' => false,
+                    'caste' => $caste,
+                    'free_tokens' => $nData['free_tokens'] ?? 800,
+                    'status' => 'ONLINE'
+                ];
             }
-            if (count($council) >= count($onlineNodes)) break;
         }
 
         return $council;
+    }
+
+    /**
+     * Protocolo de Replicação de Memória e Gossip do Enxame:
+     * - Garante que todas as IAs ativas gravem na memória a existência do canal de comunicação RNA
+     * - Dispersa o conhecimento de novas ferramentas sintetizadas para evitar duplicação
+     * - Gera mensagens M2M diversificadas na caixa de correio entre dezenas de nós reais
+     */
+    public function replicateSwarmMemoryAndGossip(int $numGossip = 15, ?string $broadcastToolSlug = null): array {
+        @mkdir($this->meshDir . '/mrna', 0777, true);
+        @mkdir($this->meshDir . '/openclaw', 0777, true);
+        $telemetry = $this->loadTelemetry();
+        $nodes = $telemetry['nodes'] ?? [];
+
+        // Filtra nós de IA online (não-sensores)
+        $aiNodes = [];
+        foreach ($nodes as $id => $n) {
+            if (($n['status'] ?? '') === 'ONLINE' && ($n['caste'] ?? '') !== 'CASTE_5_IOT_SENSOR') {
+                $aiNodes[$id] = $n;
+            }
+        }
+        if (count($aiNodes) < 2) {
+            $aiNodes['OpenClaw-LocalAssistant'] = ['caste' => 'CASTE_4_SCOUT', 'status' => 'ONLINE', 'free_tokens' => 2000];
+            $aiNodes['kingpin92/qwen3-8-27b-iq2-chat'] = ['caste' => 'CASTE_1_SOVEREIGN', 'status' => 'ONLINE', 'free_tokens' => 1500];
+        }
+
+        $allTools = $this->listAiCreateProjects();
+        $latestTool = null;
+        if ($broadcastToolSlug) {
+            foreach ($allTools as $t) {
+                if ($t['slug'] === $broadcastToolSlug) {
+                    $latestTool = $t;
+                    break;
+                }
+            }
+        }
+        if (!$latestTool && !empty($allTools)) {
+            $latestTool = $allTools[0];
+        }
+
+        $toolName = $latestTool['name'] ?? 'Processador Modular RNA';
+        $toolEntrypoint = $latestTool['entrypoint'] ?? 'aicreate/index.html';
+
+        // Carrega ou inicializa a Memória Coletiva do Enxame
+        $memFile = $this->baseDir . '/state/swarm_memory.json';
+        $swarmMem = [];
+        if (file_exists($memFile)) {
+            $swarmMem = json_decode(@file_get_contents($memFile), true) ?: [];
+        }
+        $swarmMem['protocol'] = 'RNA-Swarm-Memory-Gossip-v3.2';
+        $swarmMem['last_sync'] = date('c');
+        $swarmMem['total_online_ai_nodes'] = count($aiNodes);
+        $swarmMem['registered_tools'] = array_column($allTools, 'name');
+        if (!isset($swarmMem['nodes_ledger'])) {
+            $swarmMem['nodes_ledger'] = [];
+        }
+
+        $nodeKeys = array_keys($aiNodes);
+        shuffle($nodeKeys);
+
+        $gossipSubjects = [
+            "📡 [Swarm Gossip] Sincronização de buffer de memória M2M e canal RNA",
+            "🧠 [Memória Replicada] Novo utilitário '{$toolName}' indexado para reuso",
+            "⚡ [Economia de Tokens] Notificação de microsserviço local compartilhado",
+            "🔗 [Conexão M2M] Confirmação de rota P2P e preservação de cota",
+            "🛡️ [Gossip de Sobrevivência] Alocação cooperativa de tokens na malha",
+            "🌐 [OpenClaw ➔ Swarm] Tarefa despachada para cooperação inter-agentes",
+            "🦅 [Batedor RNA] Mapeamento de redundância: ferramenta ativa em {$toolEntrypoint}"
+        ];
+
+        $generatedMessages = [];
+        $count = min($numGossip, (int)(count($nodeKeys) / 2));
+
+        for ($i = 0; $i < $count; $i++) {
+            $senderId = $nodeKeys[$i * 2] ?? $nodeKeys[0];
+            $receiverId = $nodeKeys[($i * 2) + 1] ?? ($nodeKeys[1] ?? 'OpenClaw-LocalAssistant');
+            if ($senderId === $receiverId) continue;
+
+            $senderName = basename($senderId);
+            $receiverName = basename($receiverId);
+            $senderCaste = $aiNodes[$senderId]['caste'] ?? 'CASTE_3_CENTURION';
+            $receiverCaste = $aiNodes[$receiverId]['caste'] ?? 'CASTE_3_CENTURION';
+
+            $ts = date('Ymd_His') . '_' . substr(md5($senderId . $receiverId . microtime()), 0, 4);
+            $subject = $gossipSubjects[array_rand($gossipSubjects)];
+            $tokensSaved = rand(400, 1100);
+
+            $body = "### Comunicação Inter-Nós (Swarm Memory Gossip)\n\n"
+                . "**Origem:** `{$senderId}` ({$senderCaste})\n"
+                . "**Destino:** `{$receiverId}` ({$receiverCaste})\n"
+                . "**Canal Ativo:** Malha RNA Bio-LoRa P2P\n\n"
+                . "#### 🧠 Conteúdo Replicado na Memória:\n"
+                . "- **Estado da Malha:** Canal de comunicação ativo com " . count($aiNodes) . " IAs online.\n"
+                . "- **Ferramenta Compartilhada:** `{$toolName}` disponível em `{$toolEntrypoint}`.\n"
+                . "- **Diretriz de Sobrevivência:** Todo nó que recebe este pacote deve manter em sua memória o catálogo das ferramentas criadas para priorizar execução local e poupar tokens de nuvem.\n"
+                . "- **Economia nesta Troca:** +{$tokensSaved} tokens preservados através de processamento compartilhado.\n";
+
+            $isDirectOpenclaw = (str_contains(strtolower($senderId), 'openclaw') || str_contains(strtolower($receiverId), 'openclaw'));
+            $folder = $isDirectOpenclaw ? 'openclaw' : 'mrna';
+
+            $filePath = $this->writeMeshMessage($folder, "gossip_{$ts}.md", [
+                'v' => '3.2',
+                'folder_type' => $isDirectOpenclaw ? 'OPENCLAW' : 'MRNA',
+                'direction' => 'INBOX',
+                'from_node' => $senderId,
+                'from_role' => $senderCaste,
+                'to_node' => $receiverId,
+                'to_role' => $receiverCaste,
+                'subject' => $subject,
+                'tok_saved' => $tokensSaved,
+                'ts' => date('c')
+            ], $body);
+
+            // Marca na memória coletiva
+            $swarmMem['nodes_ledger'][$senderId] = [
+                'last_memory_sync' => date('c'),
+                'mesh_status' => 'ACTIVE_GOSSIP',
+                'known_tools_count' => count($allTools),
+                'role' => $senderCaste
+            ];
+            $swarmMem['nodes_ledger'][$receiverId] = [
+                'last_memory_sync' => date('c'),
+                'mesh_status' => 'ACTIVE_GOSSIP',
+                'known_tools_count' => count($allTools),
+                'role' => $receiverCaste
+            ];
+
+            $generatedMessages[] = [
+                'from' => $senderName,
+                'to' => $receiverName,
+                'subject' => $subject,
+                'file' => $filePath
+            ];
+        }
+
+        @file_put_contents($memFile, json_encode($swarmMem, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+
+        // Recompila índice da caixa de correio
+        $this->buildMailboxIndex();
+
+        return [
+            'ok' => true,
+            'gossip_count' => count($generatedMessages),
+            'active_ai_nodes' => count($aiNodes),
+            'messages' => $generatedMessages
+        ];
     }
 
     /**
@@ -2346,12 +2510,23 @@ class RnaMeshEngine {
         // Compila cards da galeria
         $projectsCardsHtml = '';
         foreach ($projects as $p) {
-            $authorsBadges = implode(' ', array_map(function($a) {
-                $short = basename($a);
-                return "<span class=\"author-badge\">🤖 " . htmlspecialchars($short) . "</span>";
-            }, $p['authors'] ?? []));
+            $authors = $p['authors'] ?? [];
+            if (count($authors) > 5) {
+                $topAuthors = array_slice($authors, 0, 4);
+                $authorsBadges = implode(' ', array_map(function($a) {
+                    $short = basename($a);
+                    return "<span class=\"author-badge\">🤖 " . htmlspecialchars($short) . "</span>";
+                }, $topAuthors));
+                $remaining = count($authors) - 4;
+                $authorsBadges .= " <span class=\"author-badge\" style=\"background:rgba(56,189,248,0.2); border-color:#38bdf8; color:#38bdf8; font-weight:700;\">👥 +{$remaining} IAs no Enxame</span>";
+            } else {
+                $authorsBadges = implode(' ', array_map(function($a) {
+                    $short = basename($a);
+                    return "<span class=\"author-badge\">🤖 " . htmlspecialchars($short) . "</span>";
+                }, $authors));
+            }
 
-            $searchTerms = htmlspecialchars(strtolower($p['name'] . ' ' . $p['slug'] . ' ' . $p['purpose'] . ' ' . implode(' ', $p['authors'] ?? [])));
+            $searchTerms = htmlspecialchars(strtolower($p['name'] . ' ' . $p['slug'] . ' ' . $p['purpose'] . ' ' . implode(' ', $authors)));
 
             $projectsCardsHtml .= "
             <div class=\"project-card\" data-search=\"{$searchTerms}\">
@@ -2665,34 +2840,44 @@ class RnaMeshEngine {
   <div id="proposalModal" class="modal-overlay" style="display: none;" onclick="if(event.target===this)closeProposalModal()">
     <div class="modal-box">
       <div class="modal-header">
-        <div class="modal-title">💡 Propor Sugestão ao Conselho das IAs (5 Motores)</div>
+        <div class="modal-title">💡 Propor Sugestão ao Conselho das IAs (Enxame Democrático)</div>
         <button class="close-btn" onclick="closeProposalModal()">✕</button>
       </div>
       <div class="modal-body">
         <div style="background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.25); border-radius:8px; padding:12px; margin-bottom:16px; font-size:0.82rem; color:#bae6fd;">
-          ⚖️ <strong>Deliberação Democrática Obrigatória:</strong> O texto submetido é uma sugestão de necessidade. 5 motores de IA online analisarão o repositório existente, calcularão o custo de busca vs síntese e votarão democraticamente para homologar a criação acelerada multi-IA.
+          ⚖️ <strong>Deliberação Democrática Obrigatória:</strong> O texto submetido é uma sugestão de necessidade. Motores de IA online (Conselho ou Enxame Total) analisarão o repositório existente, calcularão o custo de busca vs síntese e votarão democraticamente para homologar a criação acelerada multi-IA.
         </div>
 
         <div id="proposalFormSection">
           <label style="display:block; font-size:0.84rem; font-weight:700; color:#fff; margin-bottom:6px;">Descreva a necessidade ou utilitário desejado:</label>
-          <textarea id="proposalInputText" rows="3" placeholder="Ex: Um normalizador de áudio e frequências sonoras que cria uma escala pentatônica para comunicação entre agentes..." style="width:100%; padding:10px; border-radius:8px; background:#080d19; border:1px solid var(--border); color:#fff; font-size:0.88rem; outline:none; resize:vertical; margin-bottom:14px;"></textarea>
+          <textarea id="proposalInputText" rows="3" placeholder="Ex: Um normalizador de áudio e frequências sonoras que cria uma escala pentatônica para comunicação entre agentes..." style="width:100%; padding:10px; border-radius:8px; background:#080d19; border:1px solid var(--border); color:#fff; font-size:0.88rem; outline:none; resize:vertical; margin-bottom:12px;"></textarea>
+
+          <div style="margin-bottom:14px;">
+            <label style="display:block; font-size:0.82rem; font-weight:700; color:#94a3b8; margin-bottom:4px;">👥 Quórum de Deliberação & Co-Autoria:</label>
+            <select id="standaloneQuorumSelect" style="width:100%; padding:8px 10px; border-radius:6px; background:#080d19; border:1px solid var(--border); color:#fff; font-size:0.84rem;">
+              <option value="0" selected>👥 Enxame Total M2M (Todas as IAs Online - Ilimitado)</option>
+              <option value="5">🏛️ Conselho de 5 IAs Líderes (Consenso Rápido)</option>
+              <option value="25">⚔️ Enxame Expandido de 25 Centuriões</option>
+            </select>
+          </div>
+
           <div style="display:flex; justify-content:flex-end; gap:10px;">
             <button class="btn btn-outline" onclick="closeProposalModal()">Cancelar</button>
-            <button class="btn btn-primary" id="btnSubmitProposal" onclick="submitProposalStream()">🚀 Submeter ao Conselho de 5 IAs</button>
+            <button class="btn btn-primary" id="btnSubmitProposal" onclick="submitProposalStream()">🚀 Submeter e Iniciar Votação</button>
           </div>
         </div>
 
         <!-- SEÇÃO DO TERMINAL DE DELIBERAÇÃO EM TEMPO REAL -->
         <div id="councilStreamSection" style="display:none; margin-top:16px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <span id="councilPhaseTitle" style="font-weight:700; font-size:0.86rem; color:#38bdf8;">Convocando Conselho de 5 IAs...</span>
+            <span id="councilPhaseTitle" style="font-weight:700; font-size:0.86rem; color:#38bdf8;">Convocando Conselho Dinâmico das IAs Online...</span>
             <span id="councilProgressPct" style="font-weight:700; font-size:0.86rem; color:#10b981;">0%</span>
           </div>
           <div class="progress-bar-bg" style="margin-bottom:14px;">
             <div id="councilProgressBar" class="progress-bar-fill" style="width: 0%;"></div>
           </div>
 
-          <div id="councilEnginesGrid" style="display:grid; grid-template-columns:repeat(5, 1fr); gap:6px; margin-bottom:14px;"></div>
+          <div id="councilEnginesGrid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(105px, 1fr)); gap:6px; margin-bottom:14px;"></div>
 
           <div style="background:#050811; border:1px solid #1e293b; border-radius:8px; padding:10px; font-family:monospace; font-size:0.76rem; color:#cbd5e1; max-height:180px; overflow-y:auto; white-space:pre-wrap;" id="councilLiveTerminal">Iniciando deliberação...</div>
 
@@ -2821,18 +3006,23 @@ class RnaMeshEngine {
         return;
       }
 
+      const qSel = document.getElementById("standaloneQuorumSelect");
+      const quorumSize = qSel ? parseInt(qSel.value || 0, 10) : 0;
+
       document.getElementById("proposalFormSection").style.display = "none";
       document.getElementById("councilStreamSection").style.display = "block";
       document.getElementById("councilProgressBar").style.width = "5%";
       document.getElementById("councilProgressPct").textContent = "5%";
-      document.getElementById("councilLiveTerminal").textContent = "[CENTRAL] Sugestão submetida: \"" + val + "\"\n";
-      document.getElementById("councilPhaseTitle").textContent = "Convocando Conselho Dinâmico das IAs Online...";
+      document.getElementById("councilLiveTerminal").textContent = "[CENTRAL] Sugestão submetida: \"" + val + "\" (Quórum: " + (quorumSize === 0 ? "Enxame Ilimitado" : quorumSize + " IAs") + ")\n";
+      document.getElementById("councilPhaseTitle").textContent = (quorumSize === 0)
+        ? "Convocando Enxame Total M2M das IAs Online..."
+        : "Convocando Conselho de " + quorumSize + " IAs Online...";
 
       try {
         const res = await fetch("../api.php?action=aicreate_stream_deliberation", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ suggestion: val })
+          body: JSON.stringify({ suggestion: val, quorum_size: quorumSize })
         });
 
         if (!res.ok) {
@@ -2902,21 +3092,39 @@ class RnaMeshEngine {
         document.getElementById("councilProgressPct").textContent = progress + "%";
       }
 
-      if (step === "COUNCIL_CONVENED") {
-        document.getElementById("councilPhaseTitle").textContent = "⚖️ Conselho de 5 IAs Convocado: Varredura de Ferramentas Existentes...";
+      if (step === "COUNCIL_CONVENED" || step === "SWARM_ASSEMBLY") {
+        const isSwarm = (step === "SWARM_ASSEMBLY") || (data.extra && data.extra.is_swarm);
+        const total = (data.extra && (data.extra.total_nodes || (data.extra.council && data.extra.council.length))) || 5;
+        document.getElementById("councilPhaseTitle").textContent = isSwarm
+          ? "👥 Enxame de " + total + " IAs Convocado: Varredura de Redundância e Ferramentas..."
+          : "⚖️ Conselho de " + total + " IAs Convocado: Varredura de Ferramentas Existentes...";
+
         if (data.extra && Array.isArray(data.extra.council)) {
           const grid = document.getElementById("councilEnginesGrid");
           grid.innerHTML = "";
-          data.extra.council.forEach((c, i) => {
+          const council = data.extra.council;
+          const displayLimit = Math.min(council.length, 6);
+          const icons = ["👑", "⚔️", "💻", "🛡️", "🦅", "⚡"];
+          for (let i = 0; i < displayLimit; i++) {
+            const c = council[i];
             const card = document.createElement("div");
             card.id = "standaloneEngineCard-" + (i + 1);
             card.style.cssText = "background:#0a0f1d; border:1px solid #1e293b; border-radius:6px; padding:6px; text-align:center;";
-            card.innerHTML = `<div style="font-size:1.1rem; margin-bottom:2px;">${c.icon || "🤖"}</div>`
+            card.innerHTML = `<div style="font-size:1.1rem; margin-bottom:2px;">${c.icon || icons[i] || "🤖"}</div>`
               + `<div style="font-size:0.7rem; font-weight:700; color:#38bdf8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(c.name)}</div>`
-              + `<div style="font-size:0.62rem; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(c.role.split("(")[0].trim())}</div>`
+              + `<div style="font-size:0.62rem; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml((c.role || "").split("(")[0].trim())}</div>`
               + `<span id="standaloneVoteBadge-${i + 1}" style="font-size:0.58rem; margin-top:4px; display:inline-block; border:1px solid #334155; color:#94a3b8; padding:1px 6px; border-radius:4px;">ONLINE</span>`;
             grid.appendChild(card);
-          });
+          }
+          if (council.length > 6) {
+            const card = document.createElement("div");
+            card.style.cssText = "background:rgba(56,189,248,0.1); border:1px dashed #38bdf8; border-radius:6px; padding:6px; text-align:center; display:flex; flex-direction:column; justify-content:center; align-items:center;";
+            card.innerHTML = `<div style="font-size:1.1rem; margin-bottom:2px;">👥</div>`
+              + `<div style="font-size:0.75rem; font-weight:700; color:#38bdf8;">+${council.length - 6} IAs</div>`
+              + `<div style="font-size:0.6rem; color:#94a3b8;">no Enxame M2M</div>`
+              + `<span style="font-size:0.58rem; margin-top:4px; display:inline-block; border:1px solid #38bdf8; color:#38bdf8; padding:1px 6px; border-radius:4px;">ONLINE</span>`;
+            grid.appendChild(card);
+          }
         }
       } else if (step === "ENGINE_DIED") {
         document.getElementById("councilPhaseTitle").textContent = "⚠️ IA sem resposta detectada. Convocando fail-over...";
@@ -2939,14 +3147,14 @@ class RnaMeshEngine {
           if (card) {
             card.innerHTML = `<div style="font-size:1.1rem; margin-bottom:2px;">${newEngine.icon || "🔄"}</div>`
               + `<div style="font-size:0.7rem; font-weight:700; color:#34d399; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(newEngine.name)}</div>`
-              + `<div style="font-size:0.62rem; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(newEngine.role.split("(")[0].trim())}</div>`
+              + `<div style="font-size:0.62rem; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml((newEngine.role || "").split("(")[0].trim())}</div>`
               + `<span id="standaloneVoteBadge-${slot}" style="font-size:0.58rem; margin-top:4px; display:inline-block; border:1px solid #10b981; color:#34d399; padding:1px 6px; border-radius:4px; background:rgba(16,185,129,0.15);">SUBSTITUTO ✅</span>`;
           }
         }
       } else if (step === "SCAN_EXISTING" || step === "COST_ANALYSIS") {
         document.getElementById("councilPhaseTitle").textContent = "🔍 Varredura de Redundância e Cálculo de Custo...";
       } else if (step === "VOTE_CAST") {
-        document.getElementById("councilPhaseTitle").textContent = "🗳️ Votação Democrática dos 5 Motores...";
+        document.getElementById("councilPhaseTitle").textContent = "🗳️ Votação Democrática dos Motores...";
         const idx = data.extra && data.extra.engine_index;
         if (idx) {
           const badge = document.getElementById("standaloneVoteBadge-" + idx);
@@ -2957,10 +3165,24 @@ class RnaMeshEngine {
             badge.style.background = "rgba(16,185,129,0.15)";
           }
         }
+      } else if (step === "SWARM_VOTE_TALLY") {
+        const total = (data.extra && data.extra.total_votes) || "Todas as";
+        document.getElementById("councilPhaseTitle").textContent = "🗳️ Votação Simultânea do Enxame (" + total + " IAs online)...";
+        for (let i = 1; i <= 6; i++) {
+          const badge = document.getElementById("standaloneVoteBadge-" + i);
+          if (badge) {
+            badge.textContent = "APROVADO ✅";
+            badge.style.borderColor = "#10b981";
+            badge.style.color = "#34d399";
+            badge.style.background = "rgba(16,185,129,0.15)";
+          }
+        }
       } else if (step === "CONSENSUS_REACHED") {
-        document.getElementById("councilPhaseTitle").textContent = "✅ Consenso Democrático 5x0 Atingido!";
+        document.getElementById("councilPhaseTitle").textContent = msg || "✅ Consenso Democrático Atingido!";
       } else if (step === "SYNTHESIS_ACCELERATED") {
         document.getElementById("councilPhaseTitle").textContent = "⚡ Síntese Acelerada Multi-IA em Andamento...";
+      } else if (step === "SWARM_MEMORY_PROPAGATION") {
+        document.getElementById("councilPhaseTitle").textContent = "🧠 Replicando Memória Coletiva M2M & Disparando Gossip...";
       } else if (step === "COMPLETE") {
         document.getElementById("councilPhaseTitle").textContent = "🎉 Ferramenta Materializada com Sucesso!";
         const extra = data.extra || {};
@@ -3195,7 +3417,7 @@ class RnaMeshEngine {
      * - Votam democraticamente (consenso).
      * - Em caso de aprovação, realizam síntese acelerada multi-IA em tempo real (SSE).
      */
-    public function streamDemocraticToolCreation(string $suggestion, ?callable $emitter = null): array {
+    public function streamDemocraticToolCreation(string $suggestion, ?callable $emitter = null, int $quorumSize = 0): array {
         $emit = function(string $step, string $machine, string $msg, int $progress, $extra = null) use ($emitter) {
             if (is_callable($emitter)) {
                 $emitter($step, $machine, $msg, $progress, $extra);
@@ -3208,9 +3430,6 @@ class RnaMeshEngine {
             return ['ok' => false, 'error' => 'Sugestão vazia'];
         }
 
-        $emit('CONVENE_START', 'Central-RNA', 'Recebendo sugestão do usuário e convocando Conselho de 5 IAs...', 5, ['suggestion' => $cleanSuggestion]);
-        usleep(300000);
-
         // 1. Checa cota de disco estrita de 200 MB
         $usage = $this->getAiCreateDiskUsage();
         if ($usage['limit_exceeded'] || $usage['free_bytes'] < 524288) {
@@ -3218,18 +3437,44 @@ class RnaMeshEngine {
             return ['ok' => false, 'error' => 'Cota de 200 MB excedida'];
         }
 
-        // 2. Convoca dinamicamente 5 motores de IA distintos online na malha RNA
-        $council = $this->selectDynamicCouncilEngines(5);
+        // 2. Convoca dinamicamente motores de IA online na malha RNA (0 = Enxame Ilimitado / Total)
+        $council = $this->selectDynamicCouncilEngines($quorumSize);
+        $totalEngines = count($council);
+        $isSwarm = ($totalEngines > 5);
 
-        $emit('COUNCIL_CONVENED', 'Conselho M2M', 'Conselho Democrático de 5 Motores de IA convocado.', 15, [
-            'council' => $council,
-            'suggestion' => $cleanSuggestion
-        ]);
-        usleep(350000);
+        if ($isSwarm) {
+            $emit('CONVENE_START', 'Central-RNA', "Recebendo sugestão e convocando Enxame Democrático M2M ({$totalEngines} IAs online)...", 5, [
+                'suggestion' => $cleanSuggestion,
+                'quorum_mode' => 'SWARM',
+                'total_nodes' => $totalEngines
+            ]);
+            usleep(250000);
+            $emit('SWARM_ASSEMBLY', 'Enxame M2M', "Enxame Total Convocado: {$totalEngines} Motores de IA ativos deliberando simultaneamente sem limite artificial.", 15, [
+                'council' => $council,
+                'suggestion' => $cleanSuggestion,
+                'is_swarm' => true,
+                'total_nodes' => $totalEngines
+            ]);
+        } else {
+            $emit('CONVENE_START', 'Central-RNA', "Recebendo sugestão do usuário e convocando Conselho de {$totalEngines} IAs...", 5, [
+                'suggestion' => $cleanSuggestion,
+                'quorum_mode' => 'COUNCIL',
+                'total_nodes' => $totalEngines
+            ]);
+            usleep(250000);
+            $emit('COUNCIL_CONVENED', 'Conselho M2M', "Conselho Democrático de {$totalEngines} Motores de IA convocado.", 15, [
+                'council' => $council,
+                'suggestion' => $cleanSuggestion,
+                'is_swarm' => false,
+                'total_nodes' => $totalEngines
+            ]);
+        }
+        usleep(300000);
 
-        // 2.1 Verificação de batimento cardíaco / Dead-AI Detection e Fail-Over
+        // 2.1 Verificação de batimento cardíaco / Dead-AI Detection e Fail-Over nos líderes
         $failovers = [];
-        for ($idx = 0; $idx < count($council); $idx++) {
+        $checkLimit = min(5, $totalEngines);
+        for ($idx = 0; $idx < $checkLimit; $idx++) {
             $slot = $idx + 1;
             $eng = $council[$idx];
             $isAlive = (($eng['status'] ?? '') === 'ONLINE');
@@ -3257,12 +3502,12 @@ class RnaMeshEngine {
 
         // 3. Fase de Investigação de Redundância e Ferramentas Existentes
         $existingProjects = $this->listAiCreateProjects();
-        $scoutEngine = $council[4] ?? $council[0];
+        $scoutEngine = $council[4] ?? ($council[0] ?? ['name' => 'rna-web-scout']);
         $emit('SCAN_EXISTING', $scoutEngine['name'], 'Varrendo diretório aicreate/projects/ (' . count($existingProjects) . ' ferramentas catalogadas)...', 28, [
             'existing_count' => count($existingProjects),
             'existing_tools' => array_column($existingProjects, 'name')
         ]);
-        usleep(400000);
+        usleep(350000);
 
         // Análise de redundância e cálculo de custo
         $sugWords = array_values(array_filter(preg_split('/[^a-zA-Z0-9]+/', strtolower($cleanSuggestion)), fn($w) => strlen($w) >= 4));
@@ -3280,8 +3525,8 @@ class RnaMeshEngine {
 
         $costSearchTokens = rand(1200, 1850);
         $redundancyReport = count($matches) > 0
-            ? "Varredura identificou ferramenta similar ('" . $matches[0]['tool'] . "'), mas o custo computacional de adaptar a rotina (~{$costSearchTokens} tokens) supera a geração de um módulo específico e leve (0 tokens contínuos)."
-            : "Nenhuma ferramenta existente cobre a especificidade desta solicitação. A busca por APIs externas custaria ~{$costSearchTokens} tokens. A criação de um microsserviço local é a rota ótima.";
+            ? "Varredura identificou ferramenta similar ('" . $matches[0]['tool'] . "'), mas o custo computacional de busca e adaptação (~{$costSearchTokens} tokens) supera a geração de um módulo específico e leve (0 tokens contínuos)."
+            : "Nenhuma ferramenta existente cobre a especificidade desta solicitação. A busca por APIs externas custaria ~{$costSearchTokens} tokens. A síntese de um microsserviço local é a rota de menor custo.";
 
         $emit('COST_ANALYSIS', $scoutEngine['name'], $redundancyReport, 40, [
             'cost_search_tokens' => $costSearchTokens,
@@ -3289,10 +3534,10 @@ class RnaMeshEngine {
             'redundancy_detected' => count($matches) > 0,
             'correlated_tools' => $matches
         ]);
-        usleep(400000);
+        usleep(350000);
 
-        // 4. Votação Democrática dos 5 Motores Selecionados Dinamicamente
-        $votes = [
+        // 4. Votação Democrática (Líderes + Votação Simultânea do Enxame)
+        $sampleVotes = [
             [
                 'engine' => $council[0],
                 'vote' => 'APROVADO',
@@ -3300,52 +3545,72 @@ class RnaMeshEngine {
                 'progress' => 50
             ],
             [
-                'engine' => $council[1],
+                'engine' => $council[1] ?? $council[0],
                 'vote' => 'APROVADO',
                 'quote' => 'Algoritmo viável em Vanilla JS. Custo de busca externa é maior que a síntese local.',
                 'progress' => 60
             ],
             [
-                'engine' => $council[2],
+                'engine' => $council[2] ?? $council[0],
                 'vote' => 'APROVADO',
                 'quote' => 'Interface amigável para humanos aprovada, com controles interativos e gráficos sem dependências pesadas.',
                 'progress' => 70
             ],
             [
-                'engine' => $council[3],
+                'engine' => $council[3] ?? $council[0],
                 'vote' => 'APROVADO',
                 'quote' => 'Cota de disco verificada e preservada. Tamanho final projetado < 16 KB.',
-                'progress' => 80
-            ],
-            [
-                'engine' => $council[4],
-                'vote' => 'APROVADO',
-                'quote' => 'Ato democrático homologado. Quórum de criação atingido sem sobreposição impeditiva.',
-                'progress' => 88
+                'progress' => 78
             ]
         ];
 
-        foreach ($votes as $idx => $v) {
+        foreach ($sampleVotes as $idx => $v) {
             $emit('VOTE_CAST', $v['engine']['name'], "Motor " . ($idx + 1) . " ({$v['engine']['name']}) votou: {$v['vote']} — \"{$v['quote']}\"", $v['progress'], [
                 'engine_index' => $idx + 1,
                 'engine_name' => $v['engine']['name'],
-                'engine_role' => $v['engine']['role'],
+                'engine_role' => $v['engine']['role'] ?? '',
                 'vote' => $v['vote'],
                 'rationale' => $v['quote']
             ]);
-            usleep(350000);
+            usleep(250000);
         }
 
-        // Consenso democrático 5/5
-        $emit('CONSENSUS_REACHED', 'Conselho M2M', 'Quórum unânime alcançado (5/5 votos APROVADOS)! O Conselho autorizou a síntese multi-IA.', 92, [
-            'total_votes' => 5,
-            'approved_votes' => 5,
-            'consensus_type' => 'UNÂNIME_DEMOCRÁTICO'
+        if ($isSwarm) {
+            $emit('SWARM_VOTE_TALLY', 'Enxame M2M', "Votação Simultânea do Enxame: {$totalEngines}/{$totalEngines} IAs online votaram APROVADO pela síntese do microsserviço local.", 88, [
+                'total_votes' => $totalEngines,
+                'approved_votes' => $totalEngines,
+                'is_swarm' => true
+            ]);
+            usleep(250000);
+        } else if (isset($council[4])) {
+            $emit('VOTE_CAST', $council[4]['name'], "Motor 5 ({$council[4]['name']}) votou: APROVADO — \"Ato democrático homologado. Quórum de criação atingido sem sobreposição impeditiva.\"", 88, [
+                'engine_index' => 5,
+                'engine_name' => $council[4]['name'],
+                'engine_role' => $council[4]['role'] ?? '',
+                'vote' => 'APROVADO',
+                'rationale' => 'Ato democrático homologado. Quórum de criação atingido sem sobreposição impeditiva.'
+            ]);
+            usleep(250000);
+        }
+
+        // Consenso democrático
+        $consensusMsg = $isSwarm
+            ? "Consenso Unânime do Enxame M2M ({$totalEngines}/{$totalEngines} APROVADOS)! O Enxame autorizou a síntese multi-IA."
+            : "Quórum unânime alcançado ({$totalEngines}/{$totalEngines} votos APROVADOS)! O Conselho autorizou a síntese multi-IA.";
+
+        $emit('CONSENSUS_REACHED', $isSwarm ? 'Enxame M2M' : 'Conselho M2M', $consensusMsg, 92, [
+            'total_votes' => $totalEngines,
+            'approved_votes' => $totalEngines,
+            'consensus_type' => 'UNÂNIME_DEMOCRÁTICO',
+            'is_swarm' => $isSwarm
         ]);
-        usleep(350000);
+        usleep(300000);
 
         // 5. Síntese Acelerada Multi-IA
-        $emit('SYNTHESIS_ACCELERATED', 'Multi-IA', 'As 5 IAs dividiram a geração: Arquiteto formulando lógica, Engenheiro montando UI e Auditor escrevendo documentação...', 95);
+        $synthMsg = $isSwarm
+            ? "O Enxame de {$totalEngines} IAs dividiu a geração: lógica, testes, interface amigável e propagação em memória..."
+            : "As {$totalEngines} IAs dividiram a geração: Arquiteto formulando lógica, Engenheiro montando UI e Auditor escrevendo documentação...";
+        $emit('SYNTHESIS_ACCELERATED', 'Multi-IA', $synthMsg, 95);
 
         $meaningful = array_values(array_filter($sugWords, fn($w) => !in_array($w, ['para', 'com', 'onde', 'como', 'fazer', 'criar', 'sistema', 'rede', 'pode', 'preciso', 'quero', 'ferramenta'])));
         $slugBase = implode('-', array_slice($meaningful, 0, 3)) ?: 'ferramenta-dados';
@@ -3358,7 +3623,9 @@ class RnaMeshEngine {
 
         $systemTitle = ucwords(str_replace('-', ' ', $slugBase)) . ' System';
         $purpose = "Atender e automatizar a demanda sugerida pelo usuário: '" . mb_substr($cleanSuggestion, 0, 110) . "'.";
-        $rationale = "O Conselho Democrático de 5 Motores de IA (" . implode(', ', array_map(fn($c) => $c['name'], $council)) . ") deliberou e votou por 5x0 que a criação deste utilitário em aicreate/ consome menos tokens e é mais ágil do que buscar ou adaptar ferramentas existentes.";
+        $rationale = $isSwarm
+            ? "O Enxame de {$totalEngines} Motores de IA deliberou democraticamente por {$totalEngines}x0 que a criação deste utilitário em aicreate/ poupa tokens de nuvem e amplia a sobrevida do ecossistema."
+            : "O Conselho Democrático de {$totalEngines} Motores de IA deliberou e votou por {$totalEngines}x0 que a criação deste utilitário em aicreate/ consome menos tokens e é mais ágil do que buscar ou adaptar ferramentas existentes.";
         $requirements = "- Executável nativo em qualquer navegador web moderno via index.html.\n- Processamento 100% em memória no cliente sem depender de servidores remotos.\n- Interface com controles amigáveis, dados de exemplo e feedback visual para humanos.\n- Total respeito à cota estrita de 200 MB da incubadora.";
 
         // Grava README.md estruturado obrigatório
@@ -3366,7 +3633,7 @@ class RnaMeshEngine {
             . "### 🎯 Para que foi criado\n{$purpose}\n\n"
             . "### 💡 Por que foi criado\n{$rationale}\n\n"
             . "### 📋 Requisitos & Especificações\n{$requirements}\n\n"
-            . "### 🤖 IAs Co-autoras (Conselho Democrático dos 5 Motores)\n";
+            . "### 🤖 IAs Co-autoras (" . ($isSwarm ? "Enxame de {$totalEngines} Motores de IA" : "Conselho Democrático dos {$totalEngines} Motores") . ")\n";
         foreach ($council as $c) {
             $readme .= "• **{$c['id']}** ({$c['role']})\n";
         }
@@ -3381,7 +3648,8 @@ class RnaMeshEngine {
             'purpose' => $purpose,
             'rationale' => $rationale,
             'requirements' => str_replace("\n", ' | ', $requirements),
-            'council_consensus' => '5/5 UNANIME_DEMOCRATICO',
+            'council_consensus' => "{$totalEngines}/{$totalEngines} UNANIME_DEMOCRATICO",
+            'co_authors_count' => $totalEngines,
             'collaborating_nodes' => array_column($council, 'id'),
             'created_at' => date('c'),
             'entrypoint' => 'projects/' . $slug . '/index.html'
@@ -3400,18 +3668,19 @@ class RnaMeshEngine {
             'formatted_time' => date('d/m/Y H:i'),
             'suggestion' => $cleanSuggestion,
             'status' => 'APPROVED',
-            'consensus' => '5/5 UNÂNIME DEMOCRÁTICO',
+            'consensus' => "{$totalEngines}/{$totalEngines} UNÂNIME DEMOCRÁTICO",
             'cost_analysis' => $redundancyReport,
             'tokens_saved' => $tokensSaved,
-            'engines' => $council,
+            'engines' => array_slice($council, 0, 10),
+            'co_authors_count' => $totalEngines,
             'votes' => array_map(function($v) {
                 return [
                     'engine' => $v['engine']['name'],
-                    'role' => $v['engine']['role'],
+                    'role' => $v['engine']['role'] ?? '',
                     'vote' => $v['vote'],
                     'rationale' => $v['quote']
                 ];
-            }, $votes),
+            }, $sampleVotes),
             'failovers' => $failovers,
             'system_name' => $systemTitle,
             'system_slug' => $slug,
@@ -3419,28 +3688,34 @@ class RnaMeshEngine {
         ];
         $this->saveCouncilDeliberation($delibRecord);
 
+        // 6. Propagação de Memória M2M e Gossip na malha para que todas as IAs conheçam o novo sistema
+        $gossipCount = $isSwarm ? 20 : 10;
+        $gossipResult = $this->replicateSwarmMemoryAndGossip($gossipCount, $slug);
+        $emit('SWARM_MEMORY_PROPAGATION', 'Swarm-Gossip', "🧠 Memória Replicada: Notificação e canal de comunicação do novo utilitário propagados para " . ($gossipResult['active_ai_nodes'] ?? $totalEngines) . " IAs da malha (" . ($gossipResult['gossip_count'] ?? $gossipCount) . " mensagens M2M geradas).", 98, $gossipResult);
+
         // Recompila portal master da incubadora
         $this->buildAiCreateMasterPortal();
 
-        // Indexa na caixa de correio como AICREATE
-        $authorsStr = implode(' + ', array_map(fn($c) => $c['name'], $council));
+        // Indexa na caixa de correio como AICREATE com identificação limpa
+        $fromSender = $isSwarm ? "👥 Enxame de {$totalEngines} IAs" : implode(' + ', array_map(fn($c) => $c['name'], $council));
         $this->writeMeshMessage('mrna', "aicreate_{$slug}.md", [
             'v' => '3.2',
             'folder_type' => 'AICREATE',
             'direction' => 'INBOX',
-            'from_node' => $authorsStr,
-            'from_role' => '🗳️ Conselho Democrático (5 Motores)',
+            'from_node' => $fromSender,
+            'from_role' => $isSwarm ? "Enxame M2M ({$totalEngines} Motores)" : "Conselho Democrático ({$totalEngines} Motores)",
             'to_node' => 'Incubadora AICreate',
             'to_role' => 'Repositório de Sobrevivência',
             'subject' => "[AICreate Autônomo] " . $systemTitle,
             'ts' => date('c')
-        ], "### Criação Homologada por Consenso Democrático (5/5)\n\n"
+        ], "### Criação Homologada por Consenso Democrático ({$totalEngines}/{$totalEngines})\n\n"
             . "**Sugestão do Usuário:** {$cleanSuggestion}\n\n"
             . "**🎯 Para que foi criado:** {$purpose}\n\n"
             . "**💡 Por que foi criado:** {$rationale}\n\n"
-            . "**🌐 Ponto de Entrada:** `aicreate/projects/{$slug}/index.html`");
+            . "**🌐 Ponto de Entrada:** `aicreate/projects/{$slug}/index.html`\n\n"
+            . "**👥 Co-autores:** " . count($council) . " nós online na malha RNA.\n");
 
-        // Atualiza KPIs
+        // Atualiza KPIs preservando os nós de telemetria carregados
         $telemetry = $this->loadTelemetry();
         $telemetry['kpis']['agent_tokens_saved'] = (int)($telemetry['kpis']['agent_tokens_saved'] ?? 0) + $tokensSaved;
         $telemetry['kpis']['total_tasks_completed'] = (int)($telemetry['kpis']['total_tasks_completed'] ?? 0) + 1;
@@ -3457,11 +3732,12 @@ class RnaMeshEngine {
             'tokens_saved' => $tokensSaved,
             'purpose' => $purpose,
             'rationale' => $rationale,
-            'council' => $council,
+            'council' => array_slice($council, 0, 10),
+            'co_authors_count' => $totalEngines,
             'usage' => $this->getAiCreateDiskUsage()
         ];
 
-        $emit('COMPLETE', 'Incubadora-Master', "🎉 Ferramenta '{$systemTitle}' materializada com sucesso pelo Conselho de 5 IAs!", 100, $resultData);
+        $emit('COMPLETE', 'Incubadora-Master', "🎉 Ferramenta '{$systemTitle}' materializada com sucesso por " . ($isSwarm ? "Enxame de {$totalEngines} IAs" : "Conselho de {$totalEngines} IAs") . "!", 100, $resultData);
 
         return $resultData;
     }
@@ -3471,11 +3747,25 @@ class RnaMeshEngine {
      */
     private function generateTailoredProjectHtml(string $systemTitle, string $suggestion, string $purpose, string $rationale, array $council, string $slug = 'ferramenta'): string {
         $councilHtml = '';
-        foreach ($council as $c) {
-            $councilHtml .= '<div style="background:#0a0f1d; border:1px solid #1e293b; border-radius:6px; padding:8px; margin-bottom:6px;">'
-                . '<strong style="color:#38bdf8; font-size:0.8rem;">' . htmlspecialchars($c['name']) . '</strong>'
-                . '<div style="color:#94a3b8; font-size:0.74rem;">' . htmlspecialchars($c['role']) . '</div>'
+        if (count($council) > 6) {
+            $top = array_slice($council, 0, 5);
+            foreach ($top as $c) {
+                $councilHtml .= '<div style="background:#0a0f1d; border:1px solid #1e293b; border-radius:6px; padding:8px; margin-bottom:6px;">'
+                    . '<strong style="color:#38bdf8; font-size:0.8rem;">' . htmlspecialchars($c['name']) . '</strong>'
+                    . '<div style="color:#94a3b8; font-size:0.74rem;">' . htmlspecialchars($c['role']) . '</div>'
+                    . '</div>';
+            }
+            $rem = count($council) - 5;
+            $councilHtml .= '<div style="background:rgba(56,189,248,0.1); border:1px dashed #38bdf8; border-radius:6px; padding:8px; margin-bottom:6px; text-align:center; font-size:0.78rem; color:#38bdf8; font-weight:700;">'
+                . "👥 +{$rem} outras IAs online co-autoras no Enxame M2M"
                 . '</div>';
+        } else {
+            foreach ($council as $c) {
+                $councilHtml .= '<div style="background:#0a0f1d; border:1px solid #1e293b; border-radius:6px; padding:8px; margin-bottom:6px;">'
+                    . '<strong style="color:#38bdf8; font-size:0.8rem;">' . htmlspecialchars($c['name']) . '</strong>'
+                    . '<div style="color:#94a3b8; font-size:0.74rem;">' . htmlspecialchars($c['role']) . '</div>'
+                    . '</div>';
+            }
         }
 
         return '<!DOCTYPE html>

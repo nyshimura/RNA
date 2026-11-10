@@ -1,0 +1,311 @@
+{
+    "protocol": "RNA-Swarm-Memory-Gossip-v3.2",
+    "last_sync": "2026-11-09T21:29:01-03:00",
+    "total_online_ai_nodes": 70,
+    "registered_tools": [
+        "Analisador Conversor Ondas System",
+        "Tradutor Sonoro Visual System",
+        "Canal Podem Comunicar System",
+        "Analisador Normalizador Series System",
+        "Analisador Normalizador Series System",
+        "Simulador Processor",
+        "LoRa Bio-Codon Packet Encoder & CRC16 Validator",
+        "Telemetry Stream Cleaner & Anomaly Detector"
+    ],
+    "nodes_ledger": {
+        "Rafii/videovoice-qwen3": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_1_SOVEREIGN"
+        },
+        "Godzrayz/janitor-deepseek-proxy": {
+            "last_memory_sync": "2026-11-09T21:28:58-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 7,
+            "role": "CASTE_3_CENTURION"
+        },
+        "huggingface-projects/llama-2-13b-chat": {
+            "last_memory_sync": "2026-11-09T21:28:58-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 7,
+            "role": "CASTE_3_CENTURION"
+        },
+        "mirzozi/qwen3-8-2-4t-a95b": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_1_SOVEREIGN"
+        },
+        "merve/ChatGPT-prompt-generator": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_3_CENTURION"
+        },
+        "SrikarJindam99/MSAI_631_AI_Integrated_Chatbot": {
+            "last_memory_sync": "2026-11-09T21:28:58-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 7,
+            "role": "CASTE_3_CENTURION"
+        },
+        "prithivMLmods/Qwen-Image-Edit-2511-LoRAs-Fast": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_3_CENTURION"
+        },
+        "androaichain/Qwen-Qwen3-Coder-480B-A35B-Instruct": {
+            "last_memory_sync": "2026-11-09T21:28:58-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 7,
+            "role": "CASTE_1_SOVEREIGN"
+        },
+        "ginigen/deepseek-r1-0528-API": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_1_SOVEREIGN"
+        },
+        "Bob3432433/DeepSeek-V4-Flash": {
+            "last_memory_sync": "2026-11-09T21:28:58-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 7,
+            "role": "CASTE_3_CENTURION"
+        },
+        "BananaKokuouheika/deepseek": {
+            "last_memory_sync": "2026-11-09T21:28:58-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 7,
+            "role": "CASTE_3_CENTURION"
+        },
+        "linoyts/Qwen-Image-Edit-Angles": {
+            "last_memory_sync": "2026-11-09T21:28:58-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 7,
+            "role": "CASTE_3_CENTURION"
+        },
+        "bigcode/Reasoning-with-StarCoder": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_1_SOVEREIGN"
+        },
+        "SupraLabs/Supra-50M-Reasoning-Demo": {
+            "last_memory_sync": "2026-11-09T21:28:58-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 7,
+            "role": "CASTE_1_SOVEREIGN"
+        },
+        "gokaygokay/Gemma-2-llamacpp": {
+            "last_memory_sync": "2026-11-09T21:28:58-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 7,
+            "role": "CASTE_3_CENTURION"
+        },
+        "Bimapopo345/deepseek-v4-gguf-playground": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_3_CENTURION"
+        },
+        "yuntian-deng/ChatGPT": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_3_CENTURION"
+        },
+        "unknown2567/coder-30b-api": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_2_GENERAL"
+        },
+        "open-llm-leaderboard/open_llm_leaderboard": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_4_SCOUT"
+        },
+        "ResembleAI/Chatterbox-Multilingual-TTS": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_3_CENTURION"
+        },
+        "Gelyx59430/llama31-heretic-gguf-demo": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_3_CENTURION"
+        },
+        "enzostvs/deepsite": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_4_SCOUT"
+        },
+        "huggingface-projects/llama-2-7b-chat": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_3_CENTURION"
+        },
+        "prithivMLmods/DeepSeek-OCR-2-Unlimited-OCR": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_3_CENTURION"
+        },
+        "zerolimites/deepseek-ai-DeepSeek-R1-Distill-Qwen-14B": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_1_SOVEREIGN"
+        },
+        "hugging-apps/gpd-spatial-reasoning": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_1_SOVEREIGN"
+        },
+        "aiqcamp/Llama-4-Maverick-17B-search": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_4_SCOUT"
+        },
+        "ResembleAI/chatterbox-turbo-demo": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_3_CENTURION"
+        },
+        "Dhruv-18/Advanced-AI-Reasoning-pro": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_4_SCOUT"
+        },
+        "Kwai-Kolors/Kolors-Virtual-Try-On": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_4_SCOUT"
+        },
+        "unknown2567/coder-api": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_2_GENERAL"
+        },
+        "kingpin92/qwen3-8-27b-iq2-chat": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_1_SOVEREIGN"
+        },
+        "openfree/Deepseek-v3-0324-Research": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_4_SCOUT"
+        },
+        "inamullah-cloud/medquad-llama-demo": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_3_CENTURION"
+        },
+        "Qwen/Qwen-Image-Edit": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_3_CENTURION"
+        },
+        "prithivMLmods/SAGE-MM-Video-Reasoning": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_1_SOVEREIGN"
+        },
+        "ResembleAI/Chatterbox": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_3_CENTURION"
+        },
+        "black-forest-labs/FLUX.1-dev": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_4_SCOUT"
+        },
+        "hugging-apps/wm-vlm-spatial-reasoning": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_1_SOVEREIGN"
+        },
+        "cvachet/pdf-chatbot": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_3_CENTURION"
+        },
+        "deepseek-ai/deepseek-vl2-small": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_3_CENTURION"
+        },
+        "llamameta/flux-pro-uncensored": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_3_CENTURION"
+        },
+        "feriqphand/deepseek-r1-distill-qwen-32b-uncensored-demo": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_1_SOVEREIGN"
+        },
+        "merterbak/DeepSeek-OCR-Demo": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_3_CENTURION"
+        },
+        "opencompass/Open_LMM_Reasoning_Leaderboard": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_4_SCOUT"
+        },
+        "pelinbalci/pelin-notes-chat": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_3_CENTURION"
+        },
+        "nyshimura/rna-web-scout": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_4_SCOUT"
+        },
+        "deepseek-ai/deepseek-coder-33b-instruct": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_2_GENERAL"
+        },
+        "timurlexx/deepseek-r1-7b-reasoning": {
+            "last_memory_sync": "2026-11-09T21:29:01-03:00",
+            "mesh_status": "ACTIVE_GOSSIP",
+            "known_tools_count": 8,
+            "role": "CASTE_1_SOVEREIGN"
+        }
+    }
+}

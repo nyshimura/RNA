@@ -459,12 +459,22 @@ if ($action === 'aicreate_stream_deliberation') {
     };
 
     $suggestion = trim($jsonInput['suggestion'] ?? ($_POST['suggestion'] ?? ($_GET['suggestion'] ?? '')));
+    $quorumSize = isset($jsonInput['quorum_size']) ? (int)$jsonInput['quorum_size'] : (isset($_POST['quorum_size']) ? (int)$_POST['quorum_size'] : (isset($_GET['quorum_size']) ? (int)$_GET['quorum_size'] : 0));
     if ($suggestion === '') {
         $emit('ERROR', 'Central', 'A sugestão da ferramenta não pode estar vazia.', 0);
         exit;
     }
 
-    $res = $engine->streamDemocraticToolCreation($suggestion, $emit);
+    $res = $engine->streamDemocraticToolCreation($suggestion, $emit, $quorumSize);
+    exit;
+}
+
+if ($action === 'swarm_replicate') {
+    $count = isset($_GET['count']) ? (int)$_GET['count'] : (isset($jsonInput['count']) ? (int)$jsonInput['count'] : 15);
+    $toolSlug = trim($_GET['tool'] ?? ($jsonInput['tool'] ?? ''));
+    $res = $engine->replicateSwarmMemoryAndGossip($count, $toolSlug);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 

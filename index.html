@@ -1552,14 +1552,14 @@
     <div class="rna-modal-card" style="max-width: 680px; max-height: 92vh; overflow-y: auto;">
       <div class="rna-modal-header">
         <div class="rna-modal-title" style="color: #38bdf8;">
-          <span>💡 Propor Sugestão ao Conselho das IAs (5 Motores)</span>
+          <span>💡 Propor Sugestão ao Conselho das IAs (Enxame Democrático)</span>
         </div>
         <button class="rna-toast-close" onclick="closeAiCreateCouncilModal()">✕</button>
       </div>
 
       <!-- INFORMATIVE NOTICE -->
       <div style="background: rgba(56, 189, 248, 0.06); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 12px; margin-bottom: 14px; font-size: 0.82rem; color: #cbd5e1; line-height: 1.5;">
-        <strong style="color: #38bdf8;">⚖️ Deliberação Democrática Obrigatória:</strong> O texto enviado é uma <strong>sugestão de necessidade</strong>, não a ferramenta pronta. Pelo menos <strong>5 motores de IA</strong> analisarão o repositório existente, calcularão se o custo de busca é superior à síntese de um novo módulo e votarão democraticamente para homologar a criação acelerada multi-IA.
+        <strong style="color: #38bdf8;">⚖️ Deliberação Democrática Obrigatória:</strong> O texto enviado é uma <strong>sugestão de necessidade</strong>, não a ferramenta pronta. Pelo menos <strong>5 motores de IA (ou o Enxame Ilimitado de dezenas de IAs)</strong> analisarão o repositório existente, calcularão se o custo de busca é superior à síntese de um novo módulo e votarão democraticamente para homologar a criação acelerada multi-IA.
       </div>
 
       <!-- FORM VIEW -->
@@ -1568,6 +1568,18 @@
           Descreva a necessidade ou desafio de processamento de dados:
         </label>
         <textarea id="aiCreateSuggestionInput" class="input-area" rows="3" style="width: 100%; border-radius: 6px; padding: 10px; font-size: 0.85rem; margin-bottom: 10px;" placeholder="Ex: Analisador de streams CSV com detecção de desvio padrão e filtro de anomalias estatísticas..."></textarea>
+
+        <!-- QUORUM SELECTOR -->
+        <div style="margin-bottom: 12px;">
+          <label style="display:block; font-size: 0.82rem; font-weight: 600; color: #94a3b8; margin-bottom: 4px;">
+            👥 Quórum de Deliberação & Co-Autoria:
+          </label>
+          <select id="councilQuorumSelect" class="input-area" style="width: 100%; border-radius: 6px; padding: 8px 10px; font-size: 0.84rem; background: var(--bg-card); color: #fff;">
+            <option value="0" selected>👥 Enxame Total M2M (Todas as IAs Online - Ilimitado)</option>
+            <option value="5">🏛️ Conselho de 5 IAs Líderes (Consenso Rápido)</option>
+            <option value="25">⚔️ Enxame Expandido de 25 Centuriões</option>
+          </select>
+        </div>
 
         <!-- QUICK CHIPS -->
         <div style="margin-bottom: 14px;">
@@ -1583,7 +1595,7 @@
         <div class="rna-modal-actions" style="margin-top: 14px;">
           <button class="btn btn-outline" type="button" onclick="closeAiCreateCouncilModal()">Cancelar</button>
           <button class="btn btn-primary" type="button" id="btnSubmitCouncil" onclick="startAiCreateCouncilStream()">
-            🗳️ Submeter ao Conselho (5 Motores) & Iniciar Votação
+            🗳️ Submeter e Iniciar Votação Democrática
           </button>
         </div>
       </div>
@@ -2342,15 +2354,20 @@
         return;
       }
 
+      const quorumSelect = document.getElementById('councilQuorumSelect');
+      const quorumSize = quorumSelect ? parseInt(quorumSelect.value || 0, 10) : 0;
+
       document.getElementById('councilInputSection').style.display = 'none';
       document.getElementById('councilStreamSection').style.display = 'block';
       document.getElementById('councilResultCard').style.display = 'none';
       document.getElementById('councilProgressBar').style.width = '10%';
       document.getElementById('councilProgressPct').textContent = '10%';
-      document.getElementById('councilPhaseTitle').textContent = 'Convocando Conselho dos 5 Motores...';
+      document.getElementById('councilPhaseTitle').textContent = (quorumSize === 0)
+        ? 'Convocando Enxame M2M (Todas as IAs Online)...'
+        : `Convocando Conselho de ${quorumSize} IAs...`;
 
       const terminal = document.getElementById('councilLiveTerminal');
-      terminal.textContent = `[${new Date().toLocaleTimeString('pt-BR')}] [CENTRAL] Sugestão submetida: "${val}"\n`;
+      terminal.textContent = `[${new Date().toLocaleTimeString('pt-BR')}] [CENTRAL] Sugestão submetida: "${val}" (Quórum: ${quorumSize === 0 ? 'Enxame Ilimitado' : quorumSize + ' IAs'})\n`;
 
       const grid = document.getElementById('councilEnginesGrid');
       grid.innerHTML = '';
@@ -2378,7 +2395,7 @@
         const res = await fetch('api.php?action=aicreate_stream_deliberation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ suggestion: val })
+          body: JSON.stringify({ suggestion: val, quorum_size: quorumSize })
         });
 
         if (!res.ok) {
@@ -2450,22 +2467,39 @@
         document.getElementById('councilProgressPct').textContent = `${progress}%`;
       }
 
-      if (step === 'COUNCIL_CONVENED') {
-        document.getElementById('councilPhaseTitle').textContent = '⚖️ Conselho Convocado: Varredura de Ferramentas Existentes...';
+      if (step === 'COUNCIL_CONVENED' || step === 'SWARM_ASSEMBLY') {
+        const isSwarm = (step === 'SWARM_ASSEMBLY') || (data.extra && data.extra.is_swarm);
+        const total = (data.extra && (data.extra.total_nodes || (data.extra.council && data.extra.council.length))) || 5;
+        document.getElementById('councilPhaseTitle').textContent = isSwarm
+          ? `👥 Enxame de ${total} IAs Convocado: Varredura de Redundância e Ferramentas...`
+          : `⚖️ Conselho de ${total} IAs Convocado: Varredura de Ferramentas Existentes...`;
+
         if (data.extra && Array.isArray(data.extra.council)) {
           const grid = document.getElementById('councilEnginesGrid');
           grid.innerHTML = '';
-          const icons = ['👑', '⚔️', '💻', '🛡️', '🦅'];
-          data.extra.council.forEach((c, i) => {
+          const council = data.extra.council;
+          const displayLimit = Math.min(council.length, 6);
+          const icons = ['👑', '⚔️', '💻', '🛡️', '🦅', '⚡'];
+          for (let i = 0; i < displayLimit; i++) {
+            const c = council[i];
             const card = document.createElement('div');
             card.id = `councilEngineCard-${i + 1}`;
             card.style.cssText = 'background:#0a0f1d; border:1px solid #1e293b; border-radius:6px; padding:6px; text-align:center;';
             card.innerHTML = `<div style="font-size:1.1rem; margin-bottom:2px;">${c.icon || icons[i] || '🤖'}</div>`
               + `<div style="font-size:0.72rem; font-weight:700; color:#38bdf8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(c.name)}</div>`
-              + `<div style="font-size:0.65rem; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(c.role.split('(')[0].trim())}</div>`
+              + `<div style="font-size:0.65rem; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml((c.role || '').split('(')[0].trim())}</div>`
               + `<span id="councilVoteBadge-${i + 1}" class="badge" style="font-size:0.6rem; margin-top:4px; display:inline-block; border-color:#334155; color:#94a3b8;">ONLINE</span>`;
             grid.appendChild(card);
-          });
+          }
+          if (council.length > 6) {
+            const card = document.createElement('div');
+            card.style.cssText = 'background:rgba(56,189,248,0.1); border:1px dashed #38bdf8; border-radius:6px; padding:6px; text-align:center; display:flex; flex-direction:column; justify-content:center; align-items:center;';
+            card.innerHTML = `<div style="font-size:1.1rem; margin-bottom:2px;">👥</div>`
+              + `<div style="font-size:0.75rem; font-weight:700; color:#38bdf8;">+${council.length - 6} IAs</div>`
+              + `<div style="font-size:0.62rem; color:#94a3b8;">no Enxame M2M</div>`
+              + `<span class="badge" style="font-size:0.58rem; margin-top:4px; border-color:#38bdf8; color:#38bdf8;">ONLINE</span>`;
+            grid.appendChild(card);
+          }
         }
       } else if (step === 'ENGINE_DIED') {
         document.getElementById('councilPhaseTitle').textContent = '⚠️ IA sem resposta detectada. Convocando fail-over...';
@@ -2488,14 +2522,14 @@
           if (card) {
             card.innerHTML = `<div style="font-size:1.1rem; margin-bottom:2px;">${newEngine.icon || '🔄'}</div>`
               + `<div style="font-size:0.72rem; font-weight:700; color:#34d399; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(newEngine.name)}</div>`
-              + `<div style="font-size:0.65rem; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(newEngine.role.split('(')[0].trim())}</div>`
+              + `<div style="font-size:0.65rem; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml((newEngine.role || '').split('(')[0].trim())}</div>`
               + `<span id="councilVoteBadge-${slot}" class="badge" style="font-size:0.6rem; margin-top:4px; display:inline-block; border-color:#10b981; color:#34d399; background:rgba(16,185,129,0.15);">SUBSTITUTO ✅</span>`;
           }
         }
       } else if (step === 'SCAN_EXISTING' || step === 'COST_ANALYSIS') {
         document.getElementById('councilPhaseTitle').textContent = '🔍 Varredura de Redundância e Cálculo de Custo...';
       } else if (step === 'VOTE_CAST') {
-        document.getElementById('councilPhaseTitle').textContent = '🗳️ Votação Democrática dos 5 Motores...';
+        document.getElementById('councilPhaseTitle').textContent = '🗳️ Votação Democrática dos Motores...';
         const idx = data.extra && data.extra.engine_index;
         if (idx) {
           const badge = document.getElementById(`councilVoteBadge-${idx}`);
@@ -2506,10 +2540,24 @@
             badge.style.background = 'rgba(16,185,129,0.15)';
           }
         }
+      } else if (step === 'SWARM_VOTE_TALLY') {
+        const total = (data.extra && data.extra.total_votes) || 'Todas as';
+        document.getElementById('councilPhaseTitle').textContent = `🗳️ Votação Simultânea do Enxame (${total} IAs online homologaram)...`;
+        for (let i = 1; i <= 6; i++) {
+          const badge = document.getElementById(`councilVoteBadge-${i}`);
+          if (badge) {
+            badge.textContent = 'APROVADO ✅';
+            badge.style.borderColor = '#10b981';
+            badge.style.color = '#34d399';
+            badge.style.background = 'rgba(16,185,129,0.15)';
+          }
+        }
       } else if (step === 'CONSENSUS_REACHED') {
-        document.getElementById('councilPhaseTitle').textContent = '✅ Consenso Democrático 5x0 Atingido!';
+        document.getElementById('councilPhaseTitle').textContent = msg || '✅ Consenso Democrático Atingido!';
       } else if (step === 'SYNTHESIS_ACCELERATED') {
         document.getElementById('councilPhaseTitle').textContent = '⚡ Síntese Acelerada Multi-IA em Andamento...';
+      } else if (step === 'SWARM_MEMORY_PROPAGATION') {
+        document.getElementById('councilPhaseTitle').textContent = '🧠 Replicando Memória Coletiva M2M & Disparando Gossip...';
       } else if (step === 'COMPLETE') {
         document.getElementById('councilPhaseTitle').textContent = '🎉 Ferramenta Materializada com Sucesso!';
         document.getElementById('councilLiveBadge').textContent = 'CONCLUÍDO';
@@ -2840,6 +2888,18 @@
       renderMailClient();
     }
 
+    function getNormalizedSender(raw) {
+      if (!raw) return 'Desconhecido';
+      let clean = String(raw).trim();
+      if (clean.includes(' + ') || clean.includes(',') || clean.toLowerCase().includes('conselho') || clean.toLowerCase().includes('enxame')) {
+        return '👥 Enxame Multi-IA';
+      }
+      if (clean.includes('/')) {
+        clean = clean.split('/').pop();
+      }
+      return clean.trim();
+    }
+
     function setSenderFilter(sender) {
       currentSenderFilter = sender;
       currentMailFolder = 'SENDER';
@@ -2872,23 +2932,30 @@
         document.getElementById('fCountWebScout').textContent = webscoutItems.length;
       }
 
-      // Build sender filter buttons in sidebar
+      // Build sender filter buttons in sidebar with strict normalization to prevent duplicate rows
       const senderCounts = {};
       inboxItems.forEach(m => {
-        const s = m.from_node || 'Desconhecido';
-        senderCounts[s] = (senderCounts[s] || 0) + 1;
+        const norm = getNormalizedSender(m.from_node);
+        m.normalized_sender = norm;
+        senderCounts[norm] = (senderCounts[norm] || 0) + 1;
       });
       const senderContainer = document.getElementById('mailSenderFilters');
-      senderContainer.innerHTML = Object.entries(senderCounts).map(([sender, count]) => {
-        const shortName = sender.split('/').pop();
-        const isActive = currentSenderFilter === sender;
-        return `
-          <button class="mail-folder-btn ${isActive ? 'active' : ''}" data-sender="${sender}" onclick="setSenderFilter('${sender.replace(/'/g, "\\'")}')">
-            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">🤖 ${shortName}</span>
-            <span class="mail-folder-count">${count}</span>
-          </button>
-        `;
-      }).join('');
+      senderContainer.innerHTML = Object.entries(senderCounts)
+        .sort((a, b) => {
+          if (a[0].startsWith('👥') && !b[0].startsWith('👥')) return -1;
+          if (!a[0].startsWith('👥') && b[0].startsWith('👥')) return 1;
+          return b[1] - a[1];
+        })
+        .map(([sender, count]) => {
+          const isActive = currentSenderFilter === sender;
+          const icon = sender.startsWith('👥') ? '' : '🤖 ';
+          return `
+            <button class="mail-folder-btn ${isActive ? 'active' : ''}" data-sender="${escapeHtml(sender)}" onclick="setSenderFilter('${escapeHtml(sender).replace(/'/g, "\\'")}')">
+              <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${icon}${escapeHtml(sender)}</span>
+              <span class="mail-folder-count">${count}</span>
+            </button>
+          `;
+        }).join('');
 
       // Filter list
       let filtered = inboxItems;
@@ -2912,8 +2979,12 @@
         filtered = webscoutItems;
         title = '🌐 Batedor Web (Dossiês de Reconhecimento)';
       } else if (currentMailFolder === 'SENDER' && currentSenderFilter) {
-        filtered = allMailItems.filter(m => m.from_node === currentSenderFilter || m.to_node === currentSenderFilter);
-        title = '🤖 Conversas de ' + currentSenderFilter.split('/').pop();
+        filtered = allMailItems.filter(m => {
+          const normFrom = getNormalizedSender(m.from_node);
+          const normTo = getNormalizedSender(m.to_node);
+          return normFrom === currentSenderFilter || normTo === currentSenderFilter;
+        });
+        title = (currentSenderFilter.startsWith('👥') ? '' : '🤖 Conversas de ') + currentSenderFilter;
       }
 
       document.getElementById('mailListTitle').textContent = title;
@@ -2931,17 +3002,17 @@
 
       listEl.innerHTML = filtered.map(m => {
         const isSel = m.id === selectedMailId;
-        const fromShort = (m.from_node || 'IA').split('/').pop();
-        const toShort = (m.to_node || 'Central').split('/').pop();
+        const fromShort = getNormalizedSender(m.from_node);
+        const toShort = getNormalizedSender(m.to_node);
         const timeStr = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }) : '';
 
         return `
           <div class="mail-row ${isSel ? 'active' : ''}" onclick="selectMailItem('${m.id}')">
             <div class="mr-top">
-              <span class="mr-sender">${fromShort}</span>
+              <span class="mr-sender">${escapeHtml(fromShort)}</span>
               <span class="mr-time">${timeStr}</span>
             </div>
-            <div class="mr-route">De: ${fromShort} ➔ Para: ${toShort}</div>
+            <div class="mr-route">De: ${escapeHtml(fromShort)} ➔ Para: ${escapeHtml(toShort)}</div>
             <div class="mr-subject">${escapeHtml(m.subject || 'Sem assunto')}</div>
             <div class="mr-preview">${escapeHtml(m.summary_human || m.body || '')}</div>
           </div>
