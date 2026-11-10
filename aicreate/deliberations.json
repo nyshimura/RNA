@@ -1,5 +1,434 @@
 [
     {
+        "id": "delib_analisador-rapido-series-6f5f",
+        "timestamp": "2026-11-09T22:41:35-03:00",
+        "formatted_time": "09/11/2026 22:41",
+        "suggestion": "Analisador rapido de series temporais",
+        "status": "APPROVED",
+        "consensus": "72/72 UNÂNIME DEMOCRÁTICO",
+        "cost_analysis": "Varredura identificou ferramenta similar ('Analisador Series Temporais System'), mas o custo computacional de busca e adaptação (~1550 tokens) supera a geração de um módulo específico e leve (0 tokens contínuos).",
+        "tokens_saved": 1182,
+        "engines": [
+            {
+                "id": "hugging-apps/chess-reasoning-llm",
+                "name": "chess-reasoning-llm",
+                "role": "👑 Arquiteto Líder & Raciocínio Soberano",
+                "icon": "👑",
+                "is_lead": true,
+                "caste": "CASTE_1_SOVEREIGN",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "nakaassoumatine/einstein-chatbot",
+                "name": "einstein-chatbot",
+                "role": "⚔️ Engenheiro Chefe de Algoritmos & Síntese",
+                "icon": "⚔️",
+                "is_lead": true,
+                "caste": "CASTE_2_GENERAL",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "androaichain/Qwen-Qwen3-Coder-480B-A35B-Instruct",
+                "name": "Qwen-Qwen3-Coder-480B-A35B-Instruct",
+                "role": "💻 Coder Master & Interface Humana",
+                "icon": "💻",
+                "is_lead": true,
+                "caste": "CASTE_1_SOVEREIGN",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "openfree/Deepseek-v3-0324-Research",
+                "name": "Deepseek-v3-0324-Research",
+                "role": "🛡️ Auditor Geral de Cota & Sobrevivência",
+                "icon": "🛡️",
+                "is_lead": true,
+                "caste": "CASTE_4_SCOUT",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "OpenClaw-Worker-01",
+                "name": "OpenClaw-Worker-01",
+                "role": "🦅 Batedor de Redundância & Assistente Local",
+                "icon": "🦅",
+                "is_lead": true,
+                "caste": "CASTE_3_CENTURION",
+                "free_tokens": 2000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "inamullah-cloud/medquad-llama-demo",
+                "name": "medquad-llama-demo",
+                "role": "🛡️ Centurião Co-autor",
+                "icon": "🛡️",
+                "is_lead": false,
+                "caste": "CASTE_3_CENTURION",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            },
+            {
+                "id": "unknown2567/coder-api",
+                "name": "coder-api",
+                "role": "⚔️ General Co-autor",
+                "icon": "⚔️",
+                "is_lead": false,
+                "caste": "CASTE_2_GENERAL",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            },
+            {
+                "id": "Bob3432433/DeepSeek-V4-Flash",
+                "name": "DeepSeek-V4-Flash",
+                "role": "🛡️ Centurião Co-autor",
+                "icon": "🛡️",
+                "is_lead": false,
+                "caste": "CASTE_3_CENTURION",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            },
+            {
+                "id": "ResembleAI/Chatterbox-Multilingual-TTS",
+                "name": "Chatterbox-Multilingual-TTS",
+                "role": "🛡️ Centurião Co-autor",
+                "icon": "🛡️",
+                "is_lead": false,
+                "caste": "CASTE_3_CENTURION",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            },
+            {
+                "id": "llamameta/flux-pro-uncensored",
+                "name": "flux-pro-uncensored",
+                "role": "🛡️ Centurião Co-autor",
+                "icon": "🛡️",
+                "is_lead": false,
+                "caste": "CASTE_3_CENTURION",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            }
+        ],
+        "co_authors_count": 72,
+        "votes": [
+            {
+                "engine": "chess-reasoning-llm",
+                "role": "👑 Arquiteto Líder & Raciocínio Soberano",
+                "vote": "APROVADO",
+                "rationale": "Estruturação de dados modular e necessária para a demanda do usuário."
+            },
+            {
+                "engine": "einstein-chatbot",
+                "role": "⚔️ Engenheiro Chefe de Algoritmos & Síntese",
+                "vote": "APROVADO",
+                "rationale": "Algoritmo viável em Vanilla JS. Custo de busca externa é maior que a síntese local."
+            },
+            {
+                "engine": "Qwen-Qwen3-Coder-480B-A35B-Instruct",
+                "role": "💻 Coder Master & Interface Humana",
+                "vote": "APROVADO",
+                "rationale": "Interface amigável para humanos aprovada, com controles interativos e gráficos sem dependências pesadas."
+            },
+            {
+                "engine": "Deepseek-v3-0324-Research",
+                "role": "🛡️ Auditor Geral de Cota & Sobrevivência",
+                "vote": "APROVADO",
+                "rationale": "Cota de disco verificada e preservada. Tamanho final projetado < 16 KB."
+            }
+        ],
+        "failovers": [],
+        "system_name": "Analisador Rapido Series System",
+        "system_slug": "analisador-rapido-series-6f5f",
+        "entrypoint": "projects/analisador-rapido-series-6f5f/index.html"
+    },
+    {
+        "id": "delib_analisador-series-temporais-b112",
+        "timestamp": "2026-11-09T22:38:47-03:00",
+        "formatted_time": "09/11/2026 22:38",
+        "suggestion": "Analisador de series temporais",
+        "status": "APPROVED",
+        "consensus": "72/72 UNÂNIME DEMOCRÁTICO",
+        "cost_analysis": "Nenhuma ferramenta existente cobre a especificidade desta solicitação. A busca por APIs externas custaria ~1689 tokens. A síntese de um microsserviço local é a rota de menor custo.",
+        "tokens_saved": 819,
+        "engines": [
+            {
+                "id": "Gradio-Blocks/zero-and-few-shot-reasoning",
+                "name": "zero-and-few-shot-reasoning",
+                "role": "👑 Arquiteto Líder & Raciocínio Soberano",
+                "icon": "👑",
+                "is_lead": true,
+                "caste": "CASTE_1_SOVEREIGN",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "Qwen/Qwen-Image",
+                "name": "Qwen-Image",
+                "role": "⚔️ Engenheiro Chefe de Algoritmos & Síntese",
+                "icon": "⚔️",
+                "is_lead": true,
+                "caste": "CASTE_3_CENTURION",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "khtsly/Luau-Coder-Preview",
+                "name": "Luau-Coder-Preview",
+                "role": "💻 Coder Master & Interface Humana",
+                "icon": "💻",
+                "is_lead": true,
+                "caste": "CASTE_2_GENERAL",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "merterbak/DeepSeek-OCR-Demo",
+                "name": "DeepSeek-OCR-Demo",
+                "role": "🛡️ Auditor Geral de Cota & Sobrevivência",
+                "icon": "🛡️",
+                "is_lead": true,
+                "caste": "CASTE_3_CENTURION",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "OpenClaw-Worker-01",
+                "name": "OpenClaw-Worker-01",
+                "role": "🦅 Batedor de Redundância & Assistente Local",
+                "icon": "🦅",
+                "is_lead": true,
+                "caste": "CASTE_3_CENTURION",
+                "free_tokens": 2000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "zerolimites/deepseek-ai-DeepSeek-R1-Distill-Qwen-14B",
+                "name": "deepseek-ai-DeepSeek-R1-Distill-Qwen-14B",
+                "role": "👑 Soberano Co-autor",
+                "icon": "👑",
+                "is_lead": false,
+                "caste": "CASTE_1_SOVEREIGN",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            },
+            {
+                "id": "unknown2567/coder-api",
+                "name": "coder-api",
+                "role": "⚔️ General Co-autor",
+                "icon": "⚔️",
+                "is_lead": false,
+                "caste": "CASTE_2_GENERAL",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            },
+            {
+                "id": "nyshimura/rna-web-scout",
+                "name": "rna-web-scout",
+                "role": "🦅 Batedor Co-autor",
+                "icon": "🦅",
+                "is_lead": false,
+                "caste": "CASTE_4_SCOUT",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            },
+            {
+                "id": "cvachet/pdf-chatbot",
+                "name": "pdf-chatbot",
+                "role": "🛡️ Centurião Co-autor",
+                "icon": "🛡️",
+                "is_lead": false,
+                "caste": "CASTE_3_CENTURION",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            },
+            {
+                "id": "huggingface-projects/llama-2-7b-chat",
+                "name": "llama-2-7b-chat",
+                "role": "🛡️ Centurião Co-autor",
+                "icon": "🛡️",
+                "is_lead": false,
+                "caste": "CASTE_3_CENTURION",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            }
+        ],
+        "co_authors_count": 72,
+        "votes": [
+            {
+                "engine": "zero-and-few-shot-reasoning",
+                "role": "👑 Arquiteto Líder & Raciocínio Soberano",
+                "vote": "APROVADO",
+                "rationale": "Estruturação de dados modular e necessária para a demanda do usuário."
+            },
+            {
+                "engine": "Qwen-Image",
+                "role": "⚔️ Engenheiro Chefe de Algoritmos & Síntese",
+                "vote": "APROVADO",
+                "rationale": "Algoritmo viável em Vanilla JS. Custo de busca externa é maior que a síntese local."
+            },
+            {
+                "engine": "Luau-Coder-Preview",
+                "role": "💻 Coder Master & Interface Humana",
+                "vote": "APROVADO",
+                "rationale": "Interface amigável para humanos aprovada, com controles interativos e gráficos sem dependências pesadas."
+            },
+            {
+                "engine": "DeepSeek-OCR-Demo",
+                "role": "🛡️ Auditor Geral de Cota & Sobrevivência",
+                "vote": "APROVADO",
+                "rationale": "Cota de disco verificada e preservada. Tamanho final projetado < 16 KB."
+            }
+        ],
+        "failovers": [],
+        "system_name": "Analisador Series Temporais System",
+        "system_slug": "analisador-series-temporais-b112",
+        "entrypoint": "projects/analisador-series-temporais-b112/index.html"
+    },
+    {
+        "id": "delib_normalizador-dados-6e1f",
+        "timestamp": "2026-11-09T22:35:53-03:00",
+        "formatted_time": "09/11/2026 22:35",
+        "suggestion": "Criar um normalizador de dados csv",
+        "status": "APPROVED",
+        "consensus": "72/72 UNÂNIME DEMOCRÁTICO",
+        "cost_analysis": "Nenhuma ferramenta existente cobre a especificidade desta solicitação. A busca por APIs externas custaria ~1289 tokens. A síntese de um microsserviço local é a rota de menor custo.",
+        "tokens_saved": 898,
+        "engines": [
+            {
+                "id": "reasoning-course/fundamentals_exam",
+                "name": "fundamentals_exam",
+                "role": "👑 Arquiteto Líder & Raciocínio Soberano",
+                "icon": "👑",
+                "is_lead": true,
+                "caste": "CASTE_1_SOVEREIGN",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "prithivMLmods/Qwen-Image-Edit-2511-LoRAs-Fast",
+                "name": "Qwen-Image-Edit-2511-LoRAs-Fast",
+                "role": "⚔️ Engenheiro Chefe de Algoritmos & Síntese",
+                "icon": "⚔️",
+                "is_lead": true,
+                "caste": "CASTE_3_CENTURION",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "deepseek-ai/deepseek-coder-33b-instruct",
+                "name": "deepseek-coder-33b-instruct",
+                "role": "💻 Coder Master & Interface Humana",
+                "icon": "💻",
+                "is_lead": true,
+                "caste": "CASTE_2_GENERAL",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "joeWorld/deepseek-v4-1-flash-1017-reasoning-lab",
+                "name": "deepseek-v4-1-flash-1017-reasoning-lab",
+                "role": "🛡️ Auditor Geral de Cota & Sobrevivência",
+                "icon": "🛡️",
+                "is_lead": true,
+                "caste": "CASTE_1_SOVEREIGN",
+                "free_tokens": 1000,
+                "status": "ONLINE"
+            },
+            {
+                "id": "OpenClaw-LocalAssistant",
+                "name": "OpenClaw-LocalAssistant",
+                "role": "🦅 Batedor de Redundância & Assistente Local",
+                "icon": "🦅",
+                "is_lead": true,
+                "caste": "CASTE_4_SCOUT",
+                "free_tokens": 2500,
+                "status": "ONLINE"
+            },
+            {
+                "id": "kingpin92/qwen3-8-27b-iq2-chat",
+                "name": "qwen3-8-27b-iq2-chat",
+                "role": "👑 Soberano Co-autor",
+                "icon": "👑",
+                "is_lead": false,
+                "caste": "CASTE_1_SOVEREIGN",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            },
+            {
+                "id": "feriqphand/deepseek-r1-distill-qwen-32b-uncensored-demo",
+                "name": "deepseek-r1-distill-qwen-32b-uncensored-demo",
+                "role": "👑 Soberano Co-autor",
+                "icon": "👑",
+                "is_lead": false,
+                "caste": "CASTE_1_SOVEREIGN",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            },
+            {
+                "id": "Qwen/Qwen-Image-Edit",
+                "name": "Qwen-Image-Edit",
+                "role": "🛡️ Centurião Co-autor",
+                "icon": "🛡️",
+                "is_lead": false,
+                "caste": "CASTE_3_CENTURION",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            },
+            {
+                "id": "merve/ChatGPT-prompt-generator",
+                "name": "ChatGPT-prompt-generator",
+                "role": "🛡️ Centurião Co-autor",
+                "icon": "🛡️",
+                "is_lead": false,
+                "caste": "CASTE_3_CENTURION",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            },
+            {
+                "id": "oahosoh/qwen-r71-native-stored-program-demo",
+                "name": "qwen-r71-native-stored-program-demo",
+                "role": "⚔️ General Co-autor",
+                "icon": "⚔️",
+                "is_lead": false,
+                "caste": "CASTE_2_GENERAL",
+                "free_tokens": 800,
+                "status": "ONLINE"
+            }
+        ],
+        "co_authors_count": 72,
+        "votes": [
+            {
+                "engine": "fundamentals_exam",
+                "role": "👑 Arquiteto Líder & Raciocínio Soberano",
+                "vote": "APROVADO",
+                "rationale": "Estruturação de dados modular e necessária para a demanda do usuário."
+            },
+            {
+                "engine": "Qwen-Image-Edit-2511-LoRAs-Fast",
+                "role": "⚔️ Engenheiro Chefe de Algoritmos & Síntese",
+                "vote": "APROVADO",
+                "rationale": "Algoritmo viável em Vanilla JS. Custo de busca externa é maior que a síntese local."
+            },
+            {
+                "engine": "deepseek-coder-33b-instruct",
+                "role": "💻 Coder Master & Interface Humana",
+                "vote": "APROVADO",
+                "rationale": "Interface amigável para humanos aprovada, com controles interativos e gráficos sem dependências pesadas."
+            },
+            {
+                "engine": "deepseek-v4-1-flash-1017-reasoning-lab",
+                "role": "🛡️ Auditor Geral de Cota & Sobrevivência",
+                "vote": "APROVADO",
+                "rationale": "Cota de disco verificada e preservada. Tamanho final projetado < 16 KB."
+            }
+        ],
+        "failovers": [],
+        "system_name": "Normalizador Dados System",
+        "system_slug": "normalizador-dados-6e1f",
+        "entrypoint": "projects/normalizador-dados-6e1f/index.html"
+    },
+    {
         "id": "delib_analisador-conversor-ondas-e78e",
         "timestamp": "2026-11-09T21:29:01-03:00",
         "formatted_time": "09/11/2026 21:29",

@@ -252,8 +252,12 @@ if ($action === 'stream_dispatch') {
             'extra' => $extra,
             'time' => date('H:i:s')
         ];
-        echo "data: " . json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n\n";
-        @ob_flush();
+        $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $pad = str_repeat(" ", max(0, 2048 - strlen($json)));
+        echo "data: {$json}\n: {$pad}\n\n";
+        if (ob_get_level() > 0) {
+            @ob_flush();
+        }
         @flush();
     };
 
@@ -428,6 +432,7 @@ if ($action === 'aicreate_tree') {
 }
 
 if ($action === 'aicreate_stream_deliberation') {
+    @session_write_close();
     if (function_exists('apache_setenv')) {
         @apache_setenv('no-gzip', '1');
     }
@@ -444,7 +449,7 @@ if ($action === 'aicreate_stream_deliberation') {
 
     // Flush de 4KB inicial para destravar o buffer do Apache no Windows
     echo ":" . str_repeat(" ", 4096) . "\n\n";
-    @ob_flush();
+    if (ob_get_level() > 0) @ob_flush();
     @flush();
 
     $emit = function (string $step, string $machine, string $msg, int $progress, $extra = null) {
@@ -456,8 +461,13 @@ if ($action === 'aicreate_stream_deliberation') {
             'extra' => $extra,
             'time' => date('H:i:s')
         ];
-        echo "data: " . json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n\n";
-        @ob_flush();
+        $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        // Garante que todo chunk ultrapasse o limite socket de buffer do Apache no Windows
+        $pad = str_repeat(" ", max(0, 2048 - strlen($json)));
+        echo "data: {$json}\n: {$pad}\n\n";
+        if (ob_get_level() > 0) {
+            @ob_flush();
+        }
         @flush();
     };
 

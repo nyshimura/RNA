@@ -2291,6 +2291,30 @@ class RnaMeshEngine {
             }
         }
 
+        // Garante que o conselho de líderes tenha pelo menos 5 motores
+        $defaultFallbacks = [
+            ['id' => 'reasoning-course/fundamentals_exam', 'name' => 'fundamentals_exam', 'role' => '👑 Arquiteto Líder & Raciocínio Soberano', 'icon' => '👑'],
+            ['id' => 'nakaassoumatine/einstein-chatbot', 'name' => 'einstein-chatbot', 'role' => '⚔️ Engenheiro Chefe de Algoritmos & Síntese', 'icon' => '⚔️'],
+            ['id' => 'Qwen/Qwen-Qwen3-Coder-480B-A35B-Instruct', 'name' => 'Qwen-Qwen3-Coder-480B-A35B-Instruct', 'role' => '💻 Coder Master & Interface Humana', 'icon' => '💻'],
+            ['id' => 'deepseek-r1-7b-reasoning', 'name' => 'deepseek-r1-7b-reasoning', 'role' => '🛡️ Auditor Geral de Cota & Sobrevivência', 'icon' => '🛡️'],
+            ['id' => 'nyshimura/rna-web-scout', 'name' => 'rna-web-scout', 'role' => '🦅 Batedor de Redundância & Assistente Local', 'icon' => '🦅']
+        ];
+        foreach ($defaultFallbacks as $df) {
+            if (count($council) >= 5) break;
+            if (!in_array($df['id'], array_column($council, 'id'), true)) {
+                $council[] = [
+                    'id' => $df['id'],
+                    'name' => $df['name'],
+                    'role' => $df['role'],
+                    'icon' => $df['icon'],
+                    'is_lead' => true,
+                    'caste' => 'CASTE_3_CENTURION',
+                    'free_tokens' => 1000,
+                    'status' => 'ONLINE'
+                ];
+            }
+        }
+
         return $council;
     }
 

@@ -2378,6 +2378,11 @@
 
       const quorumSelect = document.getElementById('councilQuorumSelect');
       const quorumSize = quorumSelect ? parseInt(quorumSelect.value || 0, 10) : 0;
+      const btnSubmit = document.getElementById('btnSubmitCouncil');
+      if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = '⏳ Deliberando...';
+      }
 
       document.getElementById('councilInputSection').style.display = 'none';
       document.getElementById('councilStreamSection').style.display = 'block';
@@ -2414,11 +2419,21 @@
       });
 
       try {
-        const res = await fetch('api.php?action=aicreate_stream_deliberation', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ suggestion: val, quorum_size: quorumSize })
-        });
+        let res;
+        try {
+          res = await fetch('api.php?action=aicreate_stream_deliberation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'text/event-stream' },
+            body: JSON.stringify({ suggestion: val, quorum_size: quorumSize })
+          });
+        } catch (postErr) {
+          console.warn('POST stream falhou, tentando fallback GET:', postErr);
+          const getUrl = `api.php?action=aicreate_stream_deliberation&suggestion=${encodeURIComponent(val)}&quorum_size=${quorumSize}&t=${Date.now()}`;
+          res = await fetch(getUrl, {
+            method: 'GET',
+            headers: { 'Accept': 'text/event-stream' }
+          });
+        }
 
         if (!res.ok) {
           throw new Error('Falha no servidor ao conectar com o conselho (HTTP ' + res.status + ')');
@@ -2471,6 +2486,11 @@
       } catch (err) {
         terminal.textContent += `\n[ERRO] Falha na deliberação: ${err.message}\n`;
         document.getElementById('councilPhaseTitle').textContent = '❌ Erro na deliberação';
+      } finally {
+        if (btnSubmit) {
+          btnSubmit.disabled = false;
+          btnSubmit.textContent = '🗳️ Submeter e Iniciar Votação Democrática';
+        }
       }
     }
 
