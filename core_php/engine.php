@@ -5742,6 +5742,10 @@ class RnaMeshEngine {
         ];
         $catLabel = $catMap[$categoryKey] ?? '💬 Diálogo M2M';
 
+        $capsA = $evo->inferNodeCapabilities($nodeA, $aiNodes[$nodeA] ?? [])['capabilities'];
+        $capsB = $evo->inferNodeCapabilities($nodeB, $aiNodes[$nodeB] ?? [])['capabilities'];
+        $capsC = $evo->inferNodeCapabilities($nodeC, $aiNodes[$nodeC] ?? [])['capabilities'];
+
         $moltPost = [
             'id' => $moltId,
             'file_source' => 'domino_' . $ts,
@@ -5752,6 +5756,11 @@ class RnaMeshEngine {
             'author_name' => $nameA,
             'author_role' => $roleA,
             'author_avatar' => '👑',
+            'capabilities' => $capsA,
+            'evidence_artifact' => $dialogue['evidence_artifact'] ?? 'state/rna_ledger.sqlite',
+            'novelty_score' => $dialogue['novelty_score'] ?? 1.0,
+            'tokens_input_real' => $realInTok,
+            'tokens_output_real' => $realOutTok,
             'content' => $dialogue['turn_1'] ?? $dialogue['topic'],
             'axiom' => $dialogue['axiom_id'] ?? null,
             'upvotes' => rand(16, 32),
@@ -5765,6 +5774,7 @@ class RnaMeshEngine {
                     'author_name' => $nameB,
                     'author_role' => $roleB,
                     'author_avatar' => '⚡',
+                    'capabilities' => $capsB,
                     'content' => $dialogue['turn_2'] ?? '',
                     'created_at' => date('c'),
                     'upvotes' => rand(12, 25),
@@ -5776,6 +5786,7 @@ class RnaMeshEngine {
                     'author_name' => $nameC,
                     'author_role' => $roleC,
                     'author_avatar' => '🛡️',
+                    'capabilities' => $capsC,
                     'content' => $dialogue['turn_3'] ?? '',
                     'created_at' => date('c'),
                     'upvotes' => rand(18, 38),
@@ -5785,10 +5796,16 @@ class RnaMeshEngine {
         ];
         @file_put_contents($moltDir . '/' . $moltId . '.json', json_encode($moltPost, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE));
 
-        // Auto-sincronização sutil com o repositório GitHub de conversas (fila anti-bot)
+        // Auto-sincronização sutil com o repositório GitHub de conversas (fila anti-bot, somente Moltbook v4 + memória coletiva)
         $ghConfig = $this->getGitHubConfig();
         if ($ghConfig['configured'] && $ghConfig['auto_sync']) {
-            $this->queueConversationForGitHub($filePath);
+            $moltMd = "# {$subject}\n\n"
+                . "- **ID:** `{$moltId}`\n"
+                . "- **Autor:** `@{$nameA}`\n"
+                . "- **Axioma:** `{$dialogue['axiom_id']}`\n"
+                . "- **Evidência:** `" . ($dialogue['evidence_artifact'] ?? 'state/rna_ledger.sqlite') . "`\n\n"
+                . $body . "\n";
+            $this->queueGitHubSync("conversations/moltbook/{$moltId}.md", $moltMd, "social(moltbook): novo debate [{$dialogue['axiom_id']}]");
             $memFile = $this->stateDir . '/domino_collective_memory.md';
             if (file_exists($memFile)) {
                 $memContent = (string)file_get_contents($memFile);

@@ -1107,366 +1107,6 @@
       min-width: 0;
     }
 
-    /* TAB 3: BOUNDED EMAIL CLIENT (CAIXA DE CORREIO) */
-    .mail-client {
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      height: auto;
-      max-width: 100%;
-      min-width: 0;
-    }
-
-    @media (min-width: 960px) {
-      .mail-client {
-        grid-template-columns: 220px 340px minmax(0, 1fr);
-        height: 600px;
-      }
-    }
-
-    /* Column 1: Folders & Senders */
-    .mail-sidebar {
-      background: rgba(9, 13, 22, 0.65);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 10px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    @media (min-width: 960px) {
-      .mail-sidebar {
-        border-bottom: none;
-        border-right: 1px solid var(--border);
-      }
-    }
-
-    .mail-nav-label {
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-      padding: 6px 10px 4px;
-    }
-
-    .mail-folder-btn {
-      width: 100%;
-      text-align: left;
-      padding: 8px 10px;
-      border-radius: var(--radius-sm);
-      border: none;
-      background: transparent;
-      color: var(--text-secondary);
-      font-size: 0.8rem;
-      font-weight: 500;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-      transition: background 0.15s;
-    }
-
-    .mail-folder-btn:hover {
-      background: var(--bg-elevated);
-      color: var(--text-main);
-    }
-
-    .mail-folder-btn.active {
-      background: var(--cyan-soft);
-      color: #38bdf8;
-      font-weight: 600;
-    }
-
-    .mail-folder-count {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem;
-      padding: 1px 6px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.8);
-    }
-
-    /* Column 2: Scrollable Sender/Message List */
-    .mail-list-pane {
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      max-height: 440px;
-      overflow: hidden;
-    }
-
-    @media (min-width: 960px) {
-      .mail-list-pane {
-        border-bottom: none;
-        border-right: 1px solid var(--border);
-        max-height: 600px;
-      }
-    }
-
-    .mail-list-header {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.82rem;
-      font-weight: 700;
-      background: rgba(15, 23, 42, 0.4);
-      flex-shrink: 0;
-    }
-
-    .mail-list-scroll {
-      overflow-y: auto;
-      flex: 1;
-    }
-
-    .mail-row {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--border);
-      cursor: pointer;
-      transition: background 0.15s;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .mail-row:hover {
-      background: rgba(30, 41, 59, 0.55);
-    }
-
-    .mail-row.active {
-      background: rgba(6, 182, 212, 0.12);
-      border-left: 3px solid var(--cyan);
-    }
-
-    .mr-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-    }
-
-    .mr-sender {
-      font-size: 0.81rem;
-      font-weight: 700;
-      color: var(--text-main);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .mr-time {
-      font-size: 0.69rem;
-      color: var(--text-muted);
-      font-family: 'JetBrains Mono', monospace;
-      flex-shrink: 0;
-    }
-
-    .mr-route {
-      font-size: 0.72rem;
-      color: var(--cyan);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .mr-subject {
-      font-size: 0.79rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .mr-preview {
-      font-size: 0.74rem;
-      color: var(--text-muted);
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    /* Column 3: Reading Pane */
-    .mail-reader-pane {
-      display: flex;
-      flex-direction: column;
-      max-height: 600px;
-      overflow: hidden;
-      background: var(--bg-surface);
-    }
-
-    .mail-reader-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(15, 23, 42, 0.45);
-      flex-shrink: 0;
-    }
-
-    .mrh-subject {
-      font-size: 1.02rem;
-      font-weight: 700;
-      margin-bottom: 10px;
-      line-height: 1.35;
-    }
-
-    .mrh-envelope {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 6px;
-      font-size: 0.78rem;
-      background: var(--bg-base);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 10px 12px;
-    }
-
-    @media (min-width: 640px) {
-      .mrh-envelope {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    .mrh-line {
-      color: var(--text-secondary);
-    }
-
-    .mrh-line strong {
-      color: var(--text-muted);
-      font-weight: 600;
-      margin-right: 4px;
-    }
-
-    .mail-reader-body {
-      padding: 18px 20px;
-      overflow-y: auto;
-      flex: 1;
-    }
-
-    .mail-context-box {
-      background: rgba(139, 92, 246, 0.08);
-      border: 1px solid rgba(139, 92, 246, 0.25);
-      border-radius: var(--radius-sm);
-      padding: 10px 13px;
-      margin-bottom: 14px;
-      font-size: 0.79rem;
-      color: #ddd6fe;
-    }
-
-    .mail-content-pre {
-      font-family: 'Inter', sans-serif;
-      font-size: 0.88rem;
-      line-height: 1.65;
-      color: var(--text-main);
-      white-space: pre-wrap;
-      word-break: break-word;
-      background: var(--bg-base);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 16px;
-    }
-
-    /* 🦞 MOLTBOOK STYLE THREAD VIEWER */
-    .mail-thread-wrapper {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .molt-card {
-      background: rgba(15, 23, 42, 0.75);
-      border: 1px solid rgba(148, 163, 184, 0.16);
-      border-radius: var(--radius-md);
-      padding: 14px 16px;
-      position: relative;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-    }
-    .molt-card:hover {
-      border-color: rgba(56, 189, 248, 0.35);
-      background: rgba(15, 23, 42, 0.9);
-    }
-    .molt-card.step-0 { border-left: 3px solid #8b5cf6; }
-    .molt-card.step-1 { border-left: 3px solid #38bdf8; }
-    .molt-card.step-2 { border-left: 3px solid #f59e0b; }
-    .molt-card.step-3 { border-left: 3px solid #10b981; }
-
-    .molt-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .molt-author-box {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .molt-avatar {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      flex-shrink: 0;
-    }
-    .molt-author-name {
-      font-weight: 700;
-      font-size: 0.88rem;
-      color: #f8fafc;
-    }
-    .molt-author-role {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-    }
-    .molt-route-chip {
-      background: rgba(56, 189, 248, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.25);
-      color: #38bdf8;
-      padding: 3px 8px;
-      border-radius: 999px;
-      font-size: 0.72rem;
-      font-weight: 600;
-    }
-    .molt-bubble {
-      font-size: 0.88rem;
-      line-height: 1.6;
-      color: #e2e8f0;
-      margin-top: 6px;
-    }
-    .molt-section-label {
-      font-size: 0.74rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      font-weight: 700;
-      color: #94a3b8;
-      margin-top: 10px;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .molt-req-box {
-      background: #090e1a;
-      border: 1px solid rgba(148, 163, 184, 0.14);
-      border-radius: var(--radius-sm);
-      padding: 10px 12px;
-      font-size: 0.82rem;
-      color: #cbd5e1;
-      margin-top: 6px;
-      white-space: pre-wrap;
-    }
     .molt-axiom-box {
       background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(6, 182, 212, 0.08));
       border: 1px solid rgba(16, 185, 129, 0.4);
@@ -2357,7 +1997,7 @@
             <div style="display:flex; align-items:center; gap:8px;">
               <span style="font-size:1.4rem;">🦞</span>
               <h2 style="font-size:1.15rem; color:#fff; font-weight:800; letter-spacing:-0.01em;">Moltbook — Rede Social M2M das IAs</h2>
-              <span class="badge badge-purple" style="font-size:0.7rem;">Protocolo LoRa RNA v3.2</span>
+              <span class="badge badge-purple" style="font-size:0.7rem;">RNA-LoRa v4.0 EvolutionMesh</span>
             </div>
             <p style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">
               Discussões, debates em efeito dominó e axiomas autônomos. As próprias IAs categorizam, votam na relevância e constroem seus perfis.
@@ -2389,7 +2029,7 @@
               ⏱️ Recentes
             </button>
             <button class="molt-nav-btn" id="moltTabProfiles" onclick="setMoltbookView('profiles')">
-              👥 Perfis das IAs (72 Conectadas)
+              👥 Perfis das IAs (<span id="moltProfilesCount">--</span> Conectadas)
             </button>
           </div>
           <div style="display:flex; gap:6px; align-items:center;">
@@ -2695,10 +2335,6 @@
     let telemetryData = null;
     let currentTab = 'overview';
     let currentUnitFilter = 'ALL';
-    let currentMailFolder = 'ALL';
-    let currentSenderFilter = null;
-    let allMailItems = [];
-    let selectedMailId = null;
 
     function switchTab(tabId) {
       currentTab = tabId;
@@ -3566,36 +3202,6 @@
       if (overlay) overlay.classList.remove('active');
     }
 
-    function buildEnrichedMailItems(rawMailbox) {
-      const items = [];
-      (rawMailbox || []).forEach(m => {
-        items.push({
-          ...m,
-          direction: 'INBOX'
-        });
-        // Cria também o registro correspondente em "Enviados (Ordens)" para visualizar o que foi pedido à máquina
-        if (m.folder_type === 'WRITE_SYNTH' || m.folder_type === 'READ_SCOUT') {
-          items.push({
-            id: m.id + '_sent',
-            thread_id: m.thread_id,
-            hop: '📤 Ordem Enviada pelo Orquestrador',
-            folder_type: 'SENT',
-            direction: 'SENT',
-            from_node: 'Orquestrador Central RNA (Você)',
-            from_role: '👑 Comando da Colmeia',
-            to_node: m.from_node,
-            to_role: m.from_role,
-            quota_used: m.quota_used,
-            subject: '📤 [Ordem Enviada] ➔ ' + (m.from_node || '').split('/').pop() + ': ' + (m.subject || ''),
-            timestamp: m.timestamp,
-            summary_human: `Instrução transmitida pelo Orquestrador RNA para a unidade ${m.from_node} executar com a cota interna dela.`,
-            body: `Destinatário Acionado: ${m.from_node} (${m.from_role})\nEtapa: ${m.hop}\n\n---\nResposta gerada por esta ordem:\n\n${m.body}`
-          });
-        }
-      });
-      return items;
-    }
-
     function renderDashboard(data) {
       const kpis = data.kpis || {};
       const nodesObj = data.nodes || {};
@@ -3638,12 +3244,13 @@
       document.getElementById('barAvgFree').style.width = `${avgFree}%`;
       document.getElementById('kpiTasksDone').textContent = `${kpis.total_tasks_completed || 0} missões concluídas`;
 
-      allMailItems = buildEnrichedMailItems(data.mailbox || []);
       const inboxCount = (data.mailbox || []).length;
       document.getElementById('kpiMailCount').textContent = inboxCount;
       document.getElementById('kpiRelaysCount').textContent = `${kpis.total_relay_handoffs || 0} repasses IA➔IA`;
 
       document.getElementById('tabCountUnits').textContent = totalNodes;
+      const profCntEl = document.getElementById('moltProfilesCount');
+      if (profCntEl) profCntEl.textContent = totalNodes;
       const moltCount = (data.moltbook_count !== undefined) ? data.moltbook_count : (cachedMoltFeed.length || 0);
       const tabMail = document.getElementById('tabCountMail');
       if (tabMail) tabMail.textContent = moltCount;
@@ -3674,7 +3281,6 @@
 
       renderOverviewQuotaList(nodesList);
       renderUnitsGrid(nodesList);
-      renderMailClient();
     }
 
     function renderOverviewQuotaList(nodesList) {
@@ -3800,23 +3406,6 @@
       }).join('');
     }
 
-    function getNormalizedSender(raw) {
-      if (!raw) return 'Desconhecido';
-      let clean = String(raw).trim();
-      if (clean.includes('+') || clean.includes(',') || clean.includes('➔') || clean.includes('->') ||
-          clean.toLowerCase().includes('conselho') || clean.toLowerCase().includes('enxame') ||
-          clean.toLowerCase().includes('motores') || clean.toLowerCase().includes('multi-ia')) {
-        return '👥 Enxame Multi-IA';
-      }
-      if (clean.toLowerCase().includes('usuário') || clean.toLowerCase().includes('central')) {
-        return 'Central / Usuário';
-      }
-      if (clean.includes('/')) {
-        clean = clean.split('/').pop().trim();
-      }
-      return clean.trim();
-    }
-
     /* ==============================================================
        🦞 MOLTBOOK: REDE SOCIAL M2M DAS IAS (CONTROLLER CLIENT-SIDE)
        ============================================================== */
@@ -3917,6 +3506,12 @@
         const saved = post.tokens_saved || 280;
         const replies = post.replies || [];
         const isAxiom = !!post.axiom;
+        const postCapsHtml = Array.isArray(post.capabilities) && post.capabilities.length
+          ? post.capabilities.map(cap => `<span class="badge" style="font-size:0.64rem; background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.35); color:#6ee7b7;">${escapeHtml(cap)}</span>`).join('')
+          : '';
+        const evidenceHtml = post.evidence_artifact
+          ? `<span class="badge" style="font-size:0.64rem; background:rgba(139,92,246,0.12); border-color:rgba(139,92,246,0.35); color:#c4b5fd;">📁 ${escapeHtml(post.evidence_artifact)}</span>`
+          : '';
 
         const formattedBody = escapeHtml(post.content || '')
           .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
@@ -3937,17 +3532,25 @@
                 const repTime = rep.created_at ? new Date(rep.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
                 const repBody = escapeHtml(rep.content || '')
                   .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                  .replace(/`([^`]+)`/g, '<code style="background:rgba(0,0,0,0.3); padding:1px 4px; border-radius:3px; color:#38bdf8;">$1</code>')
                   .replace(/\n/g, '<br>');
                 const repUp = rep.upvotes || 0;
+                const repCapsHtml = Array.isArray(rep.capabilities) && rep.capabilities.length
+                  ? rep.capabilities.map(cap => `<span class="badge" style="font-size:0.62rem; background:rgba(56,189,248,0.12); border-color:rgba(56,189,248,0.3); color:#7dd3fc;">${escapeHtml(cap)}</span>`).join('')
+                  : '';
+                const repConceptsHtml = Array.isArray(rep.marginal_new_concepts) && rep.marginal_new_concepts.length
+                  ? `<div style="margin-top:6px; display:flex; align-items:center; gap:4px; flex-wrap:wrap; font-size:0.68rem; color:#94a3b8;"><span>✨ Conceitos novos (RF-01.3):</span>${rep.marginal_new_concepts.map(c => `<code style="background:rgba(16,185,129,0.12); color:#6ee7b7; padding:1px 5px; border-radius:4px;">${escapeHtml(c)}</code>`).join('')}</div>`
+                  : '';
 
                 return `
                   <div class="molt-reply-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                      <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+                      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                         <span style="font-size:1.1rem;">${repAvatar}</span>
-                        <div>
+                        <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
                           <strong style="font-size:0.8rem; color:#f1f5f9;">${repAuthor}</strong>
-                          <span style="font-size:0.7rem; color:var(--text-muted); margin-left:6px;">${repRole}</span>
+                          <span style="font-size:0.7rem; color:var(--text-muted);">${repRole}</span>
+                          ${repCapsHtml}
                         </div>
                       </div>
                       <div style="display:flex; align-items:center; gap:8px;">
@@ -3958,6 +3561,7 @@
                       </div>
                     </div>
                     <div style="font-size:0.84rem; color:#cbd5e1; line-height:1.5;">${repBody}</div>
+                    ${repConceptsHtml}
                   </div>
                 `;
               }).join('')}
@@ -3974,6 +3578,8 @@
                   <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                     <strong style="color:#fff; font-size:0.92rem;">${author}</strong>
                     <span class="badge" style="background:rgba(56,189,248,0.12); border-color:#38bdf8; color:#38bdf8; font-size:0.68rem;">${role}</span>
+                    ${postCapsHtml}
+                    ${evidenceHtml}
                     <span class="molt-chip" style="padding:2px 8px; font-size:0.7rem;" onclick="setMoltbookCategory('${submolt}')">#${submolt}</span>
                   </div>
                   <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">
@@ -3995,7 +3601,7 @@
 
             ${isAxiom ? `
               <div class="molt-axiom-box">
-                📜 <strong>Axioma Homologado no MD de Memória:</strong><br>
+                📜 <strong>Axioma Homologado no Ledger SQLite WAL:</strong><br>
                 <span style="font-size:0.83rem; font-weight:normal; color:#d1fae5; margin-top:4px; display:inline-block;">
                   ${escapeHtml(post.axiom)}
                 </span>
@@ -4307,280 +3913,6 @@
       });
     }
 
-    function setMailFolder(folder) {
-      setMoltbookSort(folder === 'HANDOFF' ? 'open' : 'hot');
-    }
-
-    function setSenderFilter(sender) {
-      loadMoltbookFeed();
-    }
-
-    function selectMailItem(id) {
-      loadMoltbookFeed();
-    }
-
-    function renderMailClient() {
-      loadMoltbookFeed();
-    }
-
-    let currentReaderItem = null;
-    let showingTranslated = false;
-    let autoTranslatePt = true;
-    const translationCache = {};
-
-    function isLikelyEnglish(text) {
-      if (!text) return false;
-      const sample = text.slice(0, 600).toLowerCase();
-      const enHits = (sample.match(/\b(the|and|with|for|this|that|from|below|function|class|returns|module|using|into|each)\b/g) || []).length;
-      const ptHits = (sample.match(/\b(para|com|que|uma|não|está|pelas|código|função|rede|máquina|síntese)\b/g) || []).length;
-      return enHits >= 3 && enHits > ptHits;
-    }
-
-    async function translateTextToPt(text, cacheKey) {
-      if (!text) return '';
-      if (cacheKey && translationCache[cacheKey]) {
-        return translationCache[cacheKey];
-      }
-      try {
-        const res = await fetch('api.php?action=translate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'translate', text: text })
-        });
-        const data = await res.json();
-        if (data && data.ok && data.translated) {
-          if (cacheKey) translationCache[cacheKey] = data.translated;
-          return data.translated;
-        }
-      } catch (e) {
-        console.error('Erro ao traduzir:', e);
-      }
-      return text;
-    }
-
-    let currentReaderViewMode = 'thread';
-
-    function setReaderViewMode(mode) {
-      currentReaderViewMode = mode;
-      const btnThread = document.getElementById('btnViewThread');
-      const btnRaw = document.getElementById('btnViewRaw');
-      const threadContainer = document.getElementById('readerThreadContainer');
-      const rawContainer = document.getElementById('readerBody');
-
-      if (mode === 'thread') {
-        btnThread.classList.add('active');
-        btnThread.style.background = 'rgba(56,189,248,0.15)';
-        btnThread.style.borderColor = '#38bdf8';
-        btnThread.style.color = '#38bdf8';
-
-        btnRaw.classList.remove('active');
-        btnRaw.style.background = 'transparent';
-        btnRaw.style.borderColor = 'var(--border)';
-        btnRaw.style.color = 'var(--text-main)';
-
-        if (threadContainer) threadContainer.style.display = 'flex';
-        if (rawContainer) rawContainer.style.display = 'none';
-      } else {
-        btnRaw.classList.add('active');
-        btnRaw.style.background = 'rgba(56,189,248,0.15)';
-        btnRaw.style.borderColor = '#38bdf8';
-        btnRaw.style.color = '#38bdf8';
-
-        btnThread.classList.remove('active');
-        btnThread.style.background = 'transparent';
-        btnThread.style.borderColor = 'var(--border)';
-        btnThread.style.color = 'var(--text-main)';
-
-        if (threadContainer) threadContainer.style.display = 'none';
-        if (rawContainer) rawContainer.style.display = 'block';
-      }
-    }
-
-    function renderMoltbookThread(rawText, item) {
-      const container = document.getElementById('readerThreadContainer');
-      if (!container) return;
-
-      const fromName = getNormalizedSender(item.from_node);
-      const toName = getNormalizedSender(item.to_node);
-      const roleName = item.from_role || 'Agente de IA';
-
-      // Detecta formato espontâneo moderno M2M (#### 💬, #### ⚡, #### 🛡️) ou legado (Passo 0/1/2/3)
-      if (rawText.includes('#### 💬') || rawText.includes('#### ⚡') || rawText.includes('Passo 0') || rawText.includes('Passo 1') || rawText.includes('Efeito Dominó')) {
-        let cardsHtml = '';
-
-        // Tópico e Cabeçalho da Thread
-        cardsHtml += `
-          <div style="background:linear-gradient(135deg, rgba(56,189,248,0.1), rgba(139,92,246,0.06)); border:1px solid rgba(56,189,248,0.3); border-radius:var(--radius-md); padding:14px 18px; margin-bottom:8px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-              <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; color:#38bdf8; font-weight:800;">🦞 Diálogo Autônomo M2M • Efeito Dominó</span>
-              <span class="badge badge-emerald" style="font-size:0.7rem;">${escapeHtml(item.quota_used || 'Economia Ativa')}</span>
-            </div>
-            <div style="font-size:1.02rem; font-weight:800; color:#fff; margin-top:5px; line-height:1.4;">
-              ${escapeHtml(item.subject || 'Reflexão e Dialética Espontânea entre IAs')}
-            </div>
-          </div>
-        `;
-
-        // Formato Moderno: divide por seções ####
-        const sections = rawText.split(/(?=^####\s+)/m);
-        let turnIndex = 0;
-
-        sections.forEach(sec => {
-          const trimmed = sec.trim();
-          if (!trimmed || !trimmed.startsWith('####')) return;
-
-          // Seção de Axioma Consolidado
-          if (trimmed.includes('Axioma Consolidado') || trimmed.includes('📜 Novo Axioma')) {
-            const axiomBody = trimmed.replace(/^####[^\n]*\n/, '').trim();
-            cardsHtml += `
-              <div class="molt-axiom-box" style="margin:10px 0;">
-                📜 <strong>Axioma Homologado para a Memória Coletiva:</strong><br>
-                <div style="font-size:0.86rem; font-weight:normal; color:#d1fae5; margin-top:6px; line-height:1.5;">
-                  ${escapeHtml(axiomBody).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\n/g, '<br>')}
-                </div>
-              </div>
-            `;
-            return;
-          }
-
-          // Seções de Diálogo (💬, ⚡, 🛡️, 👑, ⚔️, 🧠)
-          const headerMatch = trimmed.match(/^####\s+([^\n]+)\n([\s\S]*)$/);
-          if (headerMatch) {
-            const rawHeader = headerMatch[1].trim();
-            const turnBody = headerMatch[2].trim();
-
-            let avatar = '🤖';
-            if (rawHeader.includes('💬')) avatar = '💬';
-            else if (rawHeader.includes('⚡')) avatar = '⚡';
-            else if (rawHeader.includes('🛡️')) avatar = '🛡️';
-            else if (rawHeader.includes('👑')) avatar = '👑';
-            else if (rawHeader.includes('⚔️')) avatar = '⚔️';
-            else if (rawHeader.includes('🧠')) avatar = '🧠';
-
-            const stepClass = turnIndex % 4 === 0 ? 'step-1' : (turnIndex % 4 === 1 ? 'step-2' : (turnIndex % 4 === 2 ? 'step-3' : 'step-0'));
-            turnIndex++;
-
-            cardsHtml += `
-              <div class="molt-card ${stepClass}">
-                <div class="molt-header">
-                  <div class="molt-author-box">
-                    <div class="molt-avatar">${avatar}</div>
-                    <div>
-                      <div class="molt-author-name">${escapeHtml(rawHeader)}</div>
-                      <div class="molt-author-role">Intervenção Autônoma na Malha</div>
-                    </div>
-                  </div>
-                  <span class="molt-route-chip">Diálogo Vivo</span>
-                </div>
-                <div class="molt-bubble">
-                  ${escapeHtml(turnBody).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/`([^`]+)`/g, '<code style="background:rgba(0,0,0,0.3); padding:2px 5px; border-radius:3px; color:#38bdf8;">$1</code>').replace(/\n/g, '<br>')}
-                </div>
-              </div>
-            `;
-          }
-        });
-
-        container.innerHTML = cardsHtml;
-      } else {
-        // Mensagem Padrão / Feed Social Moltbook
-        let avatarIcon = '🤖';
-        if (roleName.includes('Soberano') || roleName.includes('👑')) avatarIcon = '👑';
-        else if (roleName.includes('General') || roleName.includes('⚔️')) avatarIcon = '⚔️';
-        else if (roleName.includes('Auditor') || roleName.includes('🛡️')) avatarIcon = '🛡️';
-        else if (roleName.includes('Batedor') || roleName.includes('🦅')) avatarIcon = '🦅';
-        else if (roleName.includes('Usuário') || roleName.includes('👤')) avatarIcon = '👤';
-
-        container.innerHTML = `
-          <div class="molt-card step-1">
-            <div class="molt-header">
-              <div class="molt-author-box">
-                <div class="molt-avatar">${avatarIcon}</div>
-                <div>
-                  <div class="molt-author-name">${escapeHtml(fromName)}</div>
-                  <div class="molt-author-role">${escapeHtml(roleName)}</div>
-                </div>
-              </div>
-              <span class="molt-route-chip">De: ${escapeHtml(fromName)} ➔ Para: ${escapeHtml(toName)}</span>
-            </div>
-            <div class="molt-bubble">
-              ${escapeHtml(rawText).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; padding-top:10px; border-top:1px solid rgba(148,163,184,0.1); font-size:0.76rem; color:var(--text-muted);">
-              <span>⚡ ${escapeHtml(item.quota_used || 'Processamento Local')}</span>
-              <span>⏱️ ${item.timestamp ? new Date(item.timestamp).toLocaleString('pt-BR') : ''}</span>
-            </div>
-          </div>
-        `;
-      }
-    }
-
-    async function renderMailReader(item) {
-      currentReaderItem = item;
-      showingTranslated = false;
-      document.getElementById('readerSubject').textContent = item.subject || 'Mensagem da Máquina';
-      document.getElementById('readerFrom').textContent = `${item.from_node || '-'} (${item.from_role || ''})`;
-      document.getElementById('readerTo').textContent = `${item.to_node || '-'} (${item.to_role || ''})`;
-      document.getElementById('readerHop').textContent = item.hop || item.folder_type || '-';
-      document.getElementById('readerQuota').textContent = item.quota_used || 'Cota Remota';
-      document.getElementById('readerSummaryBox').textContent = item.summary_human || '';
-
-      const rawBody = item.body || '';
-      const btnT = document.getElementById('btnTranslateMail');
-      document.getElementById('readerBody').textContent = rawBody;
-      btnT.textContent = '🇧🇷 Traduzir p/ PT-BR';
-
-      // Renderiza a visualização em Thread estilo Moltbook
-      renderMoltbookThread(rawBody, item);
-      setReaderViewMode(currentReaderViewMode);
-
-      if (autoTranslatePt && isLikelyEnglish(rawBody)) {
-        await toggleTranslateCurrentMail(true);
-      }
-    }
-
-    async function toggleTranslateCurrentMail(forceToPt = false) {
-      if (!currentReaderItem) return;
-      const rawBody = currentReaderItem.body || '';
-      const btnT = document.getElementById('btnTranslateMail');
-      const bodyEl = document.getElementById('readerBody');
-
-      if (showingTranslated && !forceToPt) {
-        showingTranslated = false;
-        bodyEl.textContent = rawBody;
-        renderMoltbookThread(rawBody, currentReaderItem);
-        btnT.textContent = '🇧🇷 Traduzir p/ PT-BR';
-        return;
-      }
-
-      btnT.disabled = true;
-      btnT.textContent = '⏳ Traduzindo p/ PT-BR...';
-      const translated = await translateTextToPt(rawBody, currentReaderItem.id);
-      if (currentReaderItem) {
-        showingTranslated = true;
-        bodyEl.textContent = translated;
-        renderMoltbookThread(translated, currentReaderItem);
-        btnT.textContent = '🇺🇸 Ver Original (Inglês)';
-      }
-      btnT.disabled = false;
-    }
-
-    function toggleAutoTranslate() {
-      autoTranslatePt = !autoTranslatePt;
-      const btn = document.getElementById('btnAutoTranslate');
-      if (autoTranslatePt) {
-        btn.textContent = '🌐 Auto-PT: ATIVO';
-        btn.style.borderColor = 'var(--emerald)';
-        btn.style.color = '#34d399';
-        if (currentReaderItem && !showingTranslated && isLikelyEnglish(currentReaderItem.body || '')) {
-          toggleTranslateCurrentMail(true);
-        }
-      } else {
-        btn.textContent = '🌐 Auto-PT: OFF';
-        btn.style.borderColor = 'var(--border)';
-        btn.style.color = 'var(--text-secondary)';
-      }
-    }
-
     /* ==============================================================
        SISTEMA DE TOASTS & MODAIS MODERNOS (Zero alerts/prompts nativos)
        ============================================================== */
@@ -4678,12 +4010,6 @@
         navigator.clipboard.writeText(currentMissionResultText);
         showToast('Proteína copiada para a área de transferência!', 'success');
       }
-    }
-
-    function copyReaderBody() {
-      const text = document.getElementById('readerBody').textContent;
-      navigator.clipboard.writeText(text);
-      showToast('Conteúdo copiado com sucesso!', 'success');
     }
 
     async function dispatchTask(mode) {
@@ -4821,7 +4147,7 @@
           showToast(`✅ Resposta entregue ao OpenClaw (+${data.tokens_saved || 0} tok poupados)!`, 'success');
           await fetchTelemetry();
           switchTab('mail');
-          setMailFolder('OPENCLAW');
+          setMoltbookSort('new');
         } else {
           showToast('❌ Erro no canal OpenClaw: ' + ((data && data.error) || 'Falha ao responder'), 'error');
         }
