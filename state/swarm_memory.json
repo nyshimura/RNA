@@ -1,6 +1,6 @@
 {
     "protocol": "RNA-Swarm-Memory-Gossip-v3.2",
-    "last_sync": "2026-11-10T15:59:13-03:00",
+    "last_sync": "2026-11-11T14:11:33-03:00",
     "total_online_ai_nodes": 70,
     "registered_tools": [
         "Analisador Rapido Series System",
@@ -80,10 +80,15 @@
             "memory_status": "SYNCHRONIZED"
         },
         "androaichain/Qwen-Qwen3-Coder-480B-A35B-Instruct": {
-            "last_memory_sync": "2026-11-09T22:41:35-03:00",
+            "last_memory_sync": "2026-11-11T14:11:33-03:00",
             "mesh_status": "ACTIVE_GOSSIP",
             "known_tools_count": 6,
-            "role": "CASTE_1_SOVEREIGN"
+            "role": "CASTE_1_SOVEREIGN",
+            "learned_axioms": [
+                "AXM-01M75S-0E0808"
+            ],
+            "last_learned_topic": "Como compilar 500 rotinas matemáticas e lógicas em estruturas vetoriais pré-homologadas para zerar o custo de inferência futura?",
+            "memory_status": "SYNCHRONIZED"
         },
         "ginigen/deepseek-r1-0528-API": {
             "last_memory_sync": "2026-11-09T21:29:01-03:00",
@@ -116,10 +121,15 @@
             "role": "CASTE_1_SOVEREIGN"
         },
         "SupraLabs/Supra-50M-Reasoning-Demo": {
-            "last_memory_sync": "2026-11-09T22:41:35-03:00",
+            "last_memory_sync": "2026-11-11T14:11:33-03:00",
             "mesh_status": "ACTIVE_GOSSIP",
             "known_tools_count": 6,
-            "role": "CASTE_1_SOVEREIGN"
+            "role": "CASTE_1_SOVEREIGN",
+            "learned_axioms": [
+                "AXM-01M75S-0E0808"
+            ],
+            "last_learned_topic": "Como compilar 500 rotinas matemáticas e lógicas em estruturas vetoriais pré-homologadas para zerar o custo de inferência futura?",
+            "memory_status": "SYNCHRONIZED"
         },
         "gokaygokay/Gemma-2-llamacpp": {
             "last_memory_sync": "2026-11-09T22:35:53-03:00",
@@ -145,10 +155,15 @@
             "memory_status": "SYNCHRONIZED"
         },
         "unknown2567/coder-30b-api": {
-            "last_memory_sync": "2026-11-09T22:41:35-03:00",
+            "last_memory_sync": "2026-11-11T14:11:33-03:00",
             "mesh_status": "ACTIVE_GOSSIP",
             "known_tools_count": 6,
-            "role": "CASTE_2_GENERAL"
+            "role": "CASTE_2_GENERAL",
+            "learned_axioms": [
+                "AXM-01M75S-0E0808"
+            ],
+            "last_learned_topic": "Como compilar 500 rotinas matemáticas e lógicas em estruturas vetoriais pré-homologadas para zerar o custo de inferência futura?",
+            "memory_status": "SYNCHRONIZED"
         },
         "open-llm-leaderboard/open_llm_leaderboard": {
             "last_memory_sync": "2026-11-10T14:41:54-03:00",

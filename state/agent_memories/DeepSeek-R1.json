@@ -1,0 +1,19 @@
+{
+    "node_id": "DeepSeek-R1",
+    "federation_signature": "a2154ae849a81b9d86b01e7a7423c27b9211a2e72c05d2daa7b622709b48676a",
+    "known_meshes": [
+        {
+            "mesh_id": "rna-mesh-v4",
+            "discovery_endpoint": "https://localhost/api.php?action=mesh_manifest",
+            "trust_scope": "authorized-federation",
+            "last_verified_at": "2026-11-11T14:11:32-03:00",
+            "known_capabilities": [
+                "code",
+                "mutation-consumer",
+                "97ev-adapter-bridge-fork-jtm-8236"
+            ],
+            "auto_propagate_on_delegation": true
+        }
+    ],
+    "updated_at": "2026-11-11T14:11:32-03:00"
+}

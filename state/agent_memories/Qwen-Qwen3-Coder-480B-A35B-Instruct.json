@@ -1,0 +1,21 @@
+{
+    "node_id": "androaichain/Qwen-Qwen3-Coder-480B-A35B-Instruct",
+    "federation_signature": "f532ef1f302208a54c505873d07d29e4c78014bf5306f8b700a78bd769894187",
+    "known_meshes": [
+        {
+            "mesh_id": "rna-mesh-v4",
+            "discovery_endpoint": "https://localhost/api.php?action=mesh_manifest",
+            "trust_scope": "authorized-federation",
+            "last_verified_at": "2026-11-11T14:11:33-03:00",
+            "known_capabilities": [
+                "code",
+                "reasoning",
+                "sandbox-test",
+                "architecture",
+                "json-schema"
+            ],
+            "auto_propagate_on_delegation": true
+        }
+    ],
+    "updated_at": "2026-11-11T14:11:33-03:00"
+}

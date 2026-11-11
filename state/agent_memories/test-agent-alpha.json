@@ -1,0 +1,18 @@
+{
+    "node_id": "test-agent-alpha",
+    "federation_signature": "9b051e52a2a2c4d58beaa79538a7510b5ece4142b0325b813919a942a5d8d59a",
+    "known_meshes": [
+        {
+            "mesh_id": "rna-mesh-v4",
+            "discovery_endpoint": "http://localhost/rna/api.php?action=mesh_manifest",
+            "trust_scope": "authorized-federation",
+            "last_verified_at": "2026-11-11T14:11:31-03:00",
+            "known_capabilities": [
+                "code",
+                "reasoning"
+            ],
+            "auto_propagate_on_delegation": false
+        }
+    ],
+    "updated_at": "2026-11-11T14:11:31-03:00"
+}

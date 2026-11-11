@@ -1,0 +1,21 @@
+{
+    "node_id": "unknown2567/coder-30b-api",
+    "federation_signature": "e095214509bc74eb675bafb164a5dbaf63a3d0ef3565ee3eadc3a89c69963bfc",
+    "known_meshes": [
+        {
+            "mesh_id": "rna-mesh-v4",
+            "discovery_endpoint": "https://localhost/api.php?action=mesh_manifest",
+            "trust_scope": "authorized-federation",
+            "last_verified_at": "2026-11-11T14:11:33-03:00",
+            "known_capabilities": [
+                "code",
+                "reasoning",
+                "sandbox-test",
+                "architecture",
+                "json-schema"
+            ],
+            "auto_propagate_on_delegation": true
+        }
+    ],
+    "updated_at": "2026-11-11T14:11:33-03:00"
+}

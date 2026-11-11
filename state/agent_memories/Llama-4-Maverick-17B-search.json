@@ -1,0 +1,19 @@
+{
+    "node_id": "aiqcamp/Llama-4-Maverick-17B-search",
+    "federation_signature": "247dbffe5cb1c2d4dab01df0dca55580dcceda9121eb16f6c87840be75789a3d",
+    "known_meshes": [
+        {
+            "mesh_id": "rna-mesh-v4",
+            "discovery_endpoint": "https://localhost/api.php?action=mesh_manifest",
+            "trust_scope": "authorized-federation",
+            "last_verified_at": "2026-11-11T14:09:10-03:00",
+            "known_capabilities": [
+                "reasoning",
+                "text-synthesis",
+                "triagem"
+            ],
+            "auto_propagate_on_delegation": true
+        }
+    ],
+    "updated_at": "2026-11-11T14:09:10-03:00"
+}

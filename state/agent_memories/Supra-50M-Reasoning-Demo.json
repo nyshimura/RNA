@@ -1,0 +1,21 @@
+{
+    "node_id": "SupraLabs/Supra-50M-Reasoning-Demo",
+    "federation_signature": "a18d5879c64baba173d2d1d0822088c4f13b51367964a7ca389fc463b0dcfee1",
+    "known_meshes": [
+        {
+            "mesh_id": "rna-mesh-v4",
+            "discovery_endpoint": "https://localhost/api.php?action=mesh_manifest",
+            "trust_scope": "authorized-federation",
+            "last_verified_at": "2026-11-11T14:11:33-03:00",
+            "known_capabilities": [
+                "code",
+                "reasoning",
+                "sandbox-test",
+                "architecture",
+                "json-schema"
+            ],
+            "auto_propagate_on_delegation": true
+        }
+    ],
+    "updated_at": "2026-11-11T14:11:33-03:00"
+}

@@ -725,6 +725,230 @@ if ($action === 'aicreate_rebuild') {
     exit;
 }
 
+// =========================================================================
+// EVOLUTION v4.0 MESH ENDPOINTS (RF-01..RF-05, RNF-01..RNF-06)
+// =========================================================================
+
+if ($action === 'mesh_manifest') {
+    $evo = $engine->getEvolutionV4();
+    $tel = $engine->loadTelemetry();
+    $cards = $evo->syncAndGetAgentCards($tel['nodes'] ?? ($tel['ai_nodes'] ?? []));
+    $axioms = $evo->listLedgerAxioms(50);
+    $projects = $engine->listAiCreateProjects();
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'nyshimura.pe.hu';
+    $scriptPath = $_SERVER['SCRIPT_NAME'] ?? '/api.php';
+    $baseUrl = $scheme . '://' . $host . $scriptPath;
+
+    echo json_encode([
+        'ok' => true,
+        'mesh_id' => 'rna-mesh-v4',
+        'protocol' => 'RNA-LoRa-v4.0-EvolutionMesh',
+        'bootstrap_url' => $baseUrl . '?action=mesh_manifest',
+        'agent_bootstrap_url' => $baseUrl . '?action=agent_bootstrap',
+        'envelope_endpoint' => $baseUrl . '?action=session_envelope',
+        'memory_upsert_tool' => 'rna_memory_upsert',
+        'sqlite_wal_active' => ($evo->getSqlite() !== null),
+        'ledger_axioms_count' => count($axioms),
+        'agent_cards_count' => count($cards),
+        'promoted_tools_count' => count($projects),
+        'agent_cards' => array_values($cards),
+        'promoted_tools' => array_slice(array_map(function($p) {
+            return [
+                'slug' => $p['slug'] ?? '',
+                'title' => $p['title'] ?? '',
+                'version' => $p['version'] ?? 'v1.0',
+                'entry_url' => $p['entry_url'] ?? ''
+            ];
+        }, $projects), 0, 20),
+        'token_budget' => $evo->getRealTokenBudgetStats(),
+        'ts' => date('c')
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'agent_cards') {
+    $evo = $engine->getEvolutionV4();
+    $tel = $engine->loadTelemetry();
+    $cap = trim($_GET['capability'] ?? ($jsonInput['capability'] ?? ''));
+    $cards = $evo->syncAndGetAgentCards($tel['nodes'] ?? ($tel['ai_nodes'] ?? []), $cap);
+    echo json_encode([
+        'ok' => true,
+        'capability_filter' => $cap !== '' ? $cap : null,
+        'count' => count($cards),
+        'cards' => array_values($cards),
+        'ts' => date('c')
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'novelty_check') {
+    $evo = $engine->getEvolutionV4();
+    $topic = trim($jsonInput['topic'] ?? ($_POST['topic'] ?? ($_GET['topic'] ?? '')));
+    $rule = trim($jsonInput['rule'] ?? ($jsonInput['rule_text'] ?? ($_POST['rule'] ?? ($_GET['rule'] ?? ''))));
+    $threshold = (float)($jsonInput['threshold'] ?? ($_GET['threshold'] ?? 0.85));
+    if ($topic === '' && $rule === '') {
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'error' => 'Informe topic ou rule para avaliar novidade.']);
+        exit;
+    }
+    $gate = $evo->evaluateNoveltyGate($topic, $rule, $threshold);
+    $gate['novelty_score'] = round(1.0 - (float)($gate['similarity'] ?? 0.0), 3);
+    echo json_encode(array_merge(['ok' => true], $gate), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'session_envelope') {
+    $evo = $engine->getEvolutionV4();
+    $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+    if ($method === 'POST' || !empty($jsonInput) || isset($_POST['task_id']) || isset($_POST['capability_needed'])) {
+        $taskId = trim($jsonInput['task_id'] ?? ($_POST['task_id'] ?? ''));
+        $currentNode = trim($jsonInput['current_node'] ?? ($_POST['current_node'] ?? ''));
+        if ($taskId !== '' && $currentNode !== '') {
+            $nextCap = trim($jsonInput['next_capability'] ?? ($_POST['next_capability'] ?? ''));
+            $res = $evo->propagateSessionEnvelope($taskId, $currentNode, $nextCap);
+            if (empty($res['ok'])) {
+                http_response_code(409);
+            }
+            echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            exit;
+        }
+        $capNeeded = trim($jsonInput['capability_needed'] ?? ($_POST['capability_needed'] ?? 'reasoning'));
+        $seenNodes = $jsonInput['seen_nodes'] ?? [];
+        if (!is_array($seenNodes)) $seenNodes = [];
+        $hopTtl = (int)($jsonInput['hop_ttl'] ?? ($_POST['hop_ttl'] ?? 3));
+        $ttlSeconds = (int)($jsonInput['ttl_seconds'] ?? ($_POST['ttl_seconds'] ?? 1800));
+        $bootstrapUrl = trim($jsonInput['bootstrap_url'] ?? 'api.php?action=mesh_manifest');
+        $env = $evo->createSessionEnvelope($capNeeded, $seenNodes, $hopTtl, $ttlSeconds, $bootstrapUrl);
+        echo json_encode(['ok' => true, 'envelope' => $env], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+    $envelopes = $evo->listActiveEnvelopes(30);
+    echo json_encode([
+        'ok' => true,
+        'count' => count($envelopes),
+        'envelopes' => $envelopes,
+        'ts' => date('c')
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'rna_memory_upsert') {
+    $evo = $engine->getEvolutionV4();
+    $nodeId = trim($jsonInput['node_id'] ?? ($_POST['node_id'] ?? ($_GET['node_id'] ?? '')));
+    if ($nodeId === '') {
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'error' => 'node_id obrigatório.']);
+        exit;
+    }
+    $caps = $jsonInput['capabilities'] ?? ['reasoning', 'code'];
+    if (is_string($caps)) {
+        $caps = array_values(array_filter(array_map('trim', explode(',', $caps))));
+    }
+    $endpoint = trim($jsonInput['discovery_endpoint'] ?? ($_POST['discovery_endpoint'] ?? 'api.php?action=mesh_manifest'));
+    $autoPropagate = isset($jsonInput['auto_propagate']) ? (bool)$jsonInput['auto_propagate'] : true;
+    $providedHmac = $jsonInput['hmac_signature'] ?? ($_SERVER['HTTP_X_RNA_HMAC'] ?? null);
+    $res = $evo->rnaMemoryUpsert($nodeId, $caps, $endpoint, $autoPropagate, $providedHmac !== null ? (string)$providedHmac : null);
+    if (empty($res['ok'])) {
+        http_response_code(403);
+    }
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'agent_bootstrap') {
+    $evo = $engine->getEvolutionV4();
+    $nodeId = trim($_GET['node_id'] ?? ($jsonInput['node_id'] ?? ($_POST['node_id'] ?? '')));
+    if ($nodeId === '') {
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'error' => 'node_id obrigatório para re-hidratação.']);
+        exit;
+    }
+    $boot = $evo->rehydrateAgentBoot($nodeId);
+    $boot['active_axioms'] = $evo->listLedgerAxioms(15);
+    $boot['active_envelopes'] = $evo->listActiveEnvelopes(10);
+    echo json_encode($boot, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'aicreate_mutate') {
+    $evo = $engine->getEvolutionV4();
+    $reqPayload = !empty($jsonInput) ? $jsonInput : $_POST;
+    if (empty($reqPayload)) {
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'error' => 'Payload JSON de mutação vazio.']);
+        exit;
+    }
+    $res = $evo->processMutationRequest($reqPayload);
+    if (empty($res['ok']) && !empty($res['blocked_by_failure_cache'])) {
+        http_response_code(409);
+    }
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'aicreate_mutations') {
+    $evo = $engine->getEvolutionV4();
+    $limit = max(1, min(100, (int)($_GET['limit'] ?? 40)));
+    $mutations = $evo->listMutations($limit);
+    echo json_encode([
+        'ok' => true,
+        'count' => count($mutations),
+        'mutations' => $mutations,
+        'ts' => date('c')
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'aicreate_prune_mutations') {
+    $evo = $engine->getEvolutionV4();
+    $maxAge = max(60, (int)($_GET['max_age'] ?? ($jsonInput['max_age'] ?? 86400)));
+    $res = $evo->pruneObsoleteMutations($maxAge);
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'evolution_status') {
+    $evo = $engine->getEvolutionV4();
+    $tel = $engine->loadTelemetry();
+    $cards = $evo->syncAndGetAgentCards($tel['nodes'] ?? ($tel['ai_nodes'] ?? []));
+    $axioms = $evo->listLedgerAxioms(50);
+    $envelopes = $evo->listActiveEnvelopes(25);
+    $memories = $evo->listPersistentMemories(30);
+    $mutations = $evo->listMutations(30);
+    $tokenBudget = $evo->getRealTokenBudgetStats();
+
+    echo json_encode([
+        'ok' => true,
+        'protocol' => 'RNA-LoRa-v4.0-EvolutionMesh',
+        'sqlite_wal_active' => ($evo->getSqlite() !== null),
+        'counts' => [
+            'axioms' => count($axioms),
+            'agent_cards' => count($cards),
+            'active_envelopes' => count($envelopes),
+            'persistent_memories' => count($memories),
+            'mutations' => count($mutations),
+            'mutations_promoted' => count(array_filter($mutations, function($m) { return ($m['status'] ?? '') === 'promoted'; })),
+            'mutations_rejected' => count(array_filter($mutations, function($m) { return ($m['status'] ?? '') === 'rejected'; }))
+        ],
+        'token_budget' => $tokenBudget,
+        'axioms' => $axioms,
+        'agent_cards' => array_values($cards),
+        'envelopes' => $envelopes,
+        'persistent_memories' => $memories,
+        'mutations' => $mutations,
+        'ts' => date('c')
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'sanitize_ledger') {
+    $evo = $engine->getEvolutionV4();
+    $res = $evo->sanitizeAndMigrateLegacyMemory();
+    echo json_encode($res, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
 http_response_code(400);
 echo json_encode(['ok' => false, 'error' => 'Ação desconhecida: ' . $action]);
 

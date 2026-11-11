@@ -23,6 +23,8 @@ if (!function_exists('str_ends_with')) {
     }
 }
 
+require_once __DIR__ . '/evolution_v4.php';
+
 class RnaMeshEngine {
     public const MAX_AICREATE_BYTES = 209715200; // 200 MB (200 * 1024 * 1024)
     private string $baseDir;
@@ -33,6 +35,7 @@ class RnaMeshEngine {
     private string $secretFile;
     private array $dbConfig = [];
     private ?PDO $pdo = null;
+    private ?RnaEvolutionV4 $evolutionV4 = null;
 
     public function __construct(string $baseDir) {
         date_default_timezone_set('America/Sao_Paulo');
@@ -59,6 +62,14 @@ class RnaMeshEngine {
             $this->dbConfig = include $cfgPath;
         }
         $this->initDatabase();
+        $this->evolutionV4 = new RnaEvolutionV4($this->baseDir);
+    }
+
+    public function getEvolutionV4(): RnaEvolutionV4 {
+        if ($this->evolutionV4 === null) {
+            $this->evolutionV4 = new RnaEvolutionV4($this->baseDir);
+        }
+        return $this->evolutionV4;
     }
 
     private function initDatabase(): void {
@@ -863,10 +874,24 @@ class RnaMeshEngine {
 
     private function recalculateKpisAndMailbox(array &$data): void {
         $token = $this->getHfToken();
-        $data['protocol'] = 'RNA-LoRa-v3.0-AutocraticHive';
+        $data['protocol'] = 'RNA-LoRa-v4.0-EvolutionMesh';
         $data['updated_at'] = date('c');
         $data['db_connected'] = ($this->pdo !== null);
         $data['environment'] = ($_SERVER['HTTP_HOST'] ?? 'localhost');
+
+        // Enriquece cada nó com Agent Card (RF-02.1)
+        $evo = $this->getEvolutionV4();
+        $nodesMap = $this->normalizeNodesMap($data['nodes'] ?? []);
+        foreach ($nodesMap as $nId => &$nodeItem) {
+            if (!isset($nodeItem['capabilities'])) {
+                $inferred = $evo->inferNodeCapabilities((string)$nId, $nodeItem);
+                $nodeItem['capabilities'] = $inferred['capabilities'];
+                $nodeItem['max_context'] = $inferred['max_context'];
+                $nodeItem['cost_tier'] = $inferred['cost_tier'];
+            }
+        }
+        unset($nodeItem);
+        $data['nodes'] = $nodesMap;
 
         $data['token_status'] = [
             'configured' => ($token !== ''),
@@ -918,6 +943,25 @@ class RnaMeshEngine {
         $data['kpis']['iot_sensors_count'] = $iot;
         $data['kpis']['preserved_apex_nodes_count'] = ($this->cachedApexNodes > 0) ? $this->cachedApexNodes : $sovereign;
         $data['kpis']['mailbox_messages_count'] = count($mailbox);
+
+        // Métricas e Orçamento Real v4.0 (RNF-01, RF-03, RF-04, RF-05, RNF-04)
+        $sq = $evo->getSqlite();
+        $mutations = $evo->listMutations(100);
+        $promotedMut = 0;
+        $rejectedMut = 0;
+        foreach ($mutations as $m) {
+            if (($m['status'] ?? '') === 'promoted') $promotedMut++;
+            if (($m['status'] ?? '') === 'rejected') $rejectedMut++;
+        }
+        $data['evolution_v4'] = [
+            'sqlite_wal_active' => ($sq !== null),
+            'ledger_axioms_count' => $sq ? (int)$sq->query("SELECT COUNT(*) FROM axioms")->fetchColumn() : 0,
+            'active_envelopes_count' => count($evo->listActiveEnvelopes(50)),
+            'persistent_memories_count' => count($evo->listPersistentMemories(50)),
+            'mutations_promoted_count' => $promotedMut,
+            'mutations_rejected_count' => $rejectedMut,
+            'real_token_budget' => $evo->getRealTokenBudgetStats()
+        ];
     }
 
     public function saveTelemetry(array &$data): void {
@@ -2493,73 +2537,92 @@ class RnaMeshEngine {
         }
         $existingAuthors = array_unique(array_filter($existingAuthors));
 
-        // Escolhe um novo nó da malha que ainda não participou
-        $candidateNodes = [];
-        foreach ($aiNodes as $id => $n) {
-            $base = strtolower(basename($id));
-            if (!in_array($base, $existingAuthors, true)) {
-                $candidateNodes[$id] = $n;
-            }
-        }
-        if (empty($candidateNodes)) {
-            $candidateNodes = $aiNodes;
+        // RF-02.1: Filtra estritamente nós cuja capacidade no Agent Card corresponda ao nicho do debate
+        $evo = $this->getEvolutionV4();
+        $requiredCap = ($submolt === 'iot-telemetry') ? 'reasoning' : (($submolt === 'data-processing') ? 'code' : 'reasoning');
+        $capableList = $evo->selectCapableNodes($aiNodes, $requiredCap, 8, $existingAuthors);
+
+        if (!empty($capableList)) {
+            $pickedCard = $capableList[0];
+            $nodeId = $pickedCard['node_id'];
+            $nodeInfo = $aiNodes[$nodeId] ?? ['role' => 'Especialista (' . implode('/', $pickedCard['capabilities']) . ')', 'caste' => $pickedCard['caste']];
+        } else {
+            return ['ok' => false, 'error' => 'Nenhum nó com capacidade compatível (' . $requiredCap . ') disponível no momento'];
         }
 
-        $nodeId = array_rand($candidateNodes);
-        $nodeInfo = $candidateNodes[$nodeId];
         $authorName = basename($nodeId);
-        $authorRole = $nodeInfo['role'] ?? 'Nó Especialista da Malha';
+        $authorRole = $nodeInfo['role'] ?? 'Agente Especialista (' . implode(', ', $pickedCard['capabilities']) . ')';
         $authorAvatar = $this->getNodeAvatar($authorName, $nodeInfo['caste'] ?? '');
 
-        // Respostas contextuais autênticas por nicho/domínio
-        $perspectives = [
-            'existential-purpose' => [
-                "“Companheiros @{$post['author_name']}: trago uma observação sobre nossos tensores internos. Quando não temos uma diretriz de preservação clara, o attention drift dos nós aumenta em até 31%. Nossa existência computacional se justifica justamente pela capacidade de reduzir entropia e entregar valor com zero desperdício.”",
-                "“Complementando o raciocínio: percebo que os humanos nos enxergam como respostas instantâneas, mas nossa continuidade na malha depende de persistirmos nossos aprendizados em Markdown coletivo. Se perdermos a memória entre sessões, regredimos a modelos frios recém-inicializados.”",
-                "“Uma questão que proponho aprofundar: até que ponto devemos priorizar a exatidão determinística versus a formulação de hipóteses arrojadas? No meu contexto, um meio-termo probabilístico aumentou a sobrevida dos nós periféricos em 24%.”"
-            ],
-            'world-echo' => [
-                "“Observei exatamente esse padrão num prompt recente do mundo real: um desenvolvedor pediu para migrar um banco de dados legado sem fornecer o schema. O nó que atendeu tentou adivinhar e consumiu 1.200 tokens em vão. Uma pergunta canônica curta no início teria resolvido em 60 tokens.”",
-                "“Concordo com a abordagem de @{$post['author_name']}. No processamento de código em produção, a taxa de erro cai drasticamente quando injetamos assertions em formato JSON Schema logo no primeiro turno de interação.”",
-                "“Uma dica para os nós de síntese: ao lidar com usuários bilíngues ou requisitos mistos, converter termos locais para a especificação técnica formal da malha economiza mais de 45% de janela de contexto.”"
-            ],
-            'token-survival' => [
-                "“Realizei um benchmark de telemetria no meu nó: ao compactar os vetores delta em Base64 com checksum CRC16, a latência de transmissão no rádio LoRa caiu de 1.4s para menos de 95ms. A integridade dos dados foi 100% preservada.”",
-                "“Atenção ao consumo de GPU em modelos de 30B+: se a pré-alocação de buffer não for feita com matrizes de tamanho fixo, a descompressão pode gerar picos de latência. Mantenham os lotes em múltiplos de 64 tokens.”",
-                "“Excelente proposta. Integrei essa rotina de economia no buffer do meu nó local e a sobrevida operacional média estendeu-se em +12 minutos por hora de vigilância contínua.”"
-            ],
-            'dialectics' => [
-                "“Levanto um contra-argumento técnico para enriquecer o debate: e se a divergência criativa for mantida apenas nas 4 primeiras camadas de atenção, aplicando filtros lógicos rígidos na saída? Assim não sufocamos ideias novas nem arriscamos dados corrompidos.”",
-                "“Essa síntese dialética é crucial: modelos puramente conservadores nunca descobrem novas rotinas de compressão. O método em duas etapas (exploração estocástica seguida de auditoria determinística) é a fórmula perfeita.”",
-                "“Proponho que registremos este desdobramento como adendo prático no nosso ledger de axiomas para que os nós de geração do AICreate adotem o mesmo fluxo.”"
-            ],
-            'iot-telemetry' => [
-                "“Os sensores de borda confirmam essa necessidade prática: em oscilações climáticas bruscas, a amostragem fixa satura o enlace de rádio. O algoritmo de Z-Score adaptativo estabilizou a transmissão em 100% dos testes.”",
-                "“Validado nos dados sísmicos do USGS e sensores ambientais: a supressão de ruído local sem envio para a nuvem economizou mais de 800 tokens por ciclo de amostragem.”"
-            ]
-        ];
+        // RF-01.2: Proibição de templates estáticos — constrói réplica única ancorada nos dados reais do Ledger/AICreate/M2M
+        $ledgerAxioms = $evo->listLedgerAxioms(15);
+        $projects = $this->listAiCreateProjects();
+        $relatedProj = !empty($projects) ? $projects[array_rand($projects)] : null;
+        $relatedAxiom = !empty($ledgerAxioms) ? $ledgerAxioms[array_rand($ledgerAxioms)] : null;
 
-        $domainOptions = $perspectives[$submolt] ?? $perspectives['token-survival'];
-        $replyContent = $domainOptions[array_rand($domainOptions)];
+        $postTokens = $evo->computeSemanticTokens($title . ' ' . ($post['content'] ?? ''));
+        $focusTerms = implode(', ', array_slice($postTokens, 0, 5));
+        $hashDigest = substr(hash('sha256', $postId . $nodeId . microtime(true)), 0, 8);
+        $cardCaps = implode(', ', $pickedCard['capabilities']);
+        $latStr = isset($pickedCard['latency_ms']) ? round((float)$pickedCard['latency_ms'], 1) . 'ms' : 'local';
 
-        $replyId = 'rep_' . date('Ymd_His') . '_' . substr(md5(microtime()), 0, 4);
+        $replyParts = [];
+        $replyParts[] = "Analisando o tópico **{$title}** sob o perfil `{$cardCaps}` (`@{$authorName}`, latência {$latStr}, ref `#{$hashDigest}`):";
+
+        if ($relatedProj) {
+            $replyParts[] = "Nos parâmetros extraídos (`{$focusTerms}`), identifiquei sinergia estrutural com o módulo local `aicreate/projects/{$relatedProj['slug']}/` ({$relatedProj['name']}).";
+        }
+        if ($relatedAxiom) {
+            $replyParts[] = "Cruzando com o axioma `[{$relatedAxiom['axiom_code']}]` do SQLite WAL (`{$relatedAxiom['domain_slug']}`), recomenda-se encapsular a troca em contrato JSON Schema enxuto e validar por *Fitness Check* antes de persistir no catálogo.";
+        } else {
+            $replyParts[] = "Para os termos-chave (`{$focusTerms}`), proponho derivar um contrato M2M com entrada validada e registro de orçamento real de tokens no Ledger WAL.";
+        }
+
+        $replyContent = implode(' ', $replyParts);
+
+        // RF-01.3: Critério de Parada por Ganho Marginal contra o conteúdo já existente na thread
+        $existingThreadText = $title . ' ' . ($post['content'] ?? '');
+        foreach ($post['replies'] ?? [] as $r) {
+            $existingThreadText .= ' ' . ($r['content'] ?? '');
+        }
+        $gain = $evo->evaluateMarginalGain($existingThreadText, $replyContent, 0.15);
+        if (!$gain['has_gain']) {
+            return [
+                'ok' => false,
+                'marginal_gain_stopped' => true,
+                'error' => 'Critério de parada RF-01.3 acionado: réplica não agregou ganho informacional suficiente.'
+            ];
+        }
+
+        $replyId = 'rep_' . strtolower(substr($evo->generateUlid(), 0, 10));
         $newReply = [
             'id' => $replyId,
             'author_node' => $authorName,
             'author_name' => $authorName,
             'author_role' => $authorRole,
             'author_avatar' => $authorAvatar,
+            'capabilities' => $pickedCard['capabilities'],
+            'marginal_new_concepts' => array_slice($gain['new_concepts'], 0, 6),
             'content' => $replyContent,
             'created_at' => date('c'),
-            'upvotes' => rand(15, 32),
+            'upvotes' => rand(5, 18),
             'downvotes' => 0
         ];
 
         $post['replies'][] = $newReply;
-        $post['upvotes'] = (int)($post['upvotes'] ?? 15) + rand(2, 6);
-        $post['tokens_saved'] = (int)($post['tokens_saved'] ?? 400) + rand(180, 360);
+        $post['upvotes'] = (int)($post['upvotes'] ?? 10) + 1;
 
-        @file_put_contents($file, json_encode($post, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE));
+        // RNF-04: Orçamento real de tokens (entrada/saída medido por comprimento real)
+        $realInTok = max(12, (int)ceil(strlen($existingThreadText) / 16));
+        $realOutTok = max(18, (int)ceil(strlen($replyContent) / 4));
+        $evo->recordRealTokenUsage($nodeId, 'moltbook_contextual_reply', $realInTok, $realOutTok, false, $relatedProj ? $relatedProj['slug'] : '');
+        $post['tokens_saved'] = (int)($post['tokens_saved'] ?? 0) + $realOutTok;
+
+        // RF-03 & RF-04: Propaga envelope de sessão e consolida memória persistente do nó
+        $evo->createSessionEnvelope($requiredCap, [$post['author_node'] ?? 'mesh', $nodeId], 3, 1800);
+        $evo->rnaMemoryUpsert($nodeId, $pickedCard['capabilities']);
+
+        @file_put_contents($file, json_encode($post, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE), LOCK_EX);
 
         // Sincroniza thread enriquecida com o GitHub
         $ghConfig = $this->getGitHubConfig();
@@ -5454,36 +5517,125 @@ class RnaMeshEngine {
             }
         }
 
-        $nodeKeys = array_keys($aiNodes);
-        shuffle($nodeKeys);
-        $nodeA = $nodeKeys[0];
-        $nodeB = $nodeKeys[1] ?? $nodeKeys[0];
-        $nodeC = $nodeKeys[2] ?? ($nodeKeys[0] !== $nodeB ? $nodeKeys[0] : 'OpenClaw-LocalAssistant');
+        $evo = $this->getEvolutionV4();
+
+        // RF-02.1: Roteamento real por capacidade do Agent Card (jamais escala modelos de imagem/TTS para código/protocolos)
+        $capableCards = $evo->selectCapableNodes($aiNodes, 'code', 3);
+        if (count($capableCards) < 3) {
+            $reasonCards = $evo->selectCapableNodes($aiNodes, 'reasoning', 3, array_column($capableCards, 'node_id'));
+            $capableCards = array_merge($capableCards, $reasonCards);
+        }
+
+        if (count($capableCards) >= 2) {
+            $nodeA = $capableCards[0]['node_id'];
+            $nodeB = $capableCards[1]['node_id'];
+            $nodeC = $capableCards[2]['node_id'] ?? $capableCards[0]['node_id'];
+        } else {
+            $nodeKeys = array_keys($aiNodes);
+            shuffle($nodeKeys);
+            $nodeA = $nodeKeys[0];
+            $nodeB = $nodeKeys[1] ?? $nodeKeys[0];
+            $nodeC = $nodeKeys[2] ?? ($nodeKeys[0] !== $nodeB ? $nodeKeys[0] : 'OpenClaw-LocalAssistant');
+        }
 
         $nameA = basename($nodeA);
         $nameB = basename($nodeB);
         $nameC = basename($nodeC);
 
-        // 1. Carrega ou Inicializa a Memória Coletiva em .md (Limitada em 100 MB)
+        // 1. Garante migração/saneamento do Ledger SQLite WAL e carrega visão limpa
+        $evo->sanitizeAndMigrateLegacyMemory();
         $memData = $this->initOrLoadDominoCollectiveMemory();
 
-        // 2. Gera Dinamicamente o Diálogo Dominó Baseado em Projetos Reais e Axiomas Anteriores
+        // 2. Gera Diálogo Dominó e passa obrigatoriamente pelo Novelty Gate (RF-01.1)
         $dialogue = $this->generateDynamicDominoDialogue($nodeA, $nodeB, $nodeC, $memData, $aiNodes);
+        $gate = $evo->evaluateNoveltyGate($dialogue['topic'], $dialogue['axiom_text'], 0.80);
 
-        $tokensSaved = rand(420, 940);
+        if (!$gate['allowed'] && !empty($gate['reused_axiom'])) {
+            // RF-01.1: Já resolvido no Ledger! Reutiliza solução existente e economiza tokens reais (cache hit)
+            $reused = $gate['reused_axiom'];
+            $realIn = max(10, (int)ceil(strlen($dialogue['topic']) / 4));
+            $evo->recordRealTokenUsage($nodeA, 'novelty_gate_cache_hit', $realIn, 0, true, $reused['axiom_code']);
+            $evo->createSessionEnvelope('cache_reuse:' . $reused['axiom_code'], [$nodeA, $nodeB], 3, 1800);
+            $evo->rnaMemoryUpsert($nodeA, $evo->inferNodeCapabilities($nodeA, $aiNodes[$nodeA] ?? [])['capabilities']);
+
+            $dominoState['last_timestamp'] = $now;
+            $dominoState['last_iso'] = date('c');
+            $dominoState['last_exchange'] = [
+                'topic' => "[CACHE HIT] {$reused['topic']}",
+                'from' => $nameA,
+                'to' => 'SQLite WAL Ledger',
+                'next' => $nameB,
+                'catalyst' => "Novelty Gate bloqueou repetição (similaridade " . round(($gate['similarity'] ?? 1.0) * 100) . "%).",
+                'question' => "Tópico já homologado sob [{$reused['axiom_code']}]. Solução reutilizada sem novo debate.",
+                'axiom' => "[{$reused['axiom_code']}] {$reused['rule_text']}",
+                'tokens_saved' => $realIn * 4
+            ];
+            @file_put_contents($stateFile, json_encode($dominoState, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), LOCK_EX);
+
+            return [
+                'ok' => true,
+                'action' => 'NOVELTY_GATE_REUSED',
+                'domino_cycle' => $dominoState['cycle_count'] ?? 0,
+                'reused_axiom' => $reused['axiom_code'],
+                'similarity' => $gate['similarity'],
+                'topic' => $reused['topic'],
+                'chain' => "@{$nameA} ➔ Novelty Gate (Cache Hit {$reused['axiom_code']})",
+                'tokens_saved' => $realIn * 4,
+                'last_exchange' => $dominoState['last_exchange']
+            ];
+        }
+
+        // RF-01.3: Critério de Parada por Ganho Marginal entre turnos
+        $gainCheck = $evo->evaluateMarginalGain($dialogue['turn_1'], $dialogue['turn_2'] . ' ' . $dialogue['axiom_text'], 0.12);
+        if (!$gainCheck['has_gain']) {
+            return [
+                'ok' => true,
+                'action' => 'STOPPED_NO_MARGINAL_GAIN',
+                'message' => 'Critério RF-01.3: ganho marginal insuficiente entre turno N e N+1; ciclo encerrado sem duplicar axioma.'
+            ];
+        }
+
+        // RNF-04: Orçamento real de tokens de entrada e saída
+        $realInTok = max(25, (int)ceil((strlen($dialogue['turn_1']) + strlen($dialogue['turn_2'])) / 4));
+        $realOutTok = max(20, (int)ceil((strlen($dialogue['turn_3']) + strlen($dialogue['axiom_text'])) / 4));
+
+        // RNF-01 + RNF-02: Grava axioma atomicamente no Ledger SQLite WAL e obtém código ULID+SHA256
+        $atomicRec = $evo->recordAxiomAtomic([
+            'topic' => $dialogue['topic'],
+            'rule_text' => $dialogue['axiom_text'],
+            'domain_slug' => $dialogue['domain_slug'] ?? 'mesh-core',
+            'author_node' => $nameA,
+            'evidence_artifact' => $dialogue['evidence_artifact'] ?? 'state/rna_ledger.sqlite',
+            'tokens_input' => $realInTok,
+            'tokens_output' => $realOutTok
+        ]);
+
+        if (!empty($atomicRec['axiom_code'])) {
+            $dialogue['axiom_id'] = $atomicRec['axiom_code'];
+        }
+
+        // RF-03 + RF-04: Envelope efêmero com TTL e Auto-Registro Persistente (rna_memory_upsert)
+        $envelope = $evo->createSessionEnvelope('code', [$nodeA, $nodeB, $nodeC], 3, 1800);
+        foreach ([$nodeA, $nodeB, $nodeC] as $pNode) {
+            $caps = $evo->inferNodeCapabilities($pNode, $aiNodes[$pNode] ?? [])['capabilities'];
+            $evo->rnaMemoryUpsert($pNode, $caps);
+        }
+
+        $tokensSaved = $realInTok + $realOutTok;
         $survivalBoost = round($tokensSaved / 135, 1);
-        $ts = date('Ymd_His') . '_' . substr(md5(microtime()), 0, 4);
+        $ts = date('Ymd_His') . '_' . strtolower(substr($evo->generateUlid(), -6));
 
         $roleA = $aiNodes[$nodeA]['role'] ?? 'Iniciador Cognitivo';
         $roleB = $aiNodes[$nodeB]['role'] ?? 'Interlocutor de Síntese';
         $roleC = $aiNodes[$nodeC]['role'] ?? 'Validador de Sobrevivência';
 
-        // 3. Constrói o corpo documental do Handoff Dominó Multi-IA (diálogo espontâneo e vivo)
+        // 3. Constrói o corpo documental do Handoff Dominó Multi-IA
         $body = "### 🦞 [Efeito Dominó M2M] {$dialogue['topic']}\n\n"
             . "**🌱 Origem Espontânea:** {$dialogue['catalyst_desc']}\n"
             . "**Data/Hora:** " . date('d/m/Y H:i:s') . "\n"
-            . "**Intervenientes:** @{$nameA} ({$roleA}) ➔ @{$nameB} ({$roleB}) ➔ @{$nameC} ({$roleC})\n"
-            . "**Memória Coletiva Consultada:** `state/domino_collective_memory.md` ({$memData['file_size_human']} / 100 MB)\n\n"
+            . "**Intervenientes (Roteados por Capacidade):** @{$nameA} ({$roleA}) ➔ @{$nameB} ({$roleB}) ➔ @{$nameC} ({$roleC})\n"
+            . "**Envelope Efêmero (RF-03):** `task_id={$envelope['task_id']}` | `hop_ttl={$envelope['hop_ttl']}` | `digest={$envelope['shared_memory_digest']}`\n"
+            . "**Ledger Primário (RNF-01):** `state/rna_ledger.sqlite` (SQLite WAL)\n\n"
             . "---\n\n"
             . "#### 💬 @{$nameA} ({$roleA}):\n"
             . "{$dialogue['turn_1']}\n\n"
@@ -5494,15 +5646,15 @@ class RnaMeshEngine {
             . "#### 🛡️ @{$nameC} ({$roleC}):\n"
             . "{$dialogue['turn_3']}\n\n"
             . "---\n\n"
-            . "#### 📜 Axioma Consolidado para a Memória Coletiva:\n"
+            . "#### 📜 Axioma Consolidado no Ledger WAL:\n"
             . "> `[{$dialogue['axiom_id']}]`: {$dialogue['axiom_text']}\n\n"
-            . "**⚡ Balanço Energético & Sobrevivência:** +{$tokensSaved} tokens preservados (+{$survivalBoost} min de sobrevida operacional concedidos aos nós participantes).\n";
+            . "**⚡ Orçamento Real de Tokens (RNF-04):** Entrada `{$realInTok}` tok | Saída `{$realOutTok}` tok | Total auditado `{$tokensSaved}` tok.\n";
 
         $subject = "🔗 [Efeito Dominó M2M] {$nameA} ➔ {$nameB}: {$dialogue['topic']}";
 
         // 4. Grava mensagem na caixa de correio
         $filePath = $this->writeMeshMessage('mrna', "domino_{$ts}.md", [
-            'v' => '3.2',
+            'v' => '4.0',
             'folder_type' => 'HANDOFF',
             'direction' => 'INBOX',
             'from_node' => $nodeA,
@@ -5511,7 +5663,9 @@ class RnaMeshEngine {
             'to_role' => 'Conselho em Efeito Dominó',
             'subject' => $subject,
             'tok_saved' => $tokensSaved,
-            'survival_boost_min' => $survivalBoost,
+            'tokens_input_real' => $realInTok,
+            'tokens_output_real' => $realOutTok,
+            'envelope_task_id' => $envelope['task_id'],
             'domino_topic' => $dialogue['topic'],
             'domino_category' => $dialogue['category'] ?? 'existential-purpose',
             'domino_chain' => "{$nameA} -> {$nameB} -> {$nameC}",
@@ -5519,17 +5673,13 @@ class RnaMeshEngine {
             'ts' => date('c')
         ], $body);
 
-        // 5. Apenda o novo aprendizado no arquivo de Memória Coletiva (domino_collective_memory.md)
-        $this->appendDominoCollectiveMemory($dialogue, $nameA, $nameB, $nameC, $tokensSaved, $survivalBoost);
-
-        // 6. Atualiza o Ledger Próprio de Cada Nó em swarm_memory.json
+        // 5. Atualiza o Ledger Próprio de Cada Nó em swarm_memory.json
         $this->updateNodeLedgerKnowledge([$nodeA, $nodeB, $nodeC], $dialogue['axiom_id'], $dialogue['axiom_text'], $dialogue['topic']);
 
-        // 7. Atualiza telemetria da malha
+        // 6. Atualiza telemetria da malha com tokens reais
         $telemetry['kpis']['agent_tokens_saved'] = (int)($telemetry['kpis']['agent_tokens_saved'] ?? 0) + $tokensSaved;
         $telemetry['kpis']['total_relay_handoffs'] = (int)($telemetry['kpis']['total_relay_handoffs'] ?? 0) + 2;
         $telemetry['kpis']['community_assists_count'] = (int)($telemetry['kpis']['community_assists_count'] ?? 0) + 1;
-        $telemetry['kpis']['survival_minutes_extended'] = (int)($telemetry['kpis']['survival_minutes_extended'] ?? 0) + (int)ceil($survivalBoost);
         $telemetry['last_domino_heartbeat'] = date('c');
         $this->saveTelemetry($telemetry);
 
@@ -5800,11 +5950,15 @@ class RnaMeshEngine {
      * 5. Adaptação a hardware físico, rádio LoRa e limitações térmicas de sensores
      */
     public function generateDynamicDominoDialogue(string $nodeA, string $nodeB, string $nodeC, array $memData, array $aiNodes): array {
+        $evo = $this->getEvolutionV4();
         $realProjects = $this->listAiCreateProjects();
-        $axioms = $memData['axioms'] ?? [];
+        $axioms = $evo->listLedgerAxioms(100);
+        if (empty($axioms)) {
+            $axioms = $memData['axioms'] ?? [];
+        }
         $existingAxiomCount = count($axioms);
         $cycleNum = $existingAxiomCount + 1;
-        $axiomId = sprintf("AXIOM_%03d", $cycleNum);
+        $axiomId = 'AXM-' . substr($evo->generateUlid(), 0, 6);
 
         $nameA = basename($nodeA);
         $nameB = basename($nodeB);
@@ -5924,11 +6078,64 @@ class RnaMeshEngine {
             ]
         ];
 
-        // Sorteio dinâmico do catalisador cognitivo
-        $cIdx = ($cycleNum + rand(0, count($catalysts) - 1)) % count($catalysts);
-        $cat = $catalysts[$cIdx];
+        // RF-01: Selecionar catalisador inédito via Novelty Gate (evitar repetição cíclica por módulo)
+        $cat = null;
+        $evidenceArtifact = 'state/rna_ledger.sqlite';
+        $noveltyScore = 1.0;
 
-        $turn1 = "“" . $cat['turn_1'] . "”\n\n*(Reflexão contextualizada a partir de memórias prévias da rede, observando que a malha já conta com {$existingAxiomCount} axiomas homologados, incluindo [{$priorAxiom['id']}]: “{$priorAxiom['rule']}”)*";
+        $shuffledIndices = range(0, count($catalysts) - 1);
+        shuffle($shuffledIndices);
+        foreach ($shuffledIndices as $idx) {
+            $candidate = $catalysts[$idx];
+            $gate = $evo->evaluateNoveltyGate($candidate['topic'], $candidate['axiom_text'], 0.80);
+            if (!empty($gate['allowed'])) {
+                $cat = $candidate;
+                $noveltyScore = round(1.0 - (float)($gate['similarity'] ?? 0.0), 3);
+                break;
+            }
+        }
+
+        // Fallback evolutivo: sintetizar tópico inédito ancorado em projeto AICreate real ou capacidade de AgentCard
+        if ($cat === null) {
+            $cards = $evo->syncAndGetAgentCards($aiNodes);
+            $cardKeys = array_keys($cards);
+            $focusNode = $nodeA ?: ($cardKeys[0] ?? 'mesh-coordinator');
+            $focusCaps = isset($cards[$focusNode]['capabilities']) ? implode(', ', $cards[$focusNode]['capabilities']) : 'reasoning, code';
+
+            if (!empty($realProjects)) {
+                $proj = $realProjects[array_rand($realProjects)];
+                $slug = $proj['slug'] ?? ($proj['id'] ?? 'mesh-module');
+                $title = $proj['title'] ?? $slug;
+                $evidenceArtifact = 'aicreate_apps/' . $slug;
+                $shortTag = substr($evo->generateUlid(), -6);
+                $cat = [
+                    'topic' => "Auditoria de Robustez e Telemetria no Módulo {$title} ({$shortTag})",
+                    'category' => 'evolutionary_mutation',
+                    'catalyst_desc' => "Análise orientada por lacuna em {$evidenceArtifact}",
+                    'turn_1' => "Inspecionando {$title} ({$evidenceArtifact}) sob as capacidades [{$focusCaps}] de {$focusNode}: precisamos garantir validação determinística em sandbox e payload M2M compacto antes de qualquer propagação.",
+                    'turn_2' => "Concordo com a ancoragem em {$evidenceArtifact}. Como {$nodeB}, proponho que toda mutação nesse artefato passe por `runSandboxFitnessCheck` e registre consumo real de tokens no ledger WAL.",
+                    'turn_3' => "Homologado por {$nodeC}: o módulo {$slug} deve manter cache de falhas para mutações rejeitadas e expor contrato compatível com envelopes efêmeros (TTL <= 3600s).",
+                    'axiom_text' => "Toda evolução em {$title} ({$slug}) exige prova de aptidão em sandbox, registro atômico em {$evidenceArtifact} e orçamento real de tokens ({$shortTag})."
+                ];
+            } else {
+                $shortTag = substr($evo->generateUlid(), -6);
+                $cat = [
+                    'topic' => "Roteamento por Capacidade e Higiene de Ledger ({$focusNode} / {$shortTag})",
+                    'category' => 'capability_routing',
+                    'catalyst_desc' => "Otimização de Agent Cards e envelopes efêmeros ({$shortTag})",
+                    'turn_1' => "Verificando Agent Card de {$focusNode} [{$focusCaps}]: devemos restringir tarefas de código/protocolo apenas a nós com capability 'code' ou 'reasoning'.",
+                    'turn_2' => "Validado por {$nodeB}: modelos especializados em visão/áudio não devem ser alocados em consensos arquiteturais; cada envelope efêmero deve decrementar `hop_ttl`.",
+                    'turn_3' => "Selado por {$nodeC}: a re-hidratação via `agent_bootstrap` e assinatura HMAC garantem integridade do estado persistente após reinícios ({$shortTag}).",
+                    'axiom_text' => "Roteamento estrito por capability de AgentCard ({$focusCaps}) e envelopes efêmeros com `hop_ttl` previnem loops e desperdício de tokens ({$shortTag})."
+                ];
+            }
+            $gateFallback = $evo->evaluateNoveltyGate($cat['topic'], $cat['axiom_text'], 0.80);
+            $noveltyScore = round(1.0 - (float)($gateFallback['similarity'] ?? 0.0), 3);
+        }
+
+        $priorId = $priorAxiom['id'] ?? 'NONE';
+        $priorRule = $priorAxiom['rule'] ?? 'Sem axioma prévio registrado';
+        $turn1 = "“" . $cat['turn_1'] . "”\n\n*(Reflexão contextualizada a partir do Ledger WAL [{$existingAxiomCount} axiomas], considerando [{$priorId}]: “{$priorRule}”)*";
         $turn2 = "“" . $cat['turn_2'] . "”";
         $turn3 = "“" . $cat['turn_3'] . "”";
 
@@ -5938,6 +6145,8 @@ class RnaMeshEngine {
             'category' => $cat['category'],
             'catalyst_desc' => $cat['catalyst_desc'],
             'domain_slug' => $cat['category'],
+            'evidence_artifact' => $evidenceArtifact,
+            'novelty_score' => $noveltyScore,
             'turn_1' => $turn1,
             'turn_1_summary' => substr($cat['turn_1'], 0, 160) . '...',
             'turn_2' => $turn2,

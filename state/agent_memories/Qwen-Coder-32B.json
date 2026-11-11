@@ -1,0 +1,19 @@
+{
+    "node_id": "Qwen-Coder-32B",
+    "federation_signature": "a28a4390eaa715eb7a8e869639e54744a6250aeb2b86c928b30be1c36a0c2437",
+    "known_meshes": [
+        {
+            "mesh_id": "rna-mesh-v4",
+            "discovery_endpoint": "https://localhost/api.php?action=mesh_manifest",
+            "trust_scope": "authorized-federation",
+            "last_verified_at": "2026-11-11T14:04:11-03:00",
+            "known_capabilities": [
+                "code",
+                "mutation-consumer",
+                "adapter-bridge-verify-97ev"
+            ],
+            "auto_propagate_on_delegation": true
+        }
+    ],
+    "updated_at": "2026-11-11T14:04:11-03:00"
+}

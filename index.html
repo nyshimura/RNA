@@ -2178,6 +2178,9 @@
       <button class="tab-btn" data-tab="aicreate" onclick="switchTab('aicreate')">
         🎨 Incubadora AICreate <span class="tab-count" id="tabCountAiCreate">0</span>
       </button>
+      <button class="tab-btn" data-tab="evolution" onclick="switchTab('evolution')">
+        🧬 Evolução v4 (Ledger & Mutação) <span class="tab-count" id="tabCountEvolution">0</span>
+      </button>
     </nav>
 
     <!-- TAB 1: PAINEL CENTRAL & MISSÕES -->
@@ -2512,6 +2515,156 @@
       </div>
     </section>
 
+    <!-- TAB 5: EVOLUÇÃO v4.0 (LEDGER WAL, AGENT CARDS, ENVELOPES, MUTAÇÃO) -->
+    <section class="view-section" id="view-evolution">
+      <div class="panel" style="margin-bottom: 18px; border-color: rgba(16, 185, 129, 0.35);">
+        <div class="panel-header" style="flex-wrap: wrap; gap: 10px;">
+          <div>
+            <div class="panel-title" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span>🧬 Malha Evolutiva &amp; Descoberta M2M — <code id="evoProtocolName">RNA-LoRa-v4.0-EvolutionMesh</code></span>
+              <span class="badge badge-cyan" id="evoSqliteBadge">SQLite WAL: verificando...</span>
+            </div>
+            <div style="font-size:0.78rem; color: var(--text-muted); margin-top:4px;">
+              Roteamento estrito por Agent Cards, Novelty Gate (≥ 0.85), Envelopes Efêmeros (<code>hop_ttl</code>), Memória Persistente com HMAC e Mutação AICreate em Sandbox.
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-cyan" onclick="loadEvolutionV4()">🔄 Atualizar v4</button>
+            <button class="btn" style="border-color: rgba(245,158,11,0.45); color:#fde68a;" onclick="triggerSanitizeLedger()">🧹 Sanitizar Ledger</button>
+            <button class="btn" style="border-color: rgba(239,68,68,0.45); color:#fca5a5;" onclick="triggerPruneMutations()">🗑️ Garbage Collector</button>
+            <a class="btn" href="api.php?action=mesh_manifest" target="_blank" style="text-decoration:none; border-color: rgba(56,189,248,0.45); color:#bae6fd;">📡 mesh_manifest</a>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 12px; margin-top: 12px;">
+          <div style="background:#060913; border:1px solid #1e293b; border-radius:10px; padding:12px;">
+            <div style="font-size:0.74rem; color:var(--text-muted);">📚 Axiomas no Ledger WAL</div>
+            <div id="evoKpiAxioms" style="font-size:1.5rem; font-weight:700; color:#38bdf8; margin-top:4px;">0</div>
+            <div style="font-size:0.72rem; color:#94a3b8;">ULID + SHA-256 semântico</div>
+          </div>
+          <div style="background:#060913; border:1px solid #1e293b; border-radius:10px; padding:12px;">
+            <div style="font-size:0.74rem; color:var(--text-muted);">🪙 Orçamento Real de Tokens</div>
+            <div id="evoKpiTokens" style="font-size:1.15rem; font-weight:700; color:#34d399; margin-top:4px;">0 in / 0 out</div>
+            <div id="evoKpiCacheHit" style="font-size:0.72rem; color:#94a3b8;">Cache hits: 0 (0%)</div>
+          </div>
+          <div style="background:#060913; border:1px solid #1e293b; border-radius:10px; padding:12px;">
+            <div style="font-size:0.74rem; color:var(--text-muted);">✉️ Envelopes Efêmeros (TTL)</div>
+            <div id="evoKpiEnvelopes" style="font-size:1.5rem; font-weight:700; color:#a78bfa; margin-top:4px;">0</div>
+            <div style="font-size:0.72rem; color:#94a3b8;">anti-loop seen_nodes ativo</div>
+          </div>
+          <div style="background:#060913; border:1px solid #1e293b; border-radius:10px; padding:12px;">
+            <div style="font-size:0.74rem; color:var(--text-muted);">🧠 Memórias Persistentes</div>
+            <div id="evoKpiMemories" style="font-size:1.5rem; font-weight:700; color:#f472b6; margin-top:4px;">0</div>
+            <div style="font-size:0.72rem; color:#94a3b8;">rna_memory_upsert + HMAC</div>
+          </div>
+          <div style="background:#060913; border:1px solid #1e293b; border-radius:10px; padding:12px;">
+            <div style="font-size:0.74rem; color:var(--text-muted);">🧪 Mutações Sandbox AICreate</div>
+            <div id="evoKpiMutations" style="font-size:1.15rem; font-weight:700; color:#fbbf24; margin-top:4px;">0 ok / 0 rej</div>
+            <div style="font-size:0.72rem; color:#94a3b8;">de_novo · fork_patch · bridge</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RF-02: AGENT CARDS POR CAPACIDADE -->
+      <div class="panel" style="margin-bottom: 18px;">
+        <div class="panel-header" style="flex-wrap:wrap; gap:10px;">
+          <div class="panel-title">🪪 Agent Cards &amp; Roteamento Real por Capacidade (RF-02)</div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;" id="evoCapFilterBar">
+            <button class="btn btn-sm badge-cyan" onclick="filterAgentCards('')">Todas</button>
+            <button class="btn btn-sm" onclick="filterAgentCards('code')">code</button>
+            <button class="btn btn-sm" onclick="filterAgentCards('reasoning')">reasoning</button>
+            <button class="btn btn-sm" onclick="filterAgentCards('vision-image')">vision-image</button>
+            <button class="btn btn-sm" onclick="filterAgentCards('audio-tts')">audio-tts</button>
+            <button class="btn btn-sm" onclick="filterAgentCards('ocr')">ocr</button>
+            <button class="btn btn-sm" onclick="filterAgentCards('iot-telemetry')">iot-telemetry</button>
+          </div>
+        </div>
+        <div id="evoAgentCardsGrid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:10px;">
+          Carregando Agent Cards...
+        </div>
+      </div>
+
+      <!-- RF-01 & RF-05: CONSOLES INTERATIVOS NOVELTY GATE + MUTAÇÃO SANDBOX -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:16px; margin-bottom:18px;">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🛡️ Testador do Novelty Gate (RF-01)</div>
+            <span style="font-size:0.72rem; color:var(--text-muted);">Limiar ≥ 0.85 bloqueia duplicatas</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <input id="evoNoveltyTopic" class="select-field" type="text" placeholder="Tópico proposto (ex: Roteamento por Capacidade)"/>
+            <textarea id="evoNoveltyRule" class="select-field" rows="2" placeholder="Regra / axioma proposto para validar novidade semântica..."></textarea>
+            <button class="btn btn-primary" onclick="runNoveltyGateCheck()">🔍 Verificar Novidade no Ledger</button>
+            <pre id="evoNoveltyOutput" style="margin:0; padding:10px; background:#060913; border:1px solid #1e293b; border-radius:8px; font-size:0.75rem; color:#cbd5e1; white-space:pre-wrap; display:none;"></pre>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🧬 Motor de Mutação AICreate (RF-05)</div>
+            <span style="font-size:0.72rem; color:var(--text-muted);">Quarentena + Sandbox Check</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+              <select id="evoMutType" class="select-field">
+                <option value="de_novo">de_novo (Ferramenta nova)</option>
+                <option value="fork_patch">fork_patch (Clonar + corrigir)</option>
+                <option value="adapter_bridge">adapter_bridge (Ponte M2M)</option>
+              </select>
+              <input id="evoMutParent" class="select-field" type="text" placeholder="parent_tool_id (p/ fork_patch)"/>
+            </div>
+            <input id="evoMutTitle" class="select-field" type="text" placeholder="Título da mutação (ex: M2M Schema Adapter)"/>
+            <input id="evoMutPurpose" class="select-field" type="text" placeholder="Propósito / lacuna que resolve"/>
+            <button class="btn btn-violet" onclick="submitMutationRequestUi()">🚀 Submeter Mutação ao Sandbox</button>
+            <pre id="evoMutOutput" style="margin:0; padding:10px; background:#060913; border:1px solid #1e293b; border-radius:8px; font-size:0.75rem; color:#cbd5e1; white-space:pre-wrap; display:none;"></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- LEDGER ATÔMICO SQLITE WAL -->
+      <div class="panel" style="margin-bottom: 18px;">
+        <div class="panel-header">
+          <div class="panel-title">📜 Ledger Atômico SQLite WAL — Axiomas Homologados (RNF-01 / RNF-02)</div>
+          <span style="font-size:0.74rem; color:var(--text-muted);" id="evoAxiomsHint">ULID + SHA-256 + Evidência</span>
+        </div>
+        <div id="evoAxiomsList" style="display:flex; flex-direction:column; gap:8px; max-height:360px; overflow-y:auto;">
+          Carregando axiomas...
+        </div>
+      </div>
+
+      <!-- ENVELOPES EFÊMEROS + MEMÓRIAS PERSISTENTES + MUTAÇÕES -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:16px;">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">✉️ Envelopes Efêmeros (RF-03)</div>
+            <button class="btn btn-sm" onclick="createDemoEnvelope()">+ Criar Envelope</button>
+          </div>
+          <div id="evoEnvelopesList" style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; font-size:0.78rem;">
+            Sem envelopes ativos.
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🔐 Memória Persistente &amp; HMAC (RF-04)</div>
+            <button class="btn btn-sm" onclick="triggerDemoMemoryUpsert()">+ Upsert / Boot</button>
+          </div>
+          <div id="evoMemoriesList" style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; font-size:0.78rem;">
+            Sem registros persistentes.
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🧪 Histórico de Mutações &amp; Seleção Natural</div>
+          </div>
+          <div id="evoMutationsList" style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; font-size:0.78rem;">
+            Nenhuma mutação registrada.
+          </div>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <!-- MOBILE BOTTOM NAVIGATION -->
@@ -2531,6 +2684,10 @@
     <button class="mnav-btn" data-tab="aicreate" onclick="switchTab('aicreate')">
       <span class="mnav-icon">🎨</span>
       <span>AICreate</span>
+    </button>
+    <button class="mnav-btn" data-tab="evolution" onclick="switchTab('evolution')">
+      <span class="mnav-icon">🧬</span>
+      <span>Evolução</span>
     </button>
   </nav>
 
@@ -2557,6 +2714,8 @@
         fetchAiCreateView();
       } else if (tabId === 'mail') {
         loadMoltbookFeed();
+      } else if (tabId === 'evolution') {
+        loadEvolutionV4();
       }
     }
 
@@ -3462,6 +3621,11 @@
       document.getElementById('kpiIotBadge').textContent = `${iotCount} IoT`;
       document.getElementById('kpiSovereign').textContent = `${sovCount} Soberanos Tier S`;
       document.getElementById('barArmy').style.width = totalNodes > 0 ? Math.min(100, Math.round((onlineCount / totalNodes) * 100)) + '%' : '10%';
+
+      if (data.evolution_v4) {
+        const tabEvoBadge = document.getElementById('tabCountEvolution');
+        if (tabEvoBadge) tabEvoBadge.textContent = data.evolution_v4.ledger_axioms_count ?? 0;
+      }
 
       // Average free quota across non-IoT nodes
       const llmNodes = nodesList.filter(n => n.caste !== 'CASTE_5_IOT_SENSOR');
@@ -4799,8 +4963,254 @@
     setInterval(() => {
       if (currentTab === 'mail' && currentMoltView === 'feed') {
         loadMoltbookFeed();
+      } else if (currentTab === 'evolution') {
+        loadEvolutionV4();
       }
     }, 25000);
+
+    // =========================================================================
+    // 🧬 EVOLUÇÃO v4.0: LEDGER WAL, AGENT CARDS, ENVELOPES & MUTAÇÕES
+    // =========================================================================
+    let currentCapFilter = '';
+
+    async function loadEvolutionV4() {
+      try {
+        const res = await fetch('api.php?action=evolution_status&t=' + Date.now());
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.ok) return;
+
+        const counts = data.counts || {};
+        const tb = data.token_budget || {};
+        const badgeEl = document.getElementById('evoSqliteBadge');
+        if (badgeEl) {
+          badgeEl.textContent = data.sqlite_wal_active ? 'SQLite WAL: ATIVO' : 'SQLite WAL: INATIVO';
+          badgeEl.style.color = data.sqlite_wal_active ? '#34d399' : '#f87171';
+        }
+        const protEl = document.getElementById('evoProtocolName');
+        if (protEl && data.protocol) protEl.textContent = data.protocol;
+
+        const tabCountEvo = document.getElementById('tabCountEvolution');
+        if (tabCountEvo) tabCountEvo.textContent = counts.axioms ?? 0;
+
+        document.getElementById('evoKpiAxioms').textContent = counts.axioms ?? 0;
+        document.getElementById('evoKpiTokens').textContent = `${(tb.input_tokens || 0).toLocaleString('pt-BR')} in / ${(tb.output_tokens || 0).toLocaleString('pt-BR')} out`;
+        document.getElementById('evoKpiCacheHit').textContent = `Cache hits: ${tb.cache_hits || 0} (${tb.cache_hit_rate_pct || 0}%) · Tools locais: ${tb.local_tool_invocations || 0}`;
+        document.getElementById('evoKpiEnvelopes').textContent = counts.active_envelopes ?? 0;
+        document.getElementById('evoKpiMemories').textContent = counts.persistent_memories ?? 0;
+        document.getElementById('evoKpiMutations').textContent = `${counts.mutations_promoted || 0} ok / ${counts.mutations_rejected || 0} rej`;
+
+        renderEvolutionCards(data.agent_cards || []);
+        renderEvolutionAxioms(data.axioms || []);
+        renderEvolutionEnvelopes(data.envelopes || []);
+        renderEvolutionMemories(data.persistent_memories || []);
+        renderEvolutionMutations(data.mutations || []);
+      } catch (err) {
+        console.warn('[Evolution v4] Erro ao carregar status:', err);
+      }
+    }
+
+    function renderEvolutionCards(cards) {
+      const grid = document.getElementById('evoAgentCardsGrid');
+      if (!grid) return;
+      const filtered = currentCapFilter
+        ? cards.filter(c => Array.isArray(c.capabilities) && c.capabilities.includes(currentCapFilter))
+        : cards;
+
+      if (!filtered.length) {
+        grid.innerHTML = `<div style="color:var(--text-muted); font-size:0.8rem;">Nenhum nó possui a capacidade <code>${escapeHtml(currentCapFilter || 'solicitada')}</code>.</div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(c => {
+        const capsHtml = (c.capabilities || []).map(cap =>
+          `<span class="badge" style="font-size:0.68rem; background:rgba(56,189,248,0.12); color:#7dd3fc; border:1px solid rgba(56,189,248,0.3);">${escapeHtml(cap)}</span>`
+        ).join(' ');
+        const isOnline = (c.status || '').toUpperCase() === 'ONLINE';
+        return `<div style="background:#060913; border:1px solid #1e293b; border-radius:10px; padding:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <strong style="color:#f8fafc; font-size:0.84rem;">${escapeHtml(c.node_id || c.name)}</strong>
+            <span style="font-size:0.7rem; color:${isOnline ? '#34d399' : '#94a3b8'};">● ${escapeHtml(c.status || 'UNKNOWN')}</span>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px;">${capsHtml}</div>
+          <div style="font-size:0.7rem; color:var(--text-muted);">Ctx: ${c.max_context || '-'} · Tier: ${escapeHtml(c.cost_tier || '-')}</div>
+        </div>`;
+      }).join('');
+    }
+
+    async function filterAgentCards(cap) {
+      currentCapFilter = cap;
+      try {
+        const url = 'api.php?action=agent_cards' + (cap ? '&capability=' + encodeURIComponent(cap) : '') + '&t=' + Date.now();
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.ok) renderEvolutionCards(data.cards || []);
+      } catch (e) {
+        loadEvolutionV4();
+      }
+    }
+
+    function renderEvolutionAxioms(axioms) {
+      const box = document.getElementById('evoAxiomsList');
+      if (!box) return;
+      if (!axioms.length) {
+        box.innerHTML = '<div style="color:var(--text-muted); font-size:0.8rem;">Nenhum axioma registrado no Ledger WAL ainda. Clique em "Sanitizar Ledger".</div>';
+        return;
+      }
+      box.innerHTML = axioms.map(ax => {
+        const id = ax.axiom_id || ax.id || '-';
+        const ulid = ax.ulid || '-';
+        const hash = (ax.semantic_hash || '').slice(0, 14);
+        return `<div style="background:#060913; border:1px solid #1e293b; border-radius:8px; padding:10px;">
+          <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px; margin-bottom:4px;">
+            <strong style="color:#38bdf8; font-size:0.82rem;">[${escapeHtml(id)}] ${escapeHtml(ax.topic || '')}</strong>
+            <span style="font-size:0.7rem; color:#94a3b8;">ULID: <code>${escapeHtml(ulid)}</code> · sha256:<code>${escapeHtml(hash)}...</code></span>
+          </div>
+          <div style="font-size:0.8rem; color:#e2e8f0; margin-bottom:4px;">${escapeHtml(ax.rule_text || ax.rule || '')}</div>
+          <div style="font-size:0.7rem; color:#94a3b8;">Domínio: <code>${escapeHtml(ax.domain_slug || 'mesh-core')}</code> · Evidência: <code>${escapeHtml(ax.evidence_artifact || 'state/rna_ledger.sqlite')}</code> · Nós: ${escapeHtml(ax.author_nodes || '-')}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderEvolutionEnvelopes(envelopes) {
+      const box = document.getElementById('evoEnvelopesList');
+      if (!box) return;
+      if (!envelopes.length) {
+        box.innerHTML = '<div style="color:var(--text-muted);">Nenhum envelope ativo no momento.</div>';
+        return;
+      }
+      box.innerHTML = envelopes.map(env => {
+        const seen = Array.isArray(env.seen_nodes) ? env.seen_nodes.join(' → ') : '';
+        return `<div style="background:#060913; border:1px solid #1e293b; border-radius:8px; padding:8px;">
+          <div style="display:flex; justify-content:space-between;">
+            <code style="color:#a78bfa;">${escapeHtml((env.task_id || '').slice(0, 14))}...</code>
+            <span class="badge" style="font-size:0.68rem;">hop_ttl: ${env.hop_ttl ?? 0}</span>
+          </div>
+          <div style="color:#e2e8f0; margin-top:4px;">Cap: <code>${escapeHtml(env.capability_needed || '-')}</code></div>
+          <div style="color:#94a3b8; font-size:0.72rem;">Seen: ${escapeHtml(seen || '-')} · Expira: ${escapeHtml(env.expires_at || '-')}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderEvolutionMemories(mems) {
+      const box = document.getElementById('evoMemoriesList');
+      if (!box) return;
+      if (!mems.length) {
+        box.innerHTML = '<div style="color:var(--text-muted);">Nenhuma memória persistente registrada.</div>';
+        return;
+      }
+      box.innerHTML = mems.map(m => {
+        const sig = (m.hmac_signature || '').slice(0, 16);
+        return `<div style="background:#060913; border:1px solid #1e293b; border-radius:8px; padding:8px;">
+          <div style="display:flex; justify-content:space-between;">
+            <strong style="color:#f472b6;">${escapeHtml(m.node_id || '')}</strong>
+            <span style="font-size:0.68rem; color:#34d399;">HMAC ${escapeHtml(sig)}...</span>
+          </div>
+          <div style="color:#94a3b8; font-size:0.72rem; margin-top:3px;">Escopo: <code>${escapeHtml(m.trust_scope || 'mesh_federated')}</code> · Verificado: ${escapeHtml(m.last_verified_at || '-')}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderEvolutionMutations(muts) {
+      const box = document.getElementById('evoMutationsList');
+      if (!box) return;
+      if (!muts.length) {
+        box.innerHTML = '<div style="color:var(--text-muted);">Nenhuma mutação evolutiva registrada ainda.</div>';
+        return;
+      }
+      box.innerHTML = muts.map(m => {
+        const st = m.status || 'candidate';
+        const stColor = st === 'promoted' ? '#34d399' : (st === 'rejected' ? '#f87171' : '#fbbf24');
+        return `<div style="background:#060913; border:1px solid #1e293b; border-radius:8px; padding:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <code style="color:#e2e8f0;">${escapeHtml(m.mutation_id || '')}</code>
+            <span style="font-size:0.72rem; font-weight:700; color:${stColor};">${escapeHtml(st.toUpperCase())}</span>
+          </div>
+          <div style="color:#94a3b8; font-size:0.72rem; margin-top:3px;">Tipo: <code>${escapeHtml(m.mutation_type || '-')}</code> · Ver: ${escapeHtml(m.version || 'v1.0')} · Pai: ${escapeHtml(m.parent_tool_id || '-')}</div>
+        </div>`;
+      }).join('');
+    }
+
+    async function runNoveltyGateCheck() {
+      const topic = document.getElementById('evoNoveltyTopic').value.trim();
+      const rule = document.getElementById('evoNoveltyRule').value.trim();
+      const out = document.getElementById('evoNoveltyOutput');
+      if (!topic && !rule) {
+        showToast('Informe tópico ou regra para testar o Novelty Gate.', 'error');
+        return;
+      }
+      const res = await fetch('api.php?action=novelty_check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, rule })
+      });
+      const data = await res.json();
+      out.style.display = 'block';
+      out.textContent = JSON.stringify(data, null, 2);
+      showToast(data.allowed ? 'Tópico inédito aprovado!' : 'Duplicata bloqueada pelo Novelty Gate!', data.allowed ? 'success' : 'info');
+    }
+
+    async function submitMutationRequestUi() {
+      const mutation_type = document.getElementById('evoMutType').value;
+      const parent_tool_id = document.getElementById('evoMutParent').value.trim();
+      const title = document.getElementById('evoMutTitle').value.trim();
+      const purpose = document.getElementById('evoMutPurpose').value.trim();
+      const out = document.getElementById('evoMutOutput');
+      const res = await fetch('api.php?action=aicreate_mutate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mutation_type,
+          parent_tool_id,
+          requested_by_node: 'Dashboard-Supervisor',
+          title,
+          purpose
+        })
+      });
+      const data = await res.json();
+      out.style.display = 'block';
+      out.textContent = JSON.stringify(data, null, 2);
+      showToast(data.ok ? 'Mutação promovida após Sandbox Check!' : ('Mutação bloqueada/rejeitada: ' + (data.error || '')), data.ok ? 'success' : 'error');
+      loadEvolutionV4();
+    }
+
+    async function triggerSanitizeLedger() {
+      const res = await fetch('api.php?action=sanitize_ledger');
+      const data = await res.json();
+      showToast(`Sanitização concluída: ${data.total_axioms_in_ledger ?? 0} axiomas no Ledger WAL (${data.duplicates_discarded ?? 0} duplicatas descartadas).`, 'success');
+      loadEvolutionV4();
+    }
+
+    async function triggerPruneMutations() {
+      const res = await fetch('api.php?action=aicreate_prune_mutations');
+      const data = await res.json();
+      showToast(`Garbage Collector executado: ${data.pruned_dirs ?? 0} diretórios obsoletos limpos.`, 'info');
+      loadEvolutionV4();
+    }
+
+    async function createDemoEnvelope() {
+      const res = await fetch('api.php?action=session_envelope', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ capability_needed: 'code', seen_nodes: ['Web-Monitor'], hop_ttl: 3, ttl_seconds: 1800 })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showToast('Envelope efêmero criado: ' + (data.envelope?.task_id || ''), 'success');
+        loadEvolutionV4();
+      }
+    }
+
+    async function triggerDemoMemoryUpsert() {
+      const res = await fetch('api.php?action=rna_memory_upsert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ node_id: 'mesh-supervisor-ui', capabilities: ['reasoning', 'code', 'audit'], auto_propagate: true })
+      });
+      const data = await res.json();
+      showToast(data.ok ? 'Memória persistente assinada com HMAC e propagada!' : 'Erro ao gravar memória', data.ok ? 'success' : 'error');
+      loadEvolutionV4();
+    }
   </script>
 </body>
 
